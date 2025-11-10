@@ -2,4 +2,6 @@
 
 Phiên bản:
 
-Python:
+Python 3.13.3
+
+pip 25.3
