@@ -11,15 +11,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Exemple',
-            fields=[
-                ('id', models.IntegerField(primary_key=True, serialize=False)),
-                ('name', models.TextField()),
-                ('value', models.FloatField()),
-            ],
-            options={
-                'db_table': 'exemple',
-            },
-        ),
     ]
