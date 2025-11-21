@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 // Endpoint Backend Python của Django (Cần được nhóm Backend tạo)
-const API_URL = "http://localhost:8000/api/v1/auth/login/";
+const API_URL = "https://50a34806fe70.ngrok-free.app/api/v1/auth/login/";
 
 const LoginPage = () => {
   // 1. STATE: Quản lý dữ liệu form, lỗi và trạng thái tải
@@ -25,13 +25,22 @@ const LoginPage = () => {
       const response = await axios.post(API_URL, {
         username: username,
         password: password,
-      });
+      },
+        {
+          headers: {
+            // THÊM DÒNG NÀY để bỏ qua cảnh báo của ngrok
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
 
       // THÀNH CÔNG: Lưu token và chuyển hướng
       const { token } = response.data;
       localStorage.setItem("auth_token", token);
+      console.log("Đăng nhập thành công! Token:", token);
       navigate("/admin/dashboard");
+      
     } catch (err) {
+      
       // THẤT BẠI: Hiển thị lỗi xác thực
       if (err.response && err.response.status === 401) {
         setError("Tên đăng nhập hoặc mật khẩu không chính xác!");
@@ -54,6 +63,7 @@ const LoginPage = () => {
           <div className="card shadow-lg border-0 rounded-3">
             <div className="card-body p-4 p-sm-5">
               <div className="row">
+
                 {/* CỘT 1: ICON */}
                 <div className="col-md-5 d-none d-md-flex align-items-center justify-content-center">
                   <i
@@ -68,7 +78,7 @@ const LoginPage = () => {
                     Chung cư BlueMoon
                   </h3>
                   <p className="text-center text-muted mb-4">
-                    Đăng nhập tài khoản quản trị
+                    Đăng nhập tài khoản
                   </p>
 
                   <form onSubmit={handleLogin}>
@@ -108,7 +118,9 @@ const LoginPage = () => {
                       />
                       <label htmlFor="password">Mật khẩu</label>
                     </div>
-
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <p style={{ fontSize: 12 }}>Quên mật khẩu?</p>
+                      </div>
                     {/* Nút Đăng nhập */}
                     <div className="d-grid mt-4">
                       <button

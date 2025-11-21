@@ -3,10 +3,9 @@ import LoginPage from "./Login.jsx";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route index element={<LoginPage />} />
+      <Route path="dashboard" element={<div>Dashboard Page</div>} />
+    </Routes>
   );
 }

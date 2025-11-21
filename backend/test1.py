@@ -12,11 +12,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cnpm.settings")
 django.setup()
 
 # --- Mã của bạn truy cập Models hoặc Settings sẽ chạy sau dòng này ---
-from cnpm.models import HoKhau
+from cnpm.models import Users
 
 # Lấy tất cả
-ho_khau_list = HoKhau.objects.all()
+user_list = Users.objects.all()
 
 # In ra danh sách
-for h in ho_khau_list:
-    print(h.mahokhau, h.diachi, h.ngaylap)
+for u in user_list:
+    print(u.username, u.email)
