@@ -1,20 +1,14 @@
-import React, { useState } from "react";
-import Header from "./components/Header.jsx";
-import "./styles/AdminDashboard.css";
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar.jsx";
-import StatCard from "./components/StatCard.jsx";
+import StatCard from "./StatCard.jsx";
 
 function RightWidget({ title, children }) {
   return (
-    <div className="right-widget">
-      <div className="widget-title">{title}</div>
-      <div className="widget-body">{children}</div>
-    </div>
+	<div className="right-widget">
+	  <div className="widget-title">{title}</div>
+	  <div className="widget-body">{children}</div>
+	</div>
   );
 }
-
-function Main() {
+export default function Main() {
   return (
     <div className="main-area">
       <div className="top-row">
@@ -77,25 +71,6 @@ function Main() {
             </div>
           </RightWidget>
         </aside>
-      </div>
-    </div>
-  );
-}
-
-export default function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  function toggleSidebar() {
-    setSidebarOpen((s) => !s);
-  }
-
-  return (
-    <div className={`admin-dashboard ${sidebarOpen ? "" : "sidebar-collapsed"}`}>
-      <Sidebar isCollapsed={!sidebarOpen} />
-      <div className={`workspace ${sidebarOpen ? "" : "expanded"}`}>
-        <Header onToggle={toggleSidebar} />
-        <Navbar />
-        <Main />
       </div>
     </div>
   );

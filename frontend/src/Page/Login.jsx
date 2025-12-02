@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./styles/Login.css";
+import "../styles/Login.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -7,9 +7,10 @@ import { useNavigate } from "react-router-dom";
 const API_URL = "https://50a34806fe70.ngrok-free.app/api/v1/auth/login/";
 
 export default function LoginPage() {
-  // 1. STATE: Quản lý dữ liệu form, lỗi và trạng thái tải
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,12 +29,6 @@ export default function LoginPage() {
         {
           username: username,
           password: password,
-        },
-        {
-          headers: {
-            // THÊM DÒNG NÀY để bỏ qua cảnh báo của ngrok
-            "ngrok-skip-browser-warning": "true",
-          },
         }
       );
 
@@ -54,7 +49,6 @@ export default function LoginPage() {
     }
   };
 
-  // 3. UI: Giao diện Form (Tích hợp Template Bootstrap)
   return (
     <div className="login-container">
       <div className="login-card">

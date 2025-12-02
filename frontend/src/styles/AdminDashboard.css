@@ -1,4 +1,19 @@
-/* Polished Admin dashboard styles: smoother typography, shadows, transitions */
+/* ============================================================
+   AdminDashboard.css
+   - Mục đích: Styles cho layout Admin (sidebar + header + workspace)
+   - Hướng dẫn nhanh: chỉnh biến ở phần **Variables** bên dưới để thay
+     đổi màu/tone chung, sau đó sửa các section cụ thể (Sidebar, Header,...)
+   - Cấu trúc file được nhóm theo: Variables -> Reset -> Layout -> Header
+     -> Sidebar -> Workspace/Main -> Components (cards/panels) -> Responsive
+  
+   Ghi chú nhóm thuộc tính (những mục bạn sẽ thấy trong mỗi selector):
+   - Layout/Positioning: display, position, top/left/right/bottom, width/height
+   - Box model: padding, margin, border, border-radius
+   - Visuals: background, color, box-shadow
+   - Transitions/Animation: transition, transform
+  
+  Dùng comment section để nhanh chóng nhảy tới phần cần chỉnh.
+  ============================================================ */
 :root {
   --bg: #f4f7fb;
   --surface: #f8fafc;
@@ -13,69 +28,48 @@
   --shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
 }
 
-* {
-  box-sizing: border-box;
-}
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-}
-body {
-  font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
-  background: linear-gradient(180deg, var(--bg), #ffffff);
-  color: #111827;
-}
-
 .admin-dashboard {
   display: flex;
-  min-height: 100vh;
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 80px); /* full height minus header */
 }
 
 .sidebar {
-  width: 240px;
-  padding: 28px;
-  background: linear-gradient(180deg, var(--card), #ffffff);
-  border-right: 1px solid rgba(15, 23, 42, 0.04);
-  /* fixed under the header so header does not shift */
   position: fixed;
   left: 0;
-  top: 64px; /* sits below fixed header */
+  top: 80px; /* below header */
+  width: 240px;
+  background: linear-gradient(180deg, var(--card), #ffffff);
+  border-right: 1px solid rgba(15, 23, 42, 0.04);
   bottom: 0;
-  height: calc(100vh - 64px);
-  z-index: 12;
-  transition: transform 0.28s ease, opacity 0.2s ease;
-}
-
-.sidebar--collapsed {
-  transform: translateX(-280px);
-  opacity: 0;
-  pointer-events: none;
+  z-index: 1;
+  /* No animation for sidebar (instant show/hide) */
+  transition: none;
 }
 
 /* workspace margin adjusts to sidebar width for smooth expand/collapse */
 .workspace {
-  transition: margin-left 0.28s ease, padding 0.28s ease;
   margin-left: 240px;
-  padding-top: 64px; /* leave space for the fixed header */
-}
-.admin-dashboard.sidebar-collapsed .workspace {
-  margin-left: 0;
 }
 .brand {
+  /* Logo / tên ứng dụng trong sidebar */
   font-weight: 800;
   color: var(--accent);
   font-size: 20px;
   margin-bottom: 20px;
   letter-spacing: 0.4px;
 }
+
 .sidebar-nav {
+  /* Danh sách menu trong sidebar */
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
+
 .nav-item {
+  /* Các link menu (NavLink) */
   padding: 10px 14px;
   border-radius: 10px;
   color: #374151;
@@ -83,11 +77,13 @@ body {
   cursor: pointer;
   transition: all 0.18s ease;
 }
+
 .nav-item:hover {
   background: #f3f4f6;
   transform: translateY(-1px);
 }
 .nav-item.active {
+  /* Khi NavLink active: đổi nền và màu chữ */
   background: linear-gradient(
     90deg,
     rgba(108, 92, 231, 0.07),
@@ -101,29 +97,47 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: 240px;
+  /* reserve space for fixed header */
+  padding-top: 80px;
+  /* allow internal scrolling so header/sidebar stay fixed */
+  min-height: 0;
+  overflow: auto;
 }
 
-/* topbar */
-.admin-topbar {
+/* Sidebar collapsed state: hide immediately (no animation) */
+.sidebar--collapsed {
+  display: none;
+}
+
+/* When the root has collapsed state, let workspace use full width */
+.admin-dashboard.sidebar-collapsed .workspace {
+  margin-left: 0;
+}
+
+/* topbar - header cố định */
+.topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
   background: var(--card);
   border-bottom: 1px solid rgba(15, 23, 42, 0.04);
-  position: fixed; /* keep header fixed at top */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 64px;
-  z-index: 20;
+  height: 80px;
+  z-index: 1;
 }
+
 .topbar-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 .menu-toggle {
+  /* nút hamburger để ẩn/hiện sidebar */
   background: transparent;
   border: 0;
   padding: 6px;
@@ -147,6 +161,7 @@ body {
 }
 
 .header-search {
+  /* Hộp tìm kiếm trên header */
   display: flex;
   align-items: center;
   background: var(--card);
@@ -159,8 +174,7 @@ body {
 .header-search__input {
   border: 0;
   outline: none;
-  padding: 8px 10px;
-  font-size: 14px;
+  font-size: 18px;
   width: 100%;
   border-radius: 8px;
 }
@@ -207,6 +221,7 @@ body {
 }
 
 .main-area {
+  /* Vùng nội dung chính hiển thị trong Outlet */
   padding: 20px 28px;
 }
 .top-row {
@@ -246,6 +261,7 @@ body {
 }
 
 .content-grid {
+  /* layout hai cột chính: nội dung + sidebar phải */
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: 20px;
@@ -315,6 +331,7 @@ body {
 }
 
 .panel {
+  /* Khung nội dung chung */
   background: var(--card);
   padding: 16px;
   border-radius: 12px;
@@ -376,30 +393,4 @@ body {
 }
 .stock-price {
   font-weight: 800;
-}
-
-@media (max-width: 1100px) {
-  .header-search {
-    width: 360px;
-  }
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .content-grid {
-    grid-template-columns: 1fr 320px;
-  }
-}
-@media (max-width: 780px) {
-  .sidebar {
-    display: none;
-  }
-  .header-search {
-    display: none;
-  }
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-  .stats-row {
-    grid-template-columns: repeat(1, 1fr);
-  }
 }
