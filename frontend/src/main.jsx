@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 // import {adminClient} from 'react-admin'
 import App from "./App.jsx";
-import "./styles/index.css";
+
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

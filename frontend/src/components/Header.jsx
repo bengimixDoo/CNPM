@@ -1,4 +1,5 @@
 import React from "react";
+import Avatar from "@mui/material/Avatar";
 
 export function SearchSection() {
   return (
@@ -50,47 +51,24 @@ export function NotificationIcon() {
 export function ProfileSection() {
   return (
     <div className="profile-wrapper">
-      <div className="avatar">A</div>
-      <div className="profile-name">Admin</div>
+      <Avatar className="avatar">P</Avatar>
+      <div className="profile-name">Phạm Ngọc Tuyên</div>
+      <div className="profile-role">Admin</div>
     </div>
   );
 }
 
-export default function Header({ onToggle }) {
+export default function Header() {
   return (
     <>
       <div className="topbar">
-        <div className="topbar-left">
-          <button
-            className="menu-toggle"
-            aria-label="Toggle sidebar"
-            onClick={onToggle}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-          <ProfileSection />
-        </div>
-
-        <div className="topbar-center">
+        <div className="topbar-left"></div>
+        <div className="topbar-mid">
           <SearchSection />
         </div>
-
         <div className="topbar-right">
-          <NotificationIcon />
-          <div className="topbar-brand">BlueMoon</div>
+          {/* <NotificationIcon /> */}
+          <ProfileSection />
         </div>
       </div>
     </>
