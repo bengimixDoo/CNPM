@@ -1,8 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./Page/Login.jsx";
 import AdminLayout from "./Page/AdminDashboard.jsx";
-import ResidentsPage from "./Page/Residents.jsx";
-import Main from "./components/Main.jsx";
+import Residents from "./Workspace/Residents.jsx";
+import Main from "./Workspace/Main.jsx";
+import Apartments from "./Workspace/Apartments.jsx";
+import Fees from "./Workspace/Fees.jsx";
+
 export default function App() {
   return (
     <Routes>
@@ -10,7 +13,9 @@ export default function App() {
       {/* All admin pages use AdminLayout */}
       <Route path="/dashboard" element={<AdminLayout />}>
         <Route index element={<Main />} />
-        <Route path="residents" element={<ResidentsPage />} />
+        <Route path="residents" element={<Residents />} />
+        <Route path="apartments" element={<Apartments />} />
+        <Route path="fees" element={<Fees />} />
       </Route>
     </Routes>
   );

@@ -8,14 +8,15 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ApartmentIcon from "@mui/icons-material/Apartment";
-
+import HomeFilledIcon from "@mui/icons-material/HomeFilled";
 
 export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-label">
         <ApartmentIcon className="nav-icon" aria-hidden />
-        BLUEMOON</div>
+        BLUEMOON
+      </div>
       <nav className="sidebar-top" role="navigation">
         <NavLink
           to="/dashboard"
@@ -26,12 +27,23 @@ export default function Sidebar() {
           <span className="nav-label">Bảng điều khiển</span>
         </NavLink>
         <NavLink
+          to="/dashboard/apartments"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
+          <HomeFilledIcon className="nav-icon" aria-hidden />
+          <span className="nav-label">Căn hộ</span>
+        </NavLink>
+
+        <NavLink
           to="/dashboard/residents"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         >
           <PeopleAltIcon className="nav-icon" aria-hidden />
           <span className="nav-label">Dân cư</span>
         </NavLink>
+
+        
+
         <NavLink
           to="/dashboard/fees"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
@@ -39,6 +51,15 @@ export default function Sidebar() {
           <MonetizationOnIcon className="nav-icon" aria-hidden />
           <span className="nav-label">Thu phí</span>
         </NavLink>
+
+
+
+
+
+
+
+
+
         <NavLink
           to="/dashboard/invoices"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}

@@ -51,9 +51,12 @@ export function NotificationIcon() {
 export function ProfileSection() {
   return (
     <div className="profile-wrapper">
+      <div className="profile-info">
+        <div className="profile-name">Phạm Ngọc Tuyên</div>
+        <div className="profile-role">Admin</div>
+      </div>
+
       <Avatar className="avatar">P</Avatar>
-      <div className="profile-name">Phạm Ngọc Tuyên</div>
-      <div className="profile-role">Admin</div>
     </div>
   );
 }

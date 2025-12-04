@@ -13,14 +13,26 @@ body {
   --muted: #6b7280;
   --accent: #6c5ce7;
   --accent-2: #8b5cf6;
-  --blue: #2b9af3;
+  --blue:  #73b4ff;
   --red: #ef5350;
   --amber: #ffb300;
   --glass: #eef2f6;
   --shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
   --topbar-h: 80px;
   --sidebar-w: 240px;
-  --green: #4caf50;
+  --green: #59e0c5;
+  --yellow: #ffb64d;
+  --red: #ff5370;
+
+
+  /* Màu sáng (Light Mode Defaults) */
+    --color-bg-white: #ffffff;
+    --color-gray-900: #1f2937; /* Màu chữ chính/Nền tối */
+    --color-gray-200: #e5e7eb; /* Màu border/divider nhẹ */
+    --color-gray-800: #1f2937; /* Màu chữ đậm/Nền tối */
+    --color-gray-500: #6b7280; /* Màu chữ phụ */
+    --color-green-100: #d1fae5; /* Nền tag xanh */
+    --color-green-800: #065f46; /* Màu chữ tag xanh */
 }
 
 /* 1. KHU VỰC CHÍNH (FLEX CONTAINER) */
@@ -61,7 +73,7 @@ body {
   flex: 1;
   background-image: url(https://react-login-ui.trickuweb.com/static/media/signin.4558f412297d57b72af16a3ef4091726.svg); /* Màu nền trắng cho cột minh họa */
   background-size: contain;
-  background-repeat: no-repeat; 
+  background-repeat: no-repeat;
   background-position: center;
 }
 
@@ -236,10 +248,20 @@ body {
 
 .profile-wrapper {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
 }
 
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.profile-roole {
+  font-size: 11px;
+  color: #9ca3af;
+}
 .avatar {
   width: 40px;
   height: 40px;
@@ -253,7 +275,7 @@ body {
 }
 
 .profile-name {
-  font-size: 13px;
+  font-size: 18px;
   color: #374151;
 }
 
@@ -284,13 +306,12 @@ body {
 .sidebar-top {
   display: flex;
   flex-direction: column;
-
   gap: 6px;
 }
 
 .nav-item {
   display: flex;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
@@ -334,18 +355,6 @@ body {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* Khu vực nội dung chính */
 .workspace {
   flex: 1;
@@ -372,17 +381,24 @@ body {
 }
 
 .stat-card {
-  background: #2b9af3;
-  color: white;
   padding: 20px;
   border-radius: 14px;
+  background-color: var(--card-color, var(--blue));
+  padding: auto;
+  height: 120px;
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
+}
+
+.stat-content {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 120px;
-  font-size: 18px;
-  font-weight: bold;
-  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
+}
+
+.stat-title {
+  display: flex;
+  font-size: 25px;
 }
 
 /* Row 2: Chart + Thông báo */
@@ -414,4 +430,164 @@ body {
 .table-panel:hover {
   transform: translateY(-3px);
   transition: 0.2s ease;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* Styles for Apartments*/
+/* --- Card Chính --- */
+.apartment-card {
+    /* bg-white, dark:bg-gray-900 */
+    background-color: var(--color-bg-white);
+    
+    /* border border-gray-200, dark:border-gray-800 */
+    border: 1px solid var(--color-gray-200);
+    
+    /* rounded-xl */
+    border-radius: 0.75rem; /* 12px */
+    
+    /* p-5 */
+    padding: 1.25rem; /* 20px */
+    
+    /* flex flex-col gap-4 */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* 16px */
+}
+
+/* Định nghĩa Dark Mode (Chế độ màu tối) */
+.apartment-card.dark {
+    background-color: var(--color-gray-900);
+    border-color: #1f2937; /* Màu border tối */
+}
+
+/* --- Phần Header: Tên Căn hộ và Tag --- */
+.apartment-card .header-section {
+    /* flex justify-between items-start */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.apartment-card .header-info h3 {
+    /* text-lg font-bold, dark:text-white */
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+}
+.apartment-card.dark .header-info h3 {
+    color: white;
+}
+
+.apartment-card .header-info p {
+    /* text-sm text-gray-500, dark:text-gray-400 */
+    font-size: 0.875rem;
+    color: var(--color-gray-500);
+}
+
+/* --- Tag Trạng thái ("Đang ở") --- */
+.status-tag {
+    /* inline-flex items-center */
+    display: inline-flex;
+    align-items: center;
+    
+    /* px-2.5 py-0.5 rounded-full */
+    padding: 0.125rem 0.625rem; /* 4px 10px */
+    border-radius: 9999px; /* full */
+    
+    /* text-xs font-medium */
+    font-size: 0.75rem; /* 12px */
+    font-weight: 500;
+    
+    /* bg-green-100 text-green-800, dark:bg-green-900 dark:text-green-200 */
+    background-color: var(--color-green-100);
+    color: var(--color-green-800);
+}
+
+/* --- Phần Chi tiết (Chủ hộ, Diện tích) --- */
+.detail-section {
+    /* border-t border-gray-200 pt-4 */
+    border-top: 1px solid var(--color-gray-200);
+    padding-top: 1rem; /* 16px */
+    
+    /* flex flex-col gap-3 */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* 12px */
+}
+.apartment-card.dark .detail-section {
+    border-top-color: #374151; /* gray-700 dark */
+}
+
+.detail-row {
+    /* flex justify-between text-sm */
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem; /* 14px */
+}
+
+.detail-label {
+    /* text-gray-500, dark:text-gray-400 */
+    color: var(--color-gray-500);
+}
+
+.detail-value {
+    /* font-medium text-gray-800, dark:text-gray-200 */
+    font-weight: 500;
+    color: var(--color-gray-800);
+}
+.apartment-card.dark .detail-value {
+    color: #e5e7eb; /* gray-200 dark */
+}
+
+/* --- Phần Nút Hành động --- */
+.action-section {
+    /* mt-auto, flex gap-2, pt-4 border-t */
+    margin-top: auto; /* Đẩy nút xuống dưới nếu nội dung ngắn */
+    display: flex;
+    gap: 0.5rem; /* 8px */
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-gray-200);
+}
+
+.action-button {
+    /* py-2 px-3 rounded-lg text-sm font-semibold */
+    padding: 0.5rem 0.75rem; /* 8px 12px */
+    border-radius: 0.5rem; /* 8px */
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    /* bg-gray-100 text-gray-800 */
+    background-color: #f3f4f6; /* gray-100 */
+    color: var(--color-gray-800);
+}
+
+.action-button-main {
+    /* flex-1 text-center */
+    flex-grow: 1;
+    text-align: center;
+}
+
+.action-button:hover {
+    background-color: #e5e7eb; /* hover:bg-gray-200 */
+}
+
+.apartment-card.dark .action-button {
+    background-color: #1f2937; /* dark:bg-gray-800 */
+    color: #e5e7eb; /* dark:text-gray-200 */
+}
+.apartment-card.dark .action-button:hover {
+    background-color: #374151; /* dark:hover:bg-gray-700 */
 }

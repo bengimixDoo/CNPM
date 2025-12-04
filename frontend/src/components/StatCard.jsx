@@ -1,11 +1,11 @@
-export default function StatCard({ title, value, suffix, colorClass = "card--primary" }) {
+import HomeFilledIcon from "@mui/icons-material/HomeFilled";
+
+export default function StatCard({ title, value, colorBackground }) {
   return (
-    <div className={`stat-card ${colorClass}`}>
-      <div className="stat-card__inner">
+    <div className="stat-card" style={{ "--card-color": colorBackground }}>
+      <div className="stat-content">
         <div className="stat-title">{title}</div>
-        <div className="stat-value">
-          {value} {suffix}
-        </div>
+        <div className="stat-value">{value}</div>
       </div>
     </div>
   );
