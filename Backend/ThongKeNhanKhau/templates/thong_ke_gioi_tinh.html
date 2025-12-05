@@ -1,0 +1,18 @@
+<h2>Thống Kê Nhân Khẩu theo Giới Tính</h2>
+<p>Tổng số Nhân Khẩu: <strong>{{ tong_so }}</strong></p>
+<table>
+    <thead>
+        <tr>
+            <th>Giới Tính</th>
+            <th>Số Lượng</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in thong_ke_gioi_tinh %}
+        <tr>
+            <td>{{ item.label }}</td>
+            <td>{{ item.count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

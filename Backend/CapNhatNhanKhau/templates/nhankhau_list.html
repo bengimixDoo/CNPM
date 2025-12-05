@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh Sách Nhân Khẩu</title>
+    <style>
+        /* CSS đơn giản để dễ đọc */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .btn { text-decoration: none; padding: 5px 10px; margin: 2px; border: 1px solid #ccc; border-radius: 4px; display: inline-block;}
+        .btn-add { background-color: #4CAF50; color: white; }
+        .btn-edit { background-color: #2196F3; color: white; }
+        .btn-delete { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>Danh Sách Nhân Khẩu</h1>
+
+    <a href="{% url 'nhankhau_create' %}" class="btn btn-add">Thêm Nhân Khẩu Mới</a>
+
+    {% if nhan_khau_list %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Số CCCD</th>
+                    <th>Mã Hộ Khẩu</th>
+                    <th>Họ và Tên</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nhankhau in nhan_khau_list %}
+                    <tr>
+                        <td>{{ nhankhau.SoCCCD }}</td>
+                        <td>{{ nhankhau.MaHoKhau }}</td> 
+                        <td>{{ nhankhau.HoTen }}</td>
+                        <td>
+                            <a href="{% url 'nhankhau_update' pk=nhankhau.pk %}" class="btn btn-edit">Sửa</a>
+                            
+                            <a href="{% url 'nhankhau_delete' pk=nhankhau.pk %}" class="btn btn-delete">Xóa</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Không có nhân khẩu nào được tìm thấy trong cơ sở dữ liệu.</p>
+    {% endif %}
+
+</body>
+</html>

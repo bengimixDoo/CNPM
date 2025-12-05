@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác Nhận Xóa Nhân Khẩu</title>
+    <style>
+        /* CSS đơn giản để dễ đọc */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert-danger { 
+            color: #721c24; 
+            background-color: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+        }
+        .btn { text-decoration: none; padding: 8px 15px; margin-right: 10px; border-radius: 4px; cursor: pointer; }
+        .btn-delete { background-color: #dc3545; color: white; border: none; }
+        .btn-cancel { background-color: #6c757d; color: white; border: none; }
+    </style>
+</head>
+<body>
+
+    <h1>⚠️ Xác Nhận Xóa Nhân Khẩu</h1>
+
+    <div class="alert-danger">
+        <p>Bạn có chắc chắn muốn xóa vĩnh viễn **Nhân Khẩu** sau đây không? Hành động này không thể hoàn tác.</p>
+        
+        <p>
+            **Mã Hộ Khẩu:** **{{ object.MaHoKhau_id }}**<br>
+            **Số CCCD:** **{{ object.SoCCCD }}**<br>
+            **Họ và Tên:** **{{ object.HoTen }}**<br>
+            **Quan hệ:** {{ object.QuanHe|default:"(Không rõ)" }}
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <button type="submit" class="btn btn-delete">Xác nhận XÓA</button>
+        
+        <a href="{% url 'nhankhau_list' %}" class="btn btn-cancel">Hủy bỏ</a>
+    </form>
+
+</body>
+</html>

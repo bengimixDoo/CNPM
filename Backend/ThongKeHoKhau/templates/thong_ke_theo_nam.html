@@ -1,0 +1,23 @@
+<h2>Thống Kê Số Hộ Khẩu Lập theo Năm</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Năm Lập</th>
+            <th>Số Lượng Hộ Khẩu</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in thong_ke_nam %}
+        <tr>
+            <td>
+                {% if item.nam_lap %}
+                    {{ item.nam_lap }}
+                {% else %}
+                    (Chưa có ngày lập)
+                {% endif %}
+            </td>
+            <td>{{ item.total }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

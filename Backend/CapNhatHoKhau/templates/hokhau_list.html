@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh Sách Hộ Khẩu</title>
+    <style>
+        /* CSS đơn giản để dễ đọc */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .btn { text-decoration: none; padding: 5px 10px; margin: 2px; border: 1px solid #ccc; border-radius: 4px; display: inline-block;}
+        .btn-add { background-color: #4CAF50; color: white; }
+        .btn-edit { background-color: #2196F3; color: white; }
+        .btn-delete { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>📋 Danh Sách Hộ Khẩu</h1>
+
+    <a href="{% url 'hokhau_create' %}" class="btn btn-add">➕ Thêm Hộ Khẩu Mới</a>
+
+    {% if hokhau_list %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã Hộ Khẩu</th>
+                    <th>Địa Chỉ</th>
+                    <th>Ngày Lập</th>
+                    <th>Ngày Chuyển Đi</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hokhau in hokhau_list %}
+                    <tr>
+                        <td>{{ hokhau.MaHoKhau }}</td>
+                        <td>{{ hokhau.DiaChi }}</td>
+                        <td>{{ hokhau.NgayLap|default:"Chưa có" }}</td>
+                        <td>{{ hokhau.NgayChuyenDi|default:"Chưa có" }}</td>
+                        <td>
+                            <a href="{% url 'hokhau_update' pk=hokhau.MaHoKhau %}" class="btn btn-edit">Sửa</a>
+                            
+                            <a href="{% url 'hokhau_delete' pk=hokhau.MaHoKhau %}" class="btn btn-delete">Xóa</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Không có hộ khẩu nào được tìm thấy trong cơ sở dữ liệu.</p>
+    {% endif %}
+
+</body>
+</html>
