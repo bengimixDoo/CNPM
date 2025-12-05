@@ -5,21 +5,26 @@ export default function Main() {
   return (
     <div className="dashboard-grid">
       <div className="stats-row">
-        <StatCard title="Căn hộ" value="1,234" colorBackground="var(--green)" />
+        <StatCard
+          title="Căn hộ"
+          value="1,234"
+          subValue={1233}
+          colorBackground="var(--color-bg-white)"
+        />
         <StatCard
           title="Cư dân"
           value="₫567,890"
-          colorBackground="var(--blue)"
+          colorBackground="var(--color-bg-white)"
         />
         <StatCard
           title="Phương tiện"
           value="345"
-          colorBackground="var(--yellow)"
+          colorBackground="var(--color-bg-white)"
         />
         <StatCard
           title="Tổng khoản thu"
           value="78"
-          colorBackground="var(--red)"
+          colorBackground="var(--color-bg-white)"
         />
       </div>
 

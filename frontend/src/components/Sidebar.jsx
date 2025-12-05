@@ -1,5 +1,5 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
@@ -9,6 +9,80 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import HomeFilledIcon from "@mui/icons-material/HomeFilled";
+
+// NavDropdown.jsx
+
+function NavDropdown({ label, Icon, items = [] }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const location = useLocation();
+
+  // don't call setState synchronously on mount — derive open state from location
+  const parentActive = location.pathname.startsWith(
+    items[0]?.to?.split("/").slice(0, 3).join("/")
+  );
+  const isOpen = open || parentActive;
+  // click outside => đóng
+  useEffect(() => {
+    function onDoc(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  // keyboard handler on button
+  function onKey(e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpen((o) => !o);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const first = ref.current?.querySelector(".nav-subitem");
+      first?.focus();
+    }
+  }
+
+  return (
+    <div className="nav-dropdown" ref={ref}>
+      <button
+        type="button"
+        className={`nav-item ${parentActive ? "active" : ""}`}
+        aria-expanded={isOpen}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={onKey}
+      >
+        {Icon && <Icon className="nav-icon" aria-hidden />}
+        <span className="nav-label">{label}</span>
+        <span style={{ marginLeft: "auto" }}>{isOpen ? "▾" : "▸"}</span>
+      </button>
+
+      {isOpen && (
+        <div
+          className="nav-submenu"
+          role="menu"
+          aria-label={`${label} submenu`}
+        >
+          {items.map((it) => (
+            <NavLink
+              key={it.to}
+              to={it.to}
+              className={({ isActive }) =>
+                `nav-item nav-subitem ${isActive ? "active" : ""}`
+              }
+              role="menuitem"
+              tabIndex={0}
+            >
+              <span className="nav-label">{it.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Sidebar() {
   return (
@@ -42,23 +116,14 @@ export default function Sidebar() {
           <span className="nav-label">Dân cư</span>
         </NavLink>
 
-        
-
-        <NavLink
-          to="/dashboard/fees"
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-        >
-          <MonetizationOnIcon className="nav-icon" aria-hidden />
-          <span className="nav-label">Thu phí</span>
-        </NavLink>
-
-
-
-
-
-
-
-
+        <NavDropdown
+          label="Thu phí"
+          Icon={MonetizationOnIcon}
+          items={[
+            { to: "/dashboard/fees/create", label: "Tạo khoản thu" },
+            { to: "/dashboard/fees", label: "Chi tiết các khoản thu" },
+          ]}
+        />
 
         <NavLink
           to="/dashboard/invoices"

@@ -28,18 +28,18 @@ export default function Apartments() {
         <StatCard
           title="Tổng số căn hộ"
           value="1,234"
-          colorBackground="var(--green)"
+          colorBackground="var(--color-bg-white)"
         />
         <StatCard
           title="Đang ở"
           value="₫567,890"
-          colorBackground="var(--blue)"
+          colorBackground="var(--card)"
         />
-        <StatCard title="Trống" value="345" colorBackground="var(--yellow)" />
+        <StatCard title="Trống" value="345" colorBackground="var(--card)" />
         <StatCard
           title="Đang sửa chữa"
           value="78"
-          colorBackground="var(--red)"
+          colorBackground="var(--card)"
         />
       </div>
 
@@ -78,10 +78,10 @@ export default function Apartments() {
           </FormControl>
 
           {/* 1.3. Lọc theo Tầng */}
-          <FormControl size="small" sx={{ minWidth: 120  }}>
-            <InputLabel>Tầng</InputLabel >
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Tầng</InputLabel>
             <Select label="Tầng" defaultValue="all">
-              <MenuItem value="all">Tất cả</MenuItem> 
+              <MenuItem value="all">Tất cả</MenuItem>
               {/* Thêm các tầng từ 1 đến 30 */}
               {[...Array(30)].map((_, i) => (
                 <MenuItem key={i} value={i + 1}>
@@ -103,7 +103,6 @@ export default function Apartments() {
 
         {/* --- 2. Khu vực Hành động (Buttons) --- */}
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-
           {/* 2.2. Nút Xuất file (Download) */}
           <Button variant="outlined" sx={{ minWidth: "40px", padding: "8px" }}>
             <FileDownloadIcon />
