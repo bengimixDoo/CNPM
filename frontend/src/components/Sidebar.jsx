@@ -56,7 +56,7 @@ function NavDropdown({ label, Icon, items = [] }) {
       >
         {Icon && <Icon className="nav-icon" aria-hidden />}
         <span className="nav-label">{label}</span>
-        <span style={{ marginLeft: "auto" }}>{isOpen ? "▾" : "▸"}</span>
+        <span style={{ marginLeft: "auto", fontSize: "1.5em" }}>{isOpen ? "▾" : "▸"}</span>
       </button>
 
       {isOpen && (
@@ -120,7 +120,7 @@ export default function Sidebar() {
           label="Thu phí"
           Icon={MonetizationOnIcon}
           items={[
-            { to: "/dashboard/fees/create", label: "Tạo khoản thu" },
+            { to: "/dashboard/create_fees", label: "Tạo khoản thu" },
             { to: "/dashboard/fees", label: "Chi tiết các khoản thu" },
           ]}
         />

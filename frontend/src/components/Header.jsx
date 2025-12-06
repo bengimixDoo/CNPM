@@ -1,5 +1,7 @@
 import React from "react";
 import Avatar from "@mui/material/Avatar";
+import SearchIcon from "@mui/icons-material/Search";
+import "../styles/AdminDashboard.css";
 
 export function SearchSection() {
   return (
@@ -9,21 +11,7 @@ export function SearchSection() {
         type="text"
         placeholder="Tìm kiếm..."
       />
-      <button className="header-search__btn" aria-label="Search">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-      </button>
+      <SearchIcon className="header-search__icon"/>
     </div>
   );
 }
@@ -52,11 +40,27 @@ export function ProfileSection() {
   return (
     <div className="profile-wrapper">
       <div className="profile-info">
-        <div className="profile-name">Phạm Ngọc Tuyên</div>
-        <div className="profile-role">Admin</div>
+        <div style={{ fontSize: "18px", color: "#374151" }}>
+          Phạm Ngọc Tuyên
+        </div>
+        <div style={{ fontSize: "15px", color: "#9ca3af" }}>Admin</div>
       </div>
 
-      <Avatar className="avatar">P</Avatar>
+      <Avatar
+        style={{
+          width: "40px",
+          height: "40px",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, var(--accent), var(--accent-2))",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#fff",
+          fontWeight: "700",
+        }}
+      >
+        P
+      </Avatar>
     </div>
   );
 }
@@ -70,7 +74,6 @@ export default function Header() {
           <SearchSection />
         </div>
         <div className="topbar-right">
-          {/* <NotificationIcon /> */}
           <ProfileSection />
         </div>
       </div>

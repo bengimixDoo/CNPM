@@ -1,45 +1,58 @@
 import StatCard from "../components/StatCard.jsx";
 import "../styles/AdminDashboard.css";
-import { 
-    GridToolbarContainer, 
-    GridToolbarFilterButton, 
-    GridToolbarExport 
-} from '@mui/x-data-grid'; // Các tool mặc định của DataGrid
+import {
+  GridToolbarContainer,
+  GridToolbarFilterButton,
+  GridToolbarExport,
+} from "@mui/x-data-grid"; // Các tool mặc định của DataGrid
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { 
-    Button, 
-    TextField, 
-    Select, 
-    MenuItem, 
-    FormControl, 
-    InputLabel,
-    Box
-} from '@mui/material'; // Các components cơ bản của MUI
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Box,
+} from "@mui/material"; // Các components cơ bản của MUI
 
-import AddIcon from '@mui/icons-material/Add'; // Icon Thêm mới
-import FilterListIcon from '@mui/icons-material/FilterList'; // Icon Lọc/Sắp xếp
-import FileDownloadIcon from '@mui/icons-material/FileDownload'; // Icon Xuất file
-
+import AddIcon from "@mui/icons-material/Add"; // Icon Thêm mới
+import FilterListIcon from "@mui/icons-material/FilterList"; // Icon Lọc/Sắp xếp
+import FileDownloadIcon from "@mui/icons-material/FileDownload"; // Icon Xuất file
 
 export default function Apartments() {
+  const status = "Trống"; // hoặc "Trống", "Đang sửa"...
+const statusColors = {
+  "Đang ở": "var(--color-green-100)",
+  "Trống": "var(--color-yellow-100)",
+  "Đang sửa": "var(--color-red-100)",
+};
   return (
     <>
       <div className="stats-row">
         <StatCard
           title="Tổng số căn hộ"
-          value="1,234"
-          colorBackground="var(--color-bg-white)"
+          value="1234"
+          colorBackground="var(--blue)"
+          typeCard="Home"
         />
         <StatCard
           title="Đang ở"
-          value="₫567,890"
-          colorBackground="var(--card)"
+          value="123"
+          colorBackground="var(--green)"
+          typeCard="Done"
         />
-        <StatCard title="Trống" value="345" colorBackground="var(--card)" />
+        <StatCard
+          title="Trống"
+          value="345"
+          colorBackground="var(--amber)"
+          typeCard="Empty"
+        />
         <StatCard
           title="Đang sửa chữa"
           value="78"
-          colorBackground="var(--card)"
+          colorBackground="var(--red)"
+          typeCard="Fix"
         />
       </div>
 
@@ -64,7 +77,7 @@ export default function Apartments() {
             variant="outlined"
             size="small"
             placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
-            sx={{ width: 300 }}
+            sx={{ width: 500 }}
           />
 
           {/* 1.2. Lọc theo Tòa nhà */}
@@ -96,6 +109,10 @@ export default function Apartments() {
             variant="outlined"
             size="small"
             startIcon={<FilterListIcon />}
+            sx={{
+              width: 125,
+              height: 40,
+            }}
           >
             Trạng thái
           </Button>
@@ -103,12 +120,6 @@ export default function Apartments() {
 
         {/* --- 2. Khu vực Hành động (Buttons) --- */}
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          {/* 2.2. Nút Xuất file (Download) */}
-          <Button variant="outlined" sx={{ minWidth: "40px", padding: "8px" }}>
-            <FileDownloadIcon />
-          </Button>
-
-          {/* 2.3. Nút Thêm Mới (Primary Action) */}
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -134,13 +145,22 @@ export default function Apartments() {
               <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
               <p className="text-sm">Tòa A, Tầng 7</p>
             </div>
-            <span className="status-tag">Đang ở</span>
+            <span
+              className="status-tag"
+              style={{ backgroundColor: statusColors[status] || "#ddd" }}
+            >
+              {status}
+            </span>
           </div>
 
           <div className="detail-section">
             <div className="detail-row">
               <span className="detail-label">Chủ hộ:</span>
               <span className="detail-value">Lê Văn C</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Số nhân khẩu:</span>
+              <span className="detail-value">4</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Diện tích:</span>

@@ -4,7 +4,7 @@ import AdminLayout from "./Page/AdminDashboard.jsx";
 import Residents from "./Workspace/Residents.jsx";
 import Main from "./Workspace/Main.jsx";
 import Apartments from "./Workspace/Apartments.jsx";
-import Fees from "./Workspace/Fees.jsx";
+import Fees, {CreateFees} from "./Workspace/Fees.jsx";
 
 export default function App() {
   return (
@@ -16,6 +16,7 @@ export default function App() {
         <Route path="residents" element={<Residents />} />
         <Route path="apartments" element={<Apartments />} />
         <Route path="fees" element={<Fees />} />
+        <Route path="create_fees" element={<CreateFees />} />
       </Route>
     </Routes>
   );
