@@ -37,10 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'CapNhatHoKhau',
-    'CapNhatNhanKhau',
-    'ThongKeHoKhau',
-    'ThongKeNhanKhau',
+    'rest_framework',
+    'django_filters',
+    'simple_history',
+    'APImanager',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +124,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        # Đặt SearchFilter làm backend mặc định
+        'rest_framework.filters.SearchFilter',
+        # Bạn có thể thêm các bộ lọc khác nếu cần, ví dụ: OrderingFilter
+        'rest_framework.filters.OrderingFilter', 
+    ),
+}
