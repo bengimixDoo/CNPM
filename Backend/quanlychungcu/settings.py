@@ -51,7 +51,9 @@ INSTALLED_APPS = [
 
     # App của bạn
     'users.apps.UsersConfig',
-    # 'api.apps.ApiConfig', # <-- CHÚNG TA SẼ THÊM APP NÀY SAU
+    'apiQuanLy',
+    'apiKeToan',
+    'apiCuDan',
     'quanlychungcu'
 ]
 

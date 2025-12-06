@@ -15,7 +15,6 @@ urlpatterns = [
 
     # (Chúng ta cũng đổi 'refresh' cho đồng bộ)
     path('api/v1/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
     # (Chúng ta sẽ bật lại 'api.urls' sau khi login thành công)
     # path('api/', include('api.urls')),
 ]
