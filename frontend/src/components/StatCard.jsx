@@ -23,7 +23,7 @@ export default function StatCard({ title, value, colorBackground, typeCard }) {
           <div style={{ fontSize: "40px" }}>
             {value}
           </div>
-        </div>
+        </div>j
       </div>
     </div>
   );

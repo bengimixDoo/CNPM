@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "../styles/AdminDashboard.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import LockOutlineIcon from "@mui/icons-material/LockOutline";
 // API
 const API_URL = "https://50a34806fe70.ngrok-free.app/api/v1/auth/login/";
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
           <div className="column form-section">
             <div className="form-content">
               <div className="sign-in-header">
-                <span className="lock-icon">🔒</span>
+                <LockOutlineIcon className="lock-icon" />
                 <h2>Đăng nhập</h2>
               </div>
 
