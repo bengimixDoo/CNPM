@@ -75,12 +75,32 @@ WSGI_APPLICATION = 'BackEnd.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # Sử dụng PostgreSQL Engine
+        'ENGINE': 'django.db.backends.postgresql',
+        
+        # === THÔNG TIN TỪ NEON CONSOLE ===
+        'NAME': 'neondb',             # Tên database trên Neon
+        'USER': 'neondb_owner',      # Tên người dùng Neon
+        'PASSWORD': 'npg_TAgst3PFoSL8',   # Mật khẩu người dùng Neon
+        'HOST': 'ep-patient-morning-a1in6mx8-pooler.ap-southeast-1.aws.neon.tech', # Host của Neon
+        'PORT': '5432',               # Cổng mặc định
+        
+        # === CẤU HÌNH BẮT BUỘC CHO NEON ===
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
+
 
 
 # Password validation
