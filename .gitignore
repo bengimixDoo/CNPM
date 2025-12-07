@@ -22,7 +22,7 @@ Thumbs.db
 venv/
 env/
 .venv/
-.env
+Backend/.env
 
 # Các tệp bytecode
 *.pyc
