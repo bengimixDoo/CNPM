@@ -287,7 +287,7 @@ export default function Fees() {
           />
         </div>
 
-        <Paper sx={{ height: 520, width: "100%" }} style={{ marginTop: 12 }}>
+        <Paper sx={{ height: 520}} style={{ marginTop: 12 }}>
           <DataGrid
             rows={rows}
             columns={columns.map((col) => {

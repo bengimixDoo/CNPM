@@ -8,25 +8,25 @@ export default function Main() {
         <StatCard
           title="Tổng số căn hộ"
           value="1234"
-          colorBackground="var(--blue)"
+          colorBackground="var(--background-blue)"
           typeCard={"Home"}
         />
         <StatCard
           title="Cư dân"
           value="567,890"
-          colorBackground="var(--green)"
+          colorBackground="var(--background-green)"
           typeCard={"Resident"}
         />
         <StatCard
           title="Phương tiện"
           value="345"
-          colorBackground="var(--amber)"
+          colorBackground="var(--background-yellow)"
           typeCard={"Vehicle"}
         />
         <StatCard
           title="Tổng khoản thu"
           value="78"
-          colorBackground="var(--color-bg-white)"
+          colorBackground="var(--background-red)"
           typeCard={"Fee"}
         />
       </div>

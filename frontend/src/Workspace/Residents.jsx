@@ -1,4 +1,3 @@
-
 import "../styles/AdminDashboard.css";
 import StatCard from "../components/StatCard";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
@@ -19,175 +18,111 @@ import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
 
-const defaultPaginationModel = { page: 0, pageSize: 5 }; 
-const columns = [
-  { field: "invoice", headerName: "Mã khoản thu", width: 120 },
-  { field: "apartment", headerName: "Căn hộ", width: 100 },
-  { field: "owner", headerName: "Chủ hộ", width: 160 },
-  { field: "feetype", headerName: "Loại phí", width: 140 },
+const statusColors = {
+  "Đang cư trú": {
+    bg: "var(--color-green-100)",
+    text: "var(--color-green-800)",
+  },
+  "Đã chuyển đi": { bg: "#fee2e2", text: "#dc2626" },
+  "Tạm vắng": { bg: "#fef3c7", text: "#d97706" },
+};
+
+const defaultPaginationModel = { page: 0, pageSize: 5 };
+let columns = [
+  { field: "id", headerName: "Mã cư dân", width: 120 },
+  { field: "name", headerName: "Họ và tên", width: 150 },
+  { field: "birth", headerName: "Ngày sinh", width: 100 },
+  { field: "cccd", headerName: "Số CCCD", width: 140 },
   {
-    field: "amount",
-    headerName: "Số tiền",
+    field: "sdt",
+    headerName: "Số điện thoại",
     width: 120,
     type: "number",
-    valueFormatter: (params) =>
-      params.value != null
-        ? params.value.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })
-        : "",
   },
-  { field: "paymentMethod", headerName: "Hình thức", width: 120 },
-  { field: "dateCreated", headerName: "Ngày tạo", width: 130 },
-  { field: "dateDue", headerName: "Hạn thanh toán", width: 140 },
-  { field: "status", headerName: "Trạng thái", width: 120 },
+  { field: "email", headerName: "Email", width: 120 },
+  { field: "id_apartment", headerName: "Mã căn hộ", width: 130 },
+  { field: "relationship", headerName: "Quan hệ ", width: 110 },
   {
-    field: "actions",
-    headerName: "Hành động",
-    type: "actions",
-    width: 110,
-    getActions: (params) => [
-      <GridActionsCellItem
-        icon={<EditIcon />}
-        label="Sửa"
-        onClick={() => {}}
-        showInMenu={false}
-      />,
-      <GridActionsCellItem
-        icon={<DeleteIcon />}
-        label="Xóa"
-        onClick={() =>
-          params.api.getRow(params.id) &&
-          params.api.updateRows([{ id: params.id, _action: "delete" }])
-        }
-        showInMenu={false}
-      />,
-    ],
+    field: "status",
+    headerName: "Trạng thái cư chú",
+    width: 120,
+    renderCell: (params) => {
+      const color = statusColors[params.value] || statusColors["Đang cư trú"];
+      return (
+        <span
+          style={{
+            backgroundColor: color.bg,
+            color: color.text,
+            padding: "4px 8px",
+            borderRadius: "11px",
+            fontWeight: "500",
+            fontSize: "12px",
+          }}
+        >
+          {params.value}
+        </span>
+      );
+    },
   },
 ];
 
 const initialRows = [
   {
     id: "F-001",
-    invoice: "F-001",
-    apartment: "A1-1203",
-    owner: "Nguyễn Văn An",
-    feetype: "Phí dịch vụ",
-    amount: 1000000,
-    paymentMethod: "Chuyển khoản",
-    dateCreated: "2024-01-01",
-    dateDue: "2024-01-31",
-    status: "Đã thanh toán",
-    note: "Thanh toán đầy đủ",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
   },
   {
     id: "F-002",
-    invoice: "F-002",
-    apartment: "A1-1204",
-    owner: "Trần Thị B",
-    feetype: "Phí quản lý",
-    amount: 1500000,
-    paymentMethod: "Tiền mặt",
-    dateCreated: "2024-02-01",
-    dateDue: "2024-02-28",
-    status: "Chưa thanh toán",
-    note: "Nhắc nợ 2 lần",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Tạm vắng",
   },
   {
     id: "F-003",
-    invoice: "F-003",
-    apartment: "A1-1205",
-    owner: "Lê Văn C",
-    feetype: "Phí gửi xe",
-    amount: 200000,
-    paymentMethod: "Chuyển khoản",
-    dateCreated: "2024-03-01",
-    dateDue: "2024-03-15",
-    status: "Đã thanh toán",
-    note: "Thanh toán trước hạn",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
   },
   {
     id: "F-004",
-    invoice: "F-004",
-    apartment: "A1-1206",
-    owner: "Phạm Thị D",
-    feetype: "Phí dịch vụ",
-    amount: 1200000,
-    paymentMethod: "Tiền mặt",
-    dateCreated: "2024-04-01",
-    dateDue: "2024-04-30",
-    status: "Chưa thanh toán",
-    note: "Đang chờ xác nhận",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
   },
   {
     id: "F-005",
-    invoice: "F-005",
-    apartment: "A1-1207",
-    owner: "Hoàng Văn E",
-    feetype: "Phí dịch vụ",
-    amount: 1800000,
-    paymentMethod: "Chuyển khoản",
-    dateCreated: "2024-05-01",
-    dateDue: "2024-05-31",
-    status: "Đã thanh toán",
-    note: "Kèm biên lai",
-  },
-  {
-    id: "F-006",
-    invoice: "F-006",
-    apartment: "A1-1208",
-    owner: "Nguyễn Văn F",
-    feetype: "Phí quản lý",
-    amount: 1100000,
-    paymentMethod: "Chuyển khoản",
-    dateCreated: "2024-06-01",
-    dateDue: "2024-06-30",
-    status: "Chưa thanh toán",
-    note: "Đã gửi email",
-  },
-  {
-    id: "F-007",
-    invoice: "F-007",
-    apartment: "A1-1209",
-    owner: "Nguyễn Văn G",
-    feetype: "Phí gửi xe",
-    amount: 130000,
-    paymentMethod: "Tiền mặt",
-    dateCreated: "2024-07-01",
-    dateDue: "2024-07-31",
-    status: "Đã thanh toán",
-    note: "",
-  },
-  {
-    id: "F-008",
-    invoice: "F-008",
-    apartment: "A1-1210",
-    owner: "Trương Thị H",
-    feetype: "Phí dịch vụ",
-    amount: 1400000,
-    paymentMethod: "Chuyển khoản",
-    dateCreated: "2024-08-01",
-    dateDue: "2024-08-31",
-    status: "Chưa thanh toán",
-    note: "Yêu cầu gia hạn",
-  },
-  {
-    id: "F-009",
-    invoice: "F-009",
-    apartment: "A1-1211",
-    owner: "Võ Văn I",
-    feetype: "Phí dịch vụ",
-    amount: 1600000,
-    paymentMethod: "Chuyển khoản",
-    dateCreated: "2024-09-01",
-    dateDue: "2024-09-30",
-    status: "Đã thanh toán",
-    note: "Thanh toán bằng QR",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
   },
 ];
-
-
 
 export default function Residents() {
   return (
@@ -201,10 +136,18 @@ export default function Residents() {
             padding: "16px",
             backgroundColor: "white",
             borderBottom: "1px solid #e0e0e0",
+            borderRadius: "12px",
           }}
         >
           {/* --- 1. Khu vực Tìm kiếm và Lọc Nâng cao --- */}
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1.5,
+              alignItems: "center",
+              borderRadius: "12px",
+            }}
+          >
             {/* 1.1. Tìm kiếm (Dạng Input) */}
             <TextField
               // Tương đương với input.search-input
@@ -265,7 +208,7 @@ export default function Residents() {
         </Box>
       </div>
 
-      <Paper sx={{ height: 700, width: "100%" }} >
+      <Paper sx={{ height: 700 }}>
         <DataGrid
           rows={initialRows}
           columns={columns}

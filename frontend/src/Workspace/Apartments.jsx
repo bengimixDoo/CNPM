@@ -1,10 +1,6 @@
+import { useState } from "react";
 import StatCard from "../components/StatCard.jsx";
 import "../styles/AdminDashboard.css";
-import {
-  GridToolbarContainer,
-  GridToolbarFilterButton,
-  GridToolbarExport,
-} from "@mui/x-data-grid"; // Các tool mặc định của DataGrid
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Button,
@@ -14,44 +10,235 @@ import {
   FormControl,
   InputLabel,
   Box,
-} from "@mui/material"; // Các components cơ bản của MUI
-
-import AddIcon from "@mui/icons-material/Add"; // Icon Thêm mới
-import FilterListIcon from "@mui/icons-material/FilterList"; // Icon Lọc/Sắp xếp
-import FileDownloadIcon from "@mui/icons-material/FileDownload"; // Icon Xuất file
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import FilterListIcon from "@mui/icons-material/FilterList";
 
 export default function Apartments() {
-  const status = "Trống"; // hoặc "Trống", "Đang sửa"...
-const statusColors = {
-  "Đang ở": "var(--color-green-100)",
-  "Trống": "var(--color-yellow-100)",
-  "Đang sửa": "var(--color-red-100)",
-};
+  const statusColors = {
+    "Đang ở": "var(--color-green-100)",
+    Trống: "var(--color-yellow-100)",
+    "Đang sửa": "var(--color-red-100)",
+  };
+
+  const apartments = [
+    {
+      id: "A-0702",
+      building: "A",
+      floor: 7,
+      owner: "Lê Văn C",
+      residents: 4,
+      area: "75 m²",
+      status: "Trống",
+      phone: "0901 234 567",
+      email: "chuho.a702@example.com",
+      note: "Căn hộ vừa trống, cần dọn dẹp nhẹ.",
+      residentsList: [
+        {
+          name: "Nguyễn Văn A",
+          dob: "15/05/1980",
+          relation: "Chủ hộ",
+          phone: "0901234567",
+        },
+        {
+          name: "Trần Thị B",
+          dob: "20/10/1982",
+          relation: "Vợ",
+          phone: "0908765432",
+        },
+        {
+          name: "Nguyễn Hoàng C",
+          dob: "12/03/2005",
+          relation: "Con",
+          phone: "0912345678",
+        },
+        {
+          name: "Nguyễn Thị D",
+          dob: "08/09/2010",
+          relation: "Con",
+          phone: "N/A",
+        },
+      ],
+    },
+    {
+      id: "A-1203",
+      building: "A",
+      floor: 12,
+      owner: "Nguyễn Văn An",
+      residents: 3,
+      area: "82 m²",
+      status: "Đang ở",
+      phone: "0909 888 777",
+      email: "an.nguyen@example.com",
+      note: "Sinh hoạt bình thường.",
+      residentsList: [
+        {
+          name: "Nguyễn Văn An",
+          dob: "05/04/1988",
+          relation: "Chủ hộ",
+          phone: "0909888777",
+        },
+        {
+          name: "Lê Thị Hoa",
+          dob: "10/02/1990",
+          relation: "Vợ",
+          phone: "0911999888",
+        },
+        {
+          name: "Nguyễn Gia Hân",
+          dob: "30/11/2018",
+          relation: "Con",
+          phone: "N/A",
+        },
+      ],
+    },
+    {
+      id: "B-0508",
+      building: "B",
+      floor: 5,
+      owner: "Trần Thị B",
+      residents: 2,
+      area: "68 m²",
+      status: "Đang sửa",
+      phone: "0912 345 678",
+      email: "b.tran@example.com",
+      note: "Đang sửa hệ thống điện, dự kiến xong 3 ngày.",
+      residentsList: [
+        {
+          name: "Trần Thị B",
+          dob: "15/09/1984",
+          relation: "Chủ hộ",
+          phone: "0912345678",
+        },
+      ],
+    },
+    {
+      id: "B-0901",
+      building: "B",
+      floor: 9,
+      owner: "Hoàng Văn E",
+      residents: 5,
+      area: "90 m²",
+      status: "Đang ở",
+      phone: "0933 666 555",
+      email: "hoang.e@example.com",
+      note: "Gia đình đông người, ưu tiên bảo trì định kỳ.",
+      residentsList: [
+        {
+          name: "Hoàng Văn E",
+          dob: "01/01/1978",
+          relation: "Chủ hộ",
+          phone: "0933666555",
+        },
+        {
+          name: "Phạm Thị F",
+          dob: "22/07/1980",
+          relation: "Vợ",
+          phone: "0933777666",
+        },
+        {
+          name: "Hoàng Gia K",
+          dob: "14/04/2010",
+          relation: "Con",
+          phone: "N/A",
+        },
+        {
+          name: "Hoàng Gia L",
+          dob: "09/08/2014",
+          relation: "Con",
+          phone: "N/A",
+        },
+        {
+          name: "Hoàng Gia M",
+          dob: "30/12/2017",
+          relation: "Con",
+          phone: "N/A",
+        },
+      ],
+    },
+    {
+      id: "C-0304",
+      building: "C",
+      floor: 3,
+      owner: "Phạm Thị D",
+      residents: 1,
+      area: "55 m²",
+      status: "Trống",
+      phone: "0902 222 333",
+      email: "d.pham@example.com",
+      note: "Trống, đang tìm khách mới.",
+      residentsList: [],
+    },
+    {
+      id: "C-1010",
+      building: "C",
+      floor: 10,
+      owner: "Lê Văn C",
+      residents: 2,
+      area: "70 m²",
+      status: "Đang ở",
+      phone: "0907 777 888",
+      email: "levanc@example.com",
+      note: "Yêu cầu kiểm tra ống nước tháng tới.",
+      residentsList: [
+        {
+          name: "Lê Văn C",
+          dob: "09/09/1985",
+          relation: "Chủ hộ",
+          phone: "0907777888",
+        },
+        {
+          name: "Nguyễn Thị N",
+          dob: "12/12/1986",
+          relation: "Vợ",
+          phone: "0908888999",
+        },
+      ],
+    },
+  ];
+
+  const [openDetail, setOpenDetail] = useState(false);
+  const [selected, setSelected] = useState(null);
+
+  const handleOpenDetail = (apt) => {
+    setSelected(apt);
+    setOpenDetail(true);
+  };
+
+  const handleCloseDetail = () => {
+    setOpenDetail(false);
+  };
+
   return (
     <>
       <div className="stats-row">
         <StatCard
           title="Tổng số căn hộ"
           value="1234"
-          colorBackground="var(--blue)"
+          colorBackground="var(--background-blue)"
           typeCard="Home"
         />
         <StatCard
           title="Đang ở"
           value="123"
-          colorBackground="var(--green)"
+          colorBackground="var(--background-green)"
           typeCard="Done"
         />
         <StatCard
           title="Trống"
           value="345"
-          colorBackground="var(--amber)"
+          colorBackground="var(--background-yellow)"
           typeCard="Empty"
         />
         <StatCard
           title="Đang sửa chữa"
           value="78"
-          colorBackground="var(--red)"
+          colorBackground="var(--background-red)"
           typeCard="Fix"
         />
       </div>
@@ -69,18 +256,14 @@ const statusColors = {
           marginTop: "20px",
         }}
       >
-        {/* --- 1. Khu vực Tìm kiếm và Lọc Nâng cao --- */}
         <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-          {/* 1.1. Tìm kiếm (Dạng Input) */}
           <TextField
-            // Tương đương với input.search-input
             variant="outlined"
             size="small"
             placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
             sx={{ width: 500 }}
           />
 
-          {/* 1.2. Lọc theo Tòa nhà */}
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Tòa nhà</InputLabel>
             <Select label="Tòa nhà" defaultValue="all">
@@ -90,12 +273,10 @@ const statusColors = {
             </Select>
           </FormControl>
 
-          {/* 1.3. Lọc theo Tầng */}
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Tầng</InputLabel>
             <Select label="Tầng" defaultValue="all">
               <MenuItem value="all">Tất cả</MenuItem>
-              {/* Thêm các tầng từ 1 đến 30 */}
               {[...Array(30)].map((_, i) => (
                 <MenuItem key={i} value={i + 1}>
                   Tầng {i + 1}
@@ -104,26 +285,21 @@ const statusColors = {
             </Select>
           </FormControl>
 
-          {/* 1.4. Lọc theo Trạng thái (Tái sử dụng ý tưởng từ DataGrid) */}
           <Button
             variant="outlined"
             size="small"
             startIcon={<FilterListIcon />}
-            sx={{
-              width: 125,
-              height: 40,
-            }}
+            sx={{ width: 125, height: 40 }}
           >
             Trạng thái
           </Button>
         </Box>
 
-        {/* --- 2. Khu vực Hành động (Buttons) --- */}
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            sx={{ backgroundColor: "var(--blue)" }} // Màu xanh nổi bật
+            sx={{ backgroundColor: "var(--blue)" }}
           >
             Thêm Căn hộ
           </Button>
@@ -139,204 +315,204 @@ const statusColors = {
           marginTop: "20px",
         }}
       >
-        <div className="apartment-card">
-          <div className="header-section">
-            <div className="header-info">
-              <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
-              <p className="text-sm">Tòa A, Tầng 7</p>
-            </div>
-            <span
-              className="status-tag"
-              style={{ backgroundColor: statusColors[status] || "#ddd" }}
-            >
-              {status}
-            </span>
-          </div>
-
-          <div className="detail-section">
-            <div className="detail-row">
-              <span className="detail-label">Chủ hộ:</span>
-              <span className="detail-value">Lê Văn C</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Số nhân khẩu:</span>
-              <span className="detail-value">4</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Diện tích:</span>
-              <span className="detail-value">75 m²</span>
-            </div>
-          </div>
-
-          <div className="action-section">
-            <button className="action-button action-button-main">
-              Xem Chi tiết
-            </button>
-            <button className="action-button">
-              <span className="material-symbols-outlined text-lg">
-                <MoreVertIcon />
+        {apartments.map((apt) => (
+          <div className="apartment-card" key={apt.id}>
+            <div className="header-section">
+              <div className="header-info">
+                <h3 className="text-lg font-bold">Căn hộ {apt.id}</h3>
+                <p className="text-sm">
+                  Tòa {apt.building}, Tầng {apt.floor}
+                </p>
+              </div>
+              <span
+                className="status-tag"
+                style={{ backgroundColor: statusColors[apt.status] || "#ddd" }}
+              >
+                {apt.status}
               </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="apartment-card">
-          <div className="header-section">
-            <div className="header-info">
-              <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
-              <p className="text-sm">Tòa A, Tầng 7</p>
             </div>
-            <span className="status-tag">Đang ở</span>
-          </div>
 
-          <div className="detail-section">
-            <div className="detail-row">
-              <span className="detail-label">Chủ hộ:</span>
-              <span className="detail-value">Lê Văn C</span>
+            <div className="detail-section">
+              <div className="detail-row">
+                <span className="detail-label">Chủ hộ:</span>
+                <span className="detail-value">{apt.owner}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Số nhân khẩu:</span>
+                <span className="detail-value">{apt.residents}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Diện tích:</span>
+                <span className="detail-value">{apt.area}</span>
+              </div>
             </div>
-            <div className="detail-row">
-              <span className="detail-label">Diện tích:</span>
-              <span className="detail-value">75 m²</span>
-            </div>
-          </div>
 
-          <div className="action-section">
-            <button className="action-button action-button-main">
-              Xem Chi tiết
-            </button>
-            <button className="action-button">
-              <span className="material-symbols-outlined text-lg">
+            <div className="action-section">
+              <button
+                className="action-button action-button-main"
+                onClick={() => handleOpenDetail(apt)}
+              >
+                Xem Chi tiết
+              </button>
+              <button className="action-button" aria-label="More actions">
                 <MoreVertIcon />
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="apartment-card">
-          <div className="header-section">
-            <div className="header-info">
-              <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
-              <p className="text-sm">Tòa A, Tầng 7</p>
-            </div>
-            <span className="status-tag">Đang ở</span>
-          </div>
-
-          <div className="detail-section">
-            <div className="detail-row">
-              <span className="detail-label">Chủ hộ:</span>
-              <span className="detail-value">Lê Văn C</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Diện tích:</span>
-              <span className="detail-value">75 m²</span>
+              </button>
             </div>
           </div>
-
-          <div className="action-section">
-            <button className="action-button action-button-main">
-              Xem Chi tiết
-            </button>
-            <button className="action-button">
-              <span className="material-symbols-outlined text-lg">
-                <MoreVertIcon />
-              </span>
-            </button>
-          </div>
-        </div>
-        <div className="apartment-card">
-          <div className="header-section">
-            <div className="header-info">
-              <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
-              <p className="text-sm">Tòa A, Tầng 7</p>
-            </div>
-            <span className="status-tag">Đang ở</span>
-          </div>
-
-          <div className="detail-section">
-            <div className="detail-row">
-              <span className="detail-label">Chủ hộ:</span>
-              <span className="detail-value">Lê Văn C</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Diện tích:</span>
-              <span className="detail-value">75 m²</span>
-            </div>
-          </div>
-
-          <div className="action-section">
-            <button className="action-button action-button-main">
-              Xem Chi tiết
-            </button>
-            <button className="action-button">
-              <span className="material-symbols-outlined text-lg">
-                <MoreVertIcon />
-              </span>
-            </button>
-          </div>
-        </div>
-        <div className="apartment-card">
-          <div className="header-section">
-            <div className="header-info">
-              <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
-              <p className="text-sm">Tòa A, Tầng 7</p>
-            </div>
-            <span className="status-tag">Đang ở</span>
-          </div>
-
-          <div className="detail-section">
-            <div className="detail-row">
-              <span className="detail-label">Chủ hộ:</span>
-              <span className="detail-value">Lê Văn C</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Diện tích:</span>
-              <span className="detail-value">75 m²</span>
-            </div>
-          </div>
-
-          <div className="action-section">
-            <button className="action-button action-button-main">
-              Xem Chi tiết
-            </button>
-            <button className="action-button">
-              <span className="material-symbols-outlined text-lg">
-                <MoreVertIcon />
-              </span>
-            </button>
-          </div>
-        </div>
-        <div className="apartment-card">
-          <div className="header-section">
-            <div className="header-info">
-              <h3 className="text-lg font-bold">Căn hộ A-0702</h3>
-              <p className="text-sm">Tòa A, Tầng 7</p>
-            </div>
-            <span className="status-tag">Đang ở</span>
-          </div>
-
-          <div className="detail-section">
-            <div className="detail-row">
-              <span className="detail-label">Chủ hộ:</span>
-              <span className="detail-value">Lê Văn C</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Diện tích:</span>
-              <span className="detail-value">75 m²</span>
-            </div>
-          </div>
-
-          <div className="action-section">
-            <button className="action-button action-button-main">
-              Xem Chi tiết
-            </button>
-            <button className="action-button">
-              <span className="material-symbols-outlined text-lg">
-                <MoreVertIcon />
-              </span>
-            </button>
-          </div>
-        </div>
+        ))}
       </div>
+
+      <Dialog
+        open={openDetail}
+        onClose={handleCloseDetail}
+        maxWidth="300px"
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Chi tiết Căn hộ {selected ? selected.id : ""}
+        </DialogTitle>
+        <DialogContent dividers sx={{ backgroundColor: "#f8fafc" }}>
+          {selected ? (
+            <Box sx={{ display: "grid", gap: 3 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" },
+                  gap: 2.5,
+                  p: 2.5,
+                  backgroundColor: "white",
+                  borderRadius: 2,
+                  border: "1px solid #e5e7eb",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+                }}
+              >
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Chủ hộ
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.5 }}
+                  >
+                    {selected.owner}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Số lượng cư dân
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.5 }}
+                  >
+                    {selected.residents}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Diện tích
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.5 }}
+                  >
+                    {selected.area}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Trạng thái
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={600}
+                    sx={{ mt: 0.5 }}
+                  >
+                    {selected.status}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  p: 2.5,
+                  backgroundColor: "white",
+                  borderRadius: 2,
+                  border: "1px solid #e5e7eb",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+                  Danh sách Cư dân
+                </Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    px: 1,
+                    py: 1.5,
+                    backgroundColor: "#f8fafc",
+                    borderRadius: 1,
+                    color: "#475467",
+                    fontSize: 14,
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>Họ và Tên</span>
+                  <span>Ngày sinh</span>
+                  <span>Quan hệ với chủ hộ</span>
+                  <span>Số điện thoại</span>
+                </Box>
+
+                {(selected.residentsList && selected.residentsList.length > 0
+                  ? selected.residentsList
+                  : [
+                      {
+                        name: "Chưa có dữ liệu",
+                        dob: "-",
+                        relation: "-",
+                        phone: "-",
+                      },
+                    ]
+                ).map((person, idx) => (
+                  <Box
+                    key={`${person.name}-${idx}`}
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, 1fr)",
+                      px: 1,
+                      py: 1.4,
+                      borderBottom:
+                        idx === (selected.residentsList?.length || 1) - 1
+                          ? "none"
+                          : "1px solid #f1f5f9",
+                      alignItems: "center",
+                      fontSize: 14,
+                      color: "#111827",
+                    }}
+                  >
+                    <span>{person.name}</span>
+                    <span>{person.dob}</span>
+                    <span>{person.relation}</span>
+                    <span>{person.phone}</span>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Chọn một căn hộ để xem chi tiết.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2.5 }}>
+          <Button onClick={handleCloseDetail} variant="contained">
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
