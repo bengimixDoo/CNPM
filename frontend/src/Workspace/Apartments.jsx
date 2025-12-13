@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import Pagination from "@mui/material/Pagination";
 
 export default function Apartments() {
   const statusColors = {
@@ -360,13 +361,11 @@ export default function Apartments() {
             </div>
           </div>
         ))}
+
+        <Pagination count={10} shape="rounded" color="primary" />
       </div>
 
-      <Dialog
-        open={openDetail}
-        onClose={handleCloseDetail}
-        maxWidth="300px"
-      >
+      <Dialog open={openDetail} onClose={handleCloseDetail} maxWidth="300px">
         <DialogTitle sx={{ fontWeight: 700 }}>
           Chi tiết Căn hộ {selected ? selected.id : ""}
         </DialogTitle>
