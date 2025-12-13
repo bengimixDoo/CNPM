@@ -4,7 +4,8 @@ import AdminLayout from "./Page/AdminDashboard.jsx";
 import Residents from "./Workspace/Residents.jsx";
 import Main from "./Workspace/Main.jsx";
 import Apartments from "./Workspace/Apartments.jsx";
-import Fees, {CreateFees} from "./Workspace/Fees.jsx";
+import Fees from "./Workspace/Fees.jsx";
+import CreateFees from "./Workspace/CreateFees.jsx";
 
 export default function App() {
   return (

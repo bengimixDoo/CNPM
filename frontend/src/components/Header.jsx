@@ -40,10 +40,10 @@ export function ProfileSection() {
   return (
     <div className="profile-wrapper">
       <div className="profile-info">
-        <div style={{ fontSize: "18px", color: "#374151" }}>
+        <div style={{ fontSize: "18px", color: "white" }}>
           Phạm Ngọc Tuyên
         </div>
-        <div style={{ fontSize: "15px", color: "#9ca3af" }}>Admin</div>
+        <div style={{ fontSize: "15px", color: "white" }}>Admin</div>
       </div>
 
       <Avatar

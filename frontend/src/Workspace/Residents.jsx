@@ -1,22 +1,16 @@
 import "../styles/AdminDashboard.css";
-import StatCard from "../components/StatCard";
-import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { useState, useMemo } from "react";
 
 const statusColors = {
   "Đang cư trú": {
@@ -27,25 +21,71 @@ const statusColors = {
   "Tạm vắng": { bg: "#fef3c7", text: "#d97706" },
 };
 
-const defaultPaginationModel = { page: 0, pageSize: 5 };
-let columns = [
-  { field: "id", headerName: "Mã cư dân", width: 120 },
-  { field: "name", headerName: "Họ và tên", width: 150 },
-  { field: "birth", headerName: "Ngày sinh", width: 100 },
-  { field: "cccd", headerName: "Số CCCD", width: 140 },
+const defaultPaginationModel = { page: 0, pageSize: 10 };
+const columns = [
+  {
+    field: "id",
+    headerName: "Mã cư dân",
+    width: 90,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "name",
+    headerName: "Họ và tên",
+    width: 150,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "birth",
+    headerName: "Ngày sinh",
+    width: 100,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "cccd",
+    headerName: "Số CCCD",
+    width: 140,
+    headerAlign: "center",
+    align: "center",
+  },
   {
     field: "sdt",
     headerName: "Số điện thoại",
     width: 120,
     type: "number",
+    headerAlign: "center",
+    align: "center",
   },
-  { field: "email", headerName: "Email", width: 120 },
-  { field: "id_apartment", headerName: "Mã căn hộ", width: 130 },
-  { field: "relationship", headerName: "Quan hệ ", width: 110 },
+  {
+    field: "email",
+    headerName: "Email",
+    width: 120,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "id_apartment",
+    headerName: "Mã căn hộ",
+    width: 130,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "relationship",
+    headerName: "Quan hệ ",
+    width: 110,
+    headerAlign: "center",
+    align: "center",
+  },
   {
     field: "status",
     headerName: "Trạng thái cư chú",
     width: 120,
+    headerAlign: "center",
+    align: "center",
     renderCell: (params) => {
       const color = statusColors[params.value] || statusColors["Đang cư trú"];
       return (
@@ -122,9 +162,497 @@ const initialRows = [
     relationship: "Chủ hộ",
     status: "Đang cư trú",
   },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
+  {
+    id: "F-005",
+    name: "Nguyễn Văn A",
+    birth: "1990-01-01",
+    cccd: "123456789",
+    sdt: "0987654321",
+    email: "nguyenvana@example.com",
+    id_apartment: "A1-1203",
+    relationship: "Chủ hộ",
+    status: "Đang cư trú",
+  },
 ];
 
 export default function Residents() {
+  const [paginationModel, setPaginationModel] = useState(
+    defaultPaginationModel
+  );
+
+  const rows = useMemo(
+    () => initialRows.map((r, i) => ({ ...r, _rowId: i })),
+    []
+  );
+
+  const handlePaginationChange = (newModel) => {
+    setPaginationModel(newModel);
+  };
+
+  const containerHeight = useMemo(() => {
+    const columnHeaderHeight = 56;
+    const footerHeight = 74;
+    const rowHeight = 52;
+    const padding = 12;
+    return (
+      columnHeaderHeight +
+      footerHeight +
+      paginationModel.pageSize * rowHeight +
+      padding
+    );
+  }, [paginationModel.pageSize]);
+
   return (
     <>
       <div className="dashboard-grid">
@@ -208,16 +736,30 @@ export default function Residents() {
         </Box>
       </div>
 
-      <Paper sx={{ height: 700 }}>
+      <Paper
+        sx={{
+          height: containerHeight,
+          borderRadius: "12px",
+          transition: "height 0.2s ease",
+          overflow: "hidden",
+          marginTop: "16px",
+        }}
+      >
         <DataGrid
-          rows={initialRows}
+          rows={rows}
+          getRowId={(row) => row._rowId}
           columns={columns}
-          initialState={{
-            pagination: { paginationModel: defaultPaginationModel },
-          }}
+          rowHeight={52}
+          columnHeaderHeight={56}
+          pagination
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationChange}
           pageSizeOptions={[5, 10]}
           checkboxSelection
-          sx={{ border: 0 }}
+          sx={{
+            borderRadius: "12px",
+            "& .MuiDataGrid-root": { height: "100%" },
+          }}
         />
       </Paper>
     </>

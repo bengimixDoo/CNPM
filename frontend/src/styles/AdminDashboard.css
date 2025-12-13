@@ -15,7 +15,7 @@ body {
   --muted: #6b7280;
   --accent: #4e3ae9;
   --accent-2: #835cf6;
-  --blue: #5799e3;
+  --blue: #0077ff;
   --red: #ef5350;
   --amber: #ffb300;
   --glass: #eef2f6;
@@ -338,7 +338,7 @@ button {
     rgba(139, 92, 246, 0.04)
   );
   font-weight: 700;
-  color: var(--accent);
+  color: var(--blue);
 }
 
 .sidebar-bottom {
