@@ -1,0 +1,5 @@
+Django>=5.0
+djangorestframework
+djangorestframework-simplejwt
+psycopg2-binary  # Driver cho Neon/Postgres
+django-cors-headers
