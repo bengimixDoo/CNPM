@@ -13,16 +13,30 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "0 - Database.md",
+                "file": "1 - Database (Text).md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "0 - Database"
+              "title": "1 - Database (Text)"
             }
           },
           {
-            "id": "b04d2450307e73c6",
+            "id": "b1404f8134e3e335",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "1 - Database (Text).md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "1 - Database (Text)"
+            }
+          },
+          {
+            "id": "00c699a792c9c63f",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -36,77 +50,49 @@
             }
           },
           {
-            "id": "471dde57e9240460",
+            "id": "f3c9424d7e49ba8e",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "0.1 - Giải Thích Database.md",
+                "file": "Luồng dữ liệu & Tương tác API.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "0.1 - Giải Thích Database"
+              "title": "Luồng dữ liệu & Tương tác API"
             }
           },
           {
-            "id": "6ce4400406d64068",
+            "id": "0337277dc8182778",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Chức Năng Hiện Có Thể Thực Hiện.md",
+                "file": "2 - Thiết Kế API.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Chức Năng Hiện Có Thể Thực Hiện"
+              "title": "2 - Thiết Kế API"
             }
           },
           {
-            "id": "51bebfee4f6c708a",
+            "id": "678f936907133791",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "0.1 - Giải Thích Database.md",
+                "file": "0.b_Chức Năng Hiện Có Thể Thực Hiện.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "0.1 - Giải Thích Database"
-            }
-          },
-          {
-            "id": "b32ee1b39327614f",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Danh Sách API.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Danh Sách API"
-            }
-          },
-          {
-            "id": "28f2bfd56080af10",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Thiết kế permission matrix theo role (ADMIN, MANAGER, RESIDENT).md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Thiết kế permission matrix theo role (ADMIN, MANAGER, RESIDENT)"
+              "title": "0.b_Chức Năng Hiện Có Thể Thực Hiện"
             }
           }
         ],
-        "currentTab": 6
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -268,15 +254,26 @@
       "bases:Create new base": false
     }
   },
-  "active": "28f2bfd56080af10",
+  "active": "e42fe9884b42a825",
   "lastOpenFiles": [
+    "New Text Document.txt",
+    "1a_Database_PostgreSQL.sql",
+    "0.a_Tổng Quan.md",
+    "1a_Database_Image.svg",
+    "1a_Database_Text.md",
+    "1b_Giải thích từng trường trong Database.md",
+    "1c_Phân tích chi tiết Database.md",
+    "2a_Thiết Kế API.md",
+    "2b_Các Vai Trò (Role).md",
+    "2c_Luồng Hoạt Động.md",
+    "3a_Luồng dữ liệu & Tương tác API.md",
+    "0.b_Chức Năng Hiện Có Thể Thực Hiện.md",
+    "Công Nghệ Phần Mềm - QL Chung Cư.sql",
+    "0 - Tổng Quan.md",
     "Pasted image 20251216112604.png",
-    "Danh Sách API.md",
     "Thiết kế permission matrix theo role (ADMIN, MANAGER, RESIDENT).md",
-    "1- Luồng Hoạt Động.md",
-    "0.1 - Giải Thích Database.md",
     "tmp-1.md",
-    "Chức Năng Hiện Có Thể Thực Hiện.md",
-    "0 - Database.md"
+    "Danh Sách API.md",
+    "0 -.md"
   ]
 }
