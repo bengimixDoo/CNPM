@@ -13,7 +13,7 @@ Dự án được xây dựng theo kiến trúc Monorepo, tách biệt rõ ràng
 Dưới đây là sơ đồ cây thư mục tổ chức mã nguồn:
 
 
-MyChungCu/
+CNPM/
 ├── .gitignore             # Cấu hình file ẩn của Git
 ├── LICENSE                # Giấy phép mã nguồn (MIT)
 ├── README.md              # Tài liệu tổng quan (Bạn đang đọc file này)
