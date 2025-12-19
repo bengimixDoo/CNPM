@@ -1,20 +1,21 @@
 from django.db import models
+from simple_history.models import HistoricalRecords
+
 
 class CanHo(models.Model):
     # MaCanHo: int [pk, note: "NHẬP TAY (Manual ID 101, 202...)"]
     # Mặc định, Django sẽ tự tạo một trường id tự tăng (auto-incrementing) làm PK.
     # Để sử dụng trường PK thủ công (manual PK) như yêu cầu "NHẬP TAY",
     # ta định nghĩa rõ trường này:
-    MaCanHo = models.IntegerField(
+    MaCanHo = models.AutoField(
         primary_key=True,
         verbose_name="Mã Căn Hộ",
-        # help_text="NHẬP TAY (Ví dụ: 101, 202...). Khóa chính."
     )
 
     # SoPhong: varchar [unique]
     SoPhong = models.CharField(
         max_length=50,
-        unique=True,
+        # unique=True,
         verbose_name="Số Phòng"
     )
 
@@ -40,10 +41,8 @@ class CanHo(models.Model):
         # Trỏ đến Model 'CuDan'
         'CuDan', 
         on_delete=models.SET_NULL, 
-        # Cho phép giá trị NULL/trống
         null=True, 
         blank=True,
-        # Tên ngược lại (từ CuDan muốn xem căn hộ mà họ làm chủ sở hữu)
         related_name='can_ho_so_huu',
         verbose_name="Chủ Sở Hữu",
     )
@@ -69,13 +68,16 @@ class CanHo(models.Model):
         blank=True
     )
 
+    history = HistoricalRecords()
+
     class Meta:
         # Tên bảng trong cơ sở dữ liệu nếu cần tùy chỉnh
         db_table = 'CanHo' 
         ordering = ['MaCanHo'] # Ví dụ sắp xếp
+        unique_together = ('SoPhong', 'Tang', 'ToaNha')
 
     def __str__(self):
-        return self.MaCanHo
+        return f"Phòng {self.SoPhong} - Tầng {self.Tang} - Tòa {self.ToaNha}"
 
 
 class CuDan(models.Model):
@@ -83,7 +85,6 @@ class CuDan(models.Model):
     MaCuDan = models.AutoField(
         primary_key=True,
         verbose_name="Mã Cư Dân",
-        help_text="ID TỰ TĂNG (Khóa chính)"
     )
 
     # HoTen: varchar
@@ -94,14 +95,14 @@ class CuDan(models.Model):
 
     # NgaySinh: date
     NgaySinh = models.DateField(
-        verbose_name="Ngày Sinh"
+        verbose_name="Ngày Sinh",
     )
 
     # SoCCCD: varchar
     SoCCCD = models.CharField(
-        max_length=20,
+        max_length=12,
         unique=True, # Giả sử số CCCD là duy nhất
-        verbose_name="Số CCCD/CMND"
+        verbose_name="Số CCCD"
     )
 
     # SoDienThoai: varchar
@@ -156,13 +157,15 @@ class CuDan(models.Model):
         default='KT',
         verbose_name="Trạng Thái Cư Trú"
     )
+
+    history = HistoricalRecords()
     
     class Meta:
         db_table = 'CuDan'
         ordering = ['MaCuDan']
 
     def __str__(self):
-        return self.MaCuDan + " - " + self.HoTen
+        return f"{self.HoTen} (Số CCCD: {self.SoCCCD})"
     
 
 class BienDongDanCu(models.Model):
@@ -212,6 +215,8 @@ class BienDongDanCu(models.Model):
         null=True,
         blank=True
     )
+
+    history = HistoricalRecords()
     
     class Meta:
         db_table = 'BienDongDanCu'
@@ -220,4 +225,4 @@ class BienDongDanCu(models.Model):
         ordering = ['MaBienDong'] # Sắp xếp theo ngày gần nhất
 
     def __str__(self):
-        return self.MaBienDong
+        return f"{self.MaCuDan.HoTen} - {self.LoaiBienDong}"

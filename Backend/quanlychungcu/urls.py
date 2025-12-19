@@ -19,4 +19,5 @@ urlpatterns = [
     # path('api/', include('api.urls')),
 
     path('apiUser/', include('users.urls')),  # Đường dẫn cho users app
+    path('apiQuanLy/', include('apiQuanLy.urls')),  # Đường dẫn cho apiQuanLy app
 ]
