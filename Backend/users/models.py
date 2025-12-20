@@ -14,9 +14,7 @@ class User(AbstractUser):
         default=Role.CU_DAN,
         help_text="Phân quyền người dùng"
     )
-
-    # QUAN TRỌNG: Sửa tham chiếu từ 'residents.Resident' thành 'residents.CuDan'
-    # để khớp với tên Class trong file residents/models.py của bạn
+    
     cu_dan = models.OneToOneField(
         'residents.CuDan',
         on_delete=models.SET_NULL,
