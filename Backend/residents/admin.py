@@ -3,8 +3,8 @@ from .models import CanHo, CuDan, BienDongDanCu
 
 @admin.register(CanHo)
 class CanHoAdmin(admin.ModelAdmin):
-    list_display = ('ma_hien_thi', 'toa_nha', 'tang', 'dien_tich', 'trang_thai')
-    search_fields = ('ma_hien_thi', 'toa_nha')
+    list_display = ('phong', 'toa_nha', 'tang', 'dien_tich', 'trang_thai')
+    search_fields = ('phong', 'toa_nha', 'tang')
     list_filter = ('toa_nha', 'trang_thai')
 
 @admin.register(CuDan)
