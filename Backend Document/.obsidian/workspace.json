@@ -69,12 +69,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Test_API_Docs.md",
+                "file": "Tài Liệu API cho Frontend.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Test_API_Docs"
+              "title": "Tài Liệu API cho Frontend"
             }
           }
         ],
@@ -242,6 +242,8 @@
   },
   "active": "8099dff58b2f811d",
   "lastOpenFiles": [
+    "Test_API_Docs.md",
+    "Tài Liệu API cho Frontend.md",
     "Chuẩn đặt tên Branch.md",
     "Quy ước Nhánh.md",
     "Untitled.md",
@@ -270,8 +272,6 @@
     "0 - Tổng Quan.md",
     "Pasted image 20251216112604.png",
     "Thiết kế permission matrix theo role (ADMIN, MANAGER, RESIDENT).md",
-    "tmp-1.md",
-    "Danh Sách API.md",
-    "0 -.md"
+    "tmp-1.md"
   ]
 }
