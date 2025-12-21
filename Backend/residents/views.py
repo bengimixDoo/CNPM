@@ -47,8 +47,9 @@ class CanHoViewSet(viewsets.ModelViewSet):
         Tạm thời trả về history của các cư dân HIỆN TẠI trong căn hộ.
         """
         can_ho = self.get_object()
-        cu_dan_ids = can_ho.cu_dan_hien_tai.values_list('ma_cu_dan', flat=True)
-        history = BienDongDanCu.objects.filter(cu_dan__in=cu_dan_ids).order_by('-ngay_thuc_hien')
+        can_ho = self.get_object()
+        # Query lịch sử biến động của chính căn hộ này (nhờ field can_ho mới thêm)
+        history = BienDongDanCu.objects.filter(can_ho=can_ho).order_by('-ngay_thuc_hien')
         serializer = BienDongDanCuSerializer(history, many=True)
         return Response(serializer.data)
 
@@ -103,6 +104,7 @@ class CuDanViewSet(viewsets.ModelViewSet):
                 # 2. Tạo BienDong
                 BienDongDanCu.objects.create(
                     cu_dan=cu_dan,
+                    can_ho=can_ho, # Lưu vết căn hộ
                     loai_bien_dong='ChuyenDen',
                     ngay_thuc_hien=date.today()
                 )
@@ -136,6 +138,7 @@ class CuDanViewSet(viewsets.ModelViewSet):
             # 2. Tạo BienDong
             BienDongDanCu.objects.create(
                 cu_dan=cu_dan,
+                can_ho=old_apt, # Lưu vết căn hộ cũ
                 loai_bien_dong='ChuyenDi',
                 ngay_thuc_hien=date.today()
             )

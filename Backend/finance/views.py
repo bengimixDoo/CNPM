@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status, decorators
 from rest_framework.response import Response
 from .models import DanhMucPhi, HoaDon, ChiTietHoaDon
-from .serializers import DanhMucPhiSerializer, HoaDonSerializer, BatchGenerateSerializer
+from .serializers import DanhMucPhiSerializer, HoaDonSerializer, BatchGenerateSerializer, ChiSoDienNuocSerializer
 from residents.models import CanHo
 from services.models import ChiSoDienNuoc, PhuongTien
 from django.db import transaction
@@ -18,6 +18,26 @@ class FeeCategoryViewSet(viewsets.ModelViewSet):
     queryset = DanhMucPhi.objects.all()
     serializer_class = DanhMucPhiSerializer
     permission_classes = [IsManagerOrAdmin] # Chỉ Manager được chỉnh sửa phí
+    
+class UtilityReadingViewSet(viewsets.ModelViewSet):
+    """
+    Quản lý Chỉ số điện nước.
+    """
+    queryset = ChiSoDienNuoc.objects.all()
+    serializer_class = ChiSoDienNuocSerializer
+    permission_classes = [IsManagerOrAdmin]
+
+    @decorators.action(detail=False, methods=['post'], url_path='batch')
+    def batch(self, request):
+        """
+        Upload nhiều chỉ số cùng lúc (JSON List).
+        Input: List of objects.
+        """
+        serializer = self.get_serializer(data=request.data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": f"Đã nhập {len(serializer.data)} chỉ số."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     """
@@ -59,12 +79,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             
             # Lấy định mức giá
             try:
-                gia_dien = DanhMucPhi.objects.get(ten_loai_phi__icontains='Dien')
-                gia_nuoc = DanhMucPhi.objects.get(ten_loai_phi__icontains='Nuoc')
-                gia_quan_ly = DanhMucPhi.objects.get(ten_loai_phi__icontains='QuanLy')
-                gia_gui_xe = DanhMucPhi.objects.get(ten_loai_phi__icontains='GuiXe')
-            except DanhMucPhi.DoesNotExist:
-                return Response({"error": "Chưa cấu hình đầy đủ bảng giá (Điện, Nước, Quản lý, Gửi xe)."}, status=status.HTTP_400_BAD_REQUEST)
+                gia_dien = DanhMucPhi.objects.filter(ten_loai_phi__icontains='Dien').first()
+                gia_nuoc = DanhMucPhi.objects.filter(ten_loai_phi__icontains='Nuoc').first()
+                gia_quan_ly = DanhMucPhi.objects.filter(ten_loai_phi__icontains='QuanLy').first()
+                gia_gui_xe = DanhMucPhi.objects.filter(ten_loai_phi__icontains='GuiXe').first()
+
+                if not all([gia_dien, gia_nuoc, gia_quan_ly, gia_gui_xe]):
+                     return Response({"error": "Chưa cấu hình đầy đủ bảng giá (Điện, Nước, Quản lý, Gửi xe)."}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"error": f"Lỗi cấu hình phí: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
             generated_count = 0
             
@@ -155,7 +178,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
              return Response({"message": "Hóa đơn này đã được thanh toán trước đó."}, status=status.HTTP_200_OK)
         
         invoice.trang_thai = 1 # Đã thanh toán
-        # Có thể lưu ngày thanh toán nếu model hỗ trợ
+        invoice.ngay_thanh_toan = timezone.now()
         invoice.save()
         return Response({"message": "Xác nhận thanh toán thành công."})
 

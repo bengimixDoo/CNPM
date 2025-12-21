@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status, decorators
 from rest_framework.response import Response
-from .models import ChiSoDienNuoc, TinTuc, YeuCau, PhuongTien
+from .models import TinTuc, YeuCau, PhuongTien
 from .serializers import (
-    ChiSoDienNuocSerializer, TinTucSerializer, 
+    TinTucSerializer, 
     YeuCauSerializer, PhuongTienSerializer
 )
 
@@ -18,25 +18,7 @@ class IsOwner(permissions.BasePermission):
         # Logic check role resident or owner
         return request.user and request.user.is_authenticated
 
-class UtilityReadingViewSet(viewsets.ModelViewSet):
-    """
-    Quản lý Chỉ số điện nước.
-    """
-    queryset = ChiSoDienNuoc.objects.all()
-    serializer_class = ChiSoDienNuocSerializer
-    permission_classes = [IsManagerOrAdmin]
 
-    @decorators.action(detail=False, methods=['post'], url_path='batch-upload')
-    def batch_upload(self, request):
-        """
-        Upload nhiều chỉ số cùng lúc (JSON List).
-        Input: List of objects.
-        """
-        serializer = self.get_serializer(data=request.data, many=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": f"Đã nhập {len(serializer.data)} chỉ số."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VehicleViewSet(viewsets.ModelViewSet):
     """

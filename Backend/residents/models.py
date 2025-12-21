@@ -28,6 +28,7 @@ class CuDan(models.Model):
 class BienDongDanCu(models.Model):
     ma_bien_dong = models.AutoField(primary_key=True)
     cu_dan = models.ForeignKey(CuDan, on_delete=models.CASCADE, related_name='bien_dong')
+    can_ho = models.ForeignKey(CanHo, on_delete=models.SET_NULL, null=True, blank=True, related_name='lich_su_bien_dong')
     loai_bien_dong = models.CharField(max_length=50) # ChuyenDen, ChuyenDi, TamVang...
     ngay_thuc_hien = models.DateField()
 

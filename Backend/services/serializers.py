@@ -1,13 +1,7 @@
 from rest_framework import serializers
-from .models import ChiSoDienNuoc, TinTuc, YeuCau, PhuongTien
+from .models import TinTuc, YeuCau, PhuongTien
 
-class ChiSoDienNuocSerializer(serializers.ModelSerializer):
-    """
-    Serializer cho Chỉ số điện nước.
-    """
-    class Meta:
-        model = ChiSoDienNuoc
-        fields = '__all__'
+
 
 class TinTucSerializer(serializers.ModelSerializer):
     """

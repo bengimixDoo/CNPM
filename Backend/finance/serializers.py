@@ -1,5 +1,14 @@
 from rest_framework import serializers
 from .models import DanhMucPhi, HoaDon, ChiTietHoaDon
+from services.models import ChiSoDienNuoc
+
+class ChiSoDienNuocSerializer(serializers.ModelSerializer):
+    """
+    Serializer cho Chỉ số điện nước.
+    """
+    class Meta:
+        model = ChiSoDienNuoc
+        fields = '__all__'
 
 class DanhMucPhiSerializer(serializers.ModelSerializer):
     """
