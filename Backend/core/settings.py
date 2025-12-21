@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'drf_spectacular',
     
     # Local apps
     'users',
@@ -152,10 +153,22 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Backend API',
+    'DESCRIPTION': 'API quản lý User – Cư dân',
+    'VERSION': '1.0.0',
+
+    # QUAN TRỌNG
+    'SECURITY': [{'BearerAuth': []}],
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+
 
 from datetime import timedelta
 SIMPLE_JWT = {
