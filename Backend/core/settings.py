@@ -95,39 +95,39 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 import sys
 
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    load_dotenv(BASE_DIR / '.env')
-    db_url = os.getenv("DATABASE_URL")
-    if db_url:
-        tmpPostgres = urlparse(db_url)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': tmpPostgres.path.replace('/', ''),
-                'USER': tmpPostgres.username,
-                'PASSWORD': tmpPostgres.password,
-                'HOST': tmpPostgres.hostname,
-                'PORT': tmpPostgres.port or 5432,
-                'OPTIONS': {
-                    'sslmode': 'require',
-                },
-            }
-        }
-    else:
-         DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+# if 'test' in sys.argv:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
+# else:
+#     load_dotenv(BASE_DIR / '.env')
+#     db_url = os.getenv("DATABASE_URL")
+#     if db_url:
+#         tmpPostgres = urlparse(db_url)
+#         DATABASES = {
+#             'default': {
+#                 'ENGINE': 'django.db.backends.postgresql',
+#                 'NAME': tmpPostgres.path.replace('/', ''),
+#                 'USER': tmpPostgres.username,
+#                 'PASSWORD': tmpPostgres.password,
+#                 'HOST': tmpPostgres.hostname,
+#                 'PORT': tmpPostgres.port or 5432,
+#                 'OPTIONS': {
+#                     'sslmode': 'require',
+#                 },
+#             }
+#         }
+#     else:
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -175,5 +175,5 @@ TIME_ZONE = 'Asia/Ho_Chi_Minh'
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
