@@ -13,12 +13,12 @@ from rest_framework.permissions import IsAuthenticated
 class CanHoViewSet(viewsets.ModelViewSet):
     queryset = CanHo.objects.all().order_by('ma_can_ho')
     serializer_class = CanHoSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['get'], url_path='thongke')
     def thong_ke(self, request):
         """
-        Endpoint: GET /api/canho/thongke/
+        Endpoint: GET /api/apartments/thongke/
         """
         queryset = self.get_queryset()
 
@@ -56,10 +56,10 @@ class CanHoViewSet(viewsets.ModelViewSet):
         }
         return Response(data_response, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['get'], url_path='thongke')
+    @action(detail=True, methods=['get'], url_path='detail')
     def thong_ke_chi_tiet_can_ho(self, request, pk=None):
         """
-        Endpoint: GET /api/canho/{id}/thongke/
+        Endpoint: GET /api/apartments/{id}/detail/
         """
         # Lấy đối tượng căn hộ cụ thể, nếu không có sẽ trả về 404
         can_ho = self.get_object()
@@ -72,6 +72,7 @@ class CanHoViewSet(viewsets.ModelViewSet):
             tam_tru=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TT')),
             thuong_tru=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TH'))
         )
+        danh_sach_cu_dan = can_ho.cu_dan_hien_tai.values('ma_cu_dan')
 
         data = {
             "thong_tin_can_ho": {
@@ -79,10 +80,12 @@ class CanHoViewSet(viewsets.ModelViewSet):
                 "phong": can_ho.phong,
                 "tang": can_ho.tang,
                 "toa_nha": can_ho.toa_nha,
-                "trang_thai_hien_tai": can_ho.get_trang_thai_display(), # Trả về "Trống", "Đã bán"...
+                "dien_tich": can_ho.dien_tich,
+                "trang_thai_hien_tai": can_ho.trang_thai, # Trả về "Trống", "Đã bán"...
             },
             "thong_ke_nhan_khau": {
-                "tong_so_nguoi_dang_o": stats['tong_nguoi'],
+                "danh_sach_cu_dan": list(danh_sach_cu_dan),
+                "tong_so_nguoi": stats['tong_nguoi'],
                 "so_nguoi_tam_tru": stats['tam_tru'],
                 "so_nguoi_thuong_tru": stats['thuong_tru'],
                 "so_nguoi_tam_vang": stats['tam_vang'],
@@ -90,6 +93,27 @@ class CanHoViewSet(viewsets.ModelViewSet):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['get'], url_path='history')
+    def history(self, request, pk=None):
+        # 1. Lấy căn hộ hiện tại
+        apartment = self.get_object()
+        
+        # 2. Truy vấn và sắp xếp giảm dần theo ngày
+        # select_related giúp truy vấn tên cư dân nhanh hơn (tránh lỗi N+1)
+        history_qs = BienDongDanCu.objects.filter(can_ho=apartment).select_related('cu_dan').order_by('-ngay_thuc_hien')
+        
+        # 3. Tạo list dữ liệu thủ công (Không cần Serializer class)
+        data = [
+            {
+                "ma_cu_dan": item.cu_dan.ma_cu_dan,
+                "loai_bien_dong": item.loai_bien_dong,
+                "ngay_thuc_hien": item.ngay_thuc_hien
+            } 
+            for item in history_qs
+        ]
+        
+        return Response(data)
 
 class CanHoHistoryView(generics.ListAPIView):
     serializer_class = CanHoHistorySerializer
@@ -104,7 +128,33 @@ class CanHoHistoryView(generics.ListAPIView):
 class CuDanViewSet(viewsets.ModelViewSet):
     queryset = CuDan.objects.all().order_by('ma_cu_dan')
     serializer_class = CuDanSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+
+    @action(detail=True, methods=['get'], url_path='history')
+    def history(self, request, pk=None):
+        """
+        Endpoint: GET /api/residents/{id}/history/
+        """
+        # 1. Lấy cư dân hiện tại dựa trên ID (pk)
+        resident = self.get_object()
+        
+        # 2. Truy vấn lịch sử biến động của cư dân này
+        # Dùng select_related('can_ho') để lấy nhanh mã căn hộ
+        history_qs = BienDongDanCu.objects.filter(
+            cu_dan=resident
+        ).select_related('can_ho').order_by('-ngay_thuc_hien')
+        
+        # 3. Trả về dữ liệu rút gọn (không dùng Serializer class)
+        data = [
+            {
+                "ma_can_ho": item.can_ho.ma_can_ho, # ID của căn hộ
+                "loai_bien_dong": item.loai_bien_dong, # 'Thường trú', 'Chuyển đi'... nếu lấy tên thì dùng item.get_loai_bien_dong_display()
+                "ngay_thuc_hien": item.ngay_thuc_hien
+            }
+            for item in history_qs
+        ]
+        
+        return Response(data)
 
 class CuDanHistoryView(generics.ListAPIView):
     serializer_class = CuDanHistorySerializer
@@ -119,7 +169,7 @@ class CuDanHistoryView(generics.ListAPIView):
 class BienDongDanCuViewSet(viewsets.ModelViewSet):
     queryset = BienDongDanCu.objects.all().order_by('ma_bien_dong')
     serializer_class = BienDongDanCuSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
 class BienDongDanCuHistoryView(generics.ListAPIView):
     serializer_class = BienDongDanCuHistorySerializer

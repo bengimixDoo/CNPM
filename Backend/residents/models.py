@@ -62,7 +62,8 @@ class CuDan(models.Model):
 
 class BienDongDanCu(models.Model):
     ma_bien_dong = models.AutoField(primary_key=True)
-    cu_dan = models.ForeignKey(CuDan, on_delete=models.CASCADE, related_name='bien_dong')
+    cu_dan = models.ForeignKey(CuDan, on_delete=models.CASCADE, related_name='bien_dong_cu_dan')
+    can_ho = models.ForeignKey(CanHo, on_delete=models.CASCADE, related_name='bien_dong_can_ho')
     TRANG_THAI_CHOICES = (
         ('TH', 'Thường trú'),
         ('TT', 'Tạm trú'),

@@ -113,6 +113,30 @@ class BienDongDanCuSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Ngày thực hiện không hợp lệ vì vượt quá ngày hiện tại.")
         return value
     
+    def validate(self, attrs):
+        # Lấy dữ liệu mới từ attrs, nếu không có thì lấy từ instance cũ (khi PATCH)
+        loai = attrs.get('loai_bien_dong', getattr(self.instance, 'loai_bien_dong', None))
+        cu_dan = attrs.get('cu_dan', getattr(self.instance, 'cu_dan', None))
+        can_ho_moi = attrs.get('can_ho', getattr(self.instance, 'can_ho', None))
+
+        if cu_dan and loai:
+            # Nếu trạng thái hiện tại của cư dân giống hệt loại biến động mới
+            ten_trang_thai = cu_dan.get_trang_thai_cu_tru_display()
+            if cu_dan.trang_thai_cu_tru == loai:
+                # Riêng trường hợp chuyển đi (OUT) thì có thể cho phép hoặc báo lỗi tùy quy trình
+                # Ở đây chúng ta chặn tất cả các trường hợp trùng tên trạng thái
+                raise serializers.ValidationError({
+                    "loai_bien_dong": f"Cư dân hiện đã ở trạng thái '{ten_trang_thai}'. Không thể đăng ký biến động trùng với trạng thái hiện tại."
+                })
+            if loai in ['TV', 'OUT']:
+                # Đảm bảo cu_dan và can_ho_moi tồn tại để kiểm tra
+                if cu_dan.can_ho_dang_o != can_ho_moi:
+                    raise serializers.ValidationError(
+                        f"Lỗi: Cư dân hiện đang ở căn hộ {cu_dan.can_ho_dang_o}, "
+                        f"không thể đăng ký {ten_trang_thai} tại căn hộ {can_ho_moi}."
+                    )
+        return attrs
+    
 class BienDongDanCuHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = BienDongDanCu.history.model
