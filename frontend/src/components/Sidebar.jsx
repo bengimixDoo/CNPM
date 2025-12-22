@@ -121,7 +121,7 @@ export default function Sidebar() {
           Icon={MonetizationOnIcon}
           items={[
             { to: "/dashboard/create_fees", label: "Tạo khoản thu" },
-            { to: "/dashboard/fees", label: "Chi tiết các khoản thu" },
+            { to: "/dashboard/fees", label: "Chi tiết khoản thu" },
           ]}
         />
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import StatCard from "../components/StatCard.jsx";
 import "../styles/AdminDashboard.css";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -201,10 +201,108 @@ export default function Apartments() {
         },
       ],
     },
+    {
+      id: "A-0702",
+      building: "A",
+      floor: 7,
+      owner: "Lê Văn C",
+      residents: 4,
+      area: "75 m²",
+      status: "Trống",
+      phone: "0901 234 567",
+      email: "chuho.a702@example.com",
+      note: "Căn hộ vừa trống, cần dọn dẹp nhẹ.",
+      residentsList: [
+        {
+          name: "Nguyễn Văn A",
+          dob: "15/05/1980",
+          relation: "Chủ hộ",
+          phone: "0901234567",
+        },
+        {
+          name: "Trần Thị B",
+          dob: "20/10/1982",
+          relation: "Vợ",
+          phone: "0908765432",
+        },
+        {
+          name: "Nguyễn Hoàng C",
+          dob: "12/03/2005",
+          relation: "Con",
+          phone: "0912345678",
+        },
+        {
+          name: "Nguyễn Thị D",
+          dob: "08/09/2010",
+          relation: "Con",
+          phone: "N/A",
+        },
+      ],
+    },
+    {
+      id: "A-0702",
+      building: "A",
+      floor: 7,
+      owner: "Lê Văn C",
+      residents: 4,
+      area: "75 m²",
+      status: "Trống",
+      phone: "0901 234 567",
+      email: "chuho.a702@example.com",
+      note: "Căn hộ vừa trống, cần dọn dẹp nhẹ.",
+      residentsList: [
+        {
+          name: "Nguyễn Văn A",
+          dob: "15/05/1980",
+          relation: "Chủ hộ",
+          phone: "0901234567",
+        },
+        {
+          name: "Trần Thị B",
+          dob: "20/10/1982",
+          relation: "Vợ",
+          phone: "0908765432",
+        },
+        {
+          name: "Nguyễn Hoàng C",
+          dob: "12/03/2005",
+          relation: "Con",
+          phone: "0912345678",
+        },
+        {
+          name: "Nguyễn Thị D",
+          dob: "08/09/2010",
+          relation: "Con",
+          phone: "N/A",
+        },
+      ],
+    },
   ];
 
   const [openDetail, setOpenDetail] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const gridRef = useRef(null);
+
+  // Tính toán dữ liệu hiển thị theo trang
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentApartments = apartments.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(apartments.length / itemsPerPage);
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+    // Scroll đến vị trí đầu grid với offset
+    if (gridRef.current) {
+      const yOffset = -20; // Offset 20px từ top
+      const y =
+        gridRef.current.getBoundingClientRect().top +
+        window.pageYOffset +
+        yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
 
   const handleOpenDetail = (apt) => {
     setSelected(apt);
@@ -308,6 +406,7 @@ export default function Apartments() {
       </Box>
 
       <div
+        ref={gridRef}
         className="apartment-grid"
         style={{
           display: "grid",
@@ -316,7 +415,7 @@ export default function Apartments() {
           marginTop: "20px",
         }}
       >
-        {apartments.map((apt) => (
+        {currentApartments.map((apt) => (
           <div className="apartment-card" key={apt.id}>
             <div className="header-section">
               <div className="header-info">
@@ -361,9 +460,27 @@ export default function Apartments() {
             </div>
           </div>
         ))}
-
-        <Pagination count={10} shape="rounded" color="primary" />
       </div>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "30px",
+          marginBottom: "20px",
+        }}
+      >
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          shape="rounded"
+          color="primary"
+          size="large"
+          showFirstButton
+          showLastButton
+        />
+      </Box>
 
       <Dialog open={openDetail} onClose={handleCloseDetail} maxWidth="300px">
         <DialogTitle sx={{ fontWeight: 700 }}>

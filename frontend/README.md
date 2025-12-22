@@ -1,16 +1,77 @@
-# React + Vite
+# Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Run Dev
+`ash
+npm install
+npm run dev
+`
 
-Currently, two official plugins are available:
+Backend URL m?c d?nh: http://127.0.0.1:8000/api (s?a trong src/api/axios.js  BASE_URL).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## C?u trúc chính
+`
+src/
+ api/
+   axios.js       # Axios instance + auto refresh token
+   services.js    # T?t c? API services (auth, residents, finance, services, dashboard)
+ hooks/
+   useApi.js      # Custom hook: loading/error/refetch, useAuth helper
+ Workspace/        # Các màn hình chính (Apartments, Residents, Fees,...)
+ components/       # UI components
+ styles/           # CSS
+`
 
-## React Compiler
+## Axios instance (src/api/axios.js)
+- T? g?n Authorization: Bearer <access> cho m?i request.
+- Khi 401 do h?t h?n token: t? g?i /auth/token/refresh/, luu token m?i, retry request; n?u refresh fail  clear storage, chuy?n /login.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Services (src/api/services.js)
+Ví d? nhanh:
+`javascript
+import { authService, residentsService, financeService, utilitiesService, dashboardService } from '@/api/services';
 
-## Expanding the ESLint configuration
+await authService.login('user', 'pass'); // luu access/refresh vào localStorage
+const me = await authService.getMe();
+const apartments = await residentsService.getApartments({ building: 'A' });
+await financeService.batchGenerateInvoices(12, 2023);
+await utilitiesService.createSupportTicket({ tieu_de: '...', noi_dung: '...' });
+const stats = await dashboardService.getManagerDashboard();
+`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Hook useApi (src/hooks/useApi.js)
+`javascript
+import { useApi } from '@/hooks/useApi';
+import { residentsService } from '@/api/services';
+
+const { data, loading, error, refetch } = useApi(residentsService.getApartments);
+`
+- Tr? v? data, loading, error, efetch (g?i l?i API).
+
+### Hook useAuth
+- Kh?i t?o isAuthenticated t? localStorage (không setState trong effect).
+- N?u c?n c?p nh?t th? công: dùng setIsAuthenticated(true/false) tr? v? t? hook.
+
+## Protected route ví d?
+`javascript
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useApi';
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <div>Ðang t?i...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  return children;
+}
+`
+
+## Flow dang nh?p
+`javascript
+await authService.login(username, password); // luu token
+const user = await authService.getMe();
+// di?u hu?ng theo role
+`
+
+## Tips
+- N?u backend d?i domain  d?i BASE_URL trong src/api/axios.js.
+- Khi thêm query filters, pass qua params c?a service (ví d? getInvoices({ status: 0, month: 12 })).
+- Loading/error UI: dùng useApi cho ng?n g?n.
