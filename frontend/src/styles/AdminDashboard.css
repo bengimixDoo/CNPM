@@ -670,6 +670,3 @@ input::placeholder {
   box-shadow: none !important;
 }
 
-/* If you want to remove the vertical divider between sidebar and content,
-   uncomment the rule below (this removes the sidebar right border). */
-/* .sidebar { border-right: none; } */
