@@ -4,24 +4,33 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
 
+# Import Serializers
 from .serializers import (
     UserSerializer, CreateUserSerializer,
     ChangePasswordSerializer, LinkResidentSerializer,
     MyTokenObtainPairSerializer
 )
-from .permissions import IsAdmin, IsAdminOrManager
+
+# [QUAN TRỌNG] Import đúng tên Permission mới
+# IsManager đã bao gồm quyền của Admin và Manager
+from .permissions import IsAdmin, IsManager, IsOwnerOrReadOnly
 
 User = get_user_model()
 
-# 1. Custom Login View
+# ------------------------------------------------------------------
+# 1. Custom Login View (Trả về Token + Role)
+# ------------------------------------------------------------------
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-# 2. User ViewSet (CRUD + Custom Actions)
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
 
-    # Cấu hình Serializer động
+# ------------------------------------------------------------------
+# 2. User ViewSet (Quản lý người dùng)
+# ------------------------------------------------------------------
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all().order_by('id')
+
+    # Cấu hình Serializer động theo hành động
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateUserSerializer
@@ -31,59 +40,98 @@ class UserViewSet(viewsets.ModelViewSet):
             return LinkResidentSerializer
         return UserSerializer
 
-    # Cấu hình Permission động (Theo bảng API)
+    # Cấu hình Permission động (Logic bảo mật)
     def get_permissions(self):
-        # Admin: Tạo, Xóa, List, Khóa tài khoản (partial_update)
-        if self.action in ['create', 'destroy', 'list', 'partial_update']:
-            return [permissions.IsAuthenticated(), IsAdmin()]
+        # 1. Tạo User (Create):
+        # - Nếu muốn ai cũng đăng ký được -> dùng [permissions.AllowAny()]
+        # - Nếu chỉ Quản lý mới được tạo User -> dùng [IsManager()]
+        if self.action == 'create':
+            return [IsManager()]
 
-        # Admin/Manager: Link cư dân
+            # 2. Xem danh sách (List): Chỉ Quản lý/Admin được xem hết user
+        if self.action == 'list':
+            return [IsManager()]
+
+        # 3. Xem chi tiết/Sửa (Retrieve/Update): Chính chủ hoặc Quản lý
+        if self.action in ['retrieve', 'update', 'partial_update']:
+            return [IsOwnerOrReadOnly()]
+
+        # 4. Xóa User (Destroy): Chỉ Admin tối cao mới được xóa
+        if self.action == 'destroy':
+            return [IsAdmin()]
+
+        # 5. Link Cư dân: Chỉ Quản lý thực hiện
         if self.action == 'link_resident':
-            return [permissions.IsAuthenticated(), IsAdminOrManager()]
+            return [IsManager()]
 
-        # Authenticated User: Xem profile, Đổi pass
+        # Các hành động khác (change_password, get_me): Cần đăng nhập
         return [permissions.IsAuthenticated()]
 
-    # GET /users/me/
+    # GET /api/users/me/
     @action(detail=False, methods=['get'], url_path='me')
     def get_me(self, request):
+        """Lấy thông tin của chính user đang đăng nhập"""
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    # POST /users/change-password/
+    # POST /api/users/change-password/
     @action(detail=False, methods=['post'], url_path='change-password')
     def change_password(self, request):
-        serializer = ChangePasswordSerializer(data=request.data)
+        """Đổi mật khẩu"""
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+
         if serializer.is_valid():
             user = request.user
+            # Kiểm tra mật khẩu cũ
             if not user.check_password(serializer.data.get("old_password")):
-                return Response({"error": "Mật khẩu cũ không đúng"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Mật khẩu cũ không đúng"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
+            # Đặt mật khẩu mới
             user.set_password(serializer.data.get("new_password"))
             user.save()
-            return Response({"message": "Đổi mật khẩu thành công"}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "Đổi mật khẩu thành công"},
+                status=status.HTTP_200_OK
+            )
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # POST /users/{id}/link-resident/
+    # POST /api/users/{id}/link-resident/
     @action(detail=True, methods=['post'], url_path='link-resident')
     def link_resident(self, request, pk=None):
+        """
+        API dành cho Quản lý: Liên kết tài khoản User với hồ sơ Cư Dân
+        """
         user = self.get_object() # Lấy user theo ID trên URL
         serializer = LinkResidentSerializer(data=request.data)
 
         if serializer.is_valid():
             cu_dan_id = serializer.data['cu_dan_id']
-            # Lazy import để tránh circular import nếu file models chưa load xong
-            from residents.models import Resident
+
+            # [SỬA LỖI] Dùng lazy import và đúng tên model CuDan (không phải Resident)
+            from residents.models import CuDan
+
             try:
-                resident = Resident.objects.get(pk=cu_dan_id)
-                user.cu_dan = resident
+                # Tìm hồ sơ cư dân
+                resident_obj = CuDan.objects.get(pk=cu_dan_id)
+
+                # Cập nhật liên kết
+                user.cu_dan = resident_obj
                 user.save()
+
                 return Response({
                     "message": "Mapping thành công",
                     "user": user.username,
+                    "resident_linked": resident_obj.ho_ten,
                     "resident_id": cu_dan_id
                 })
-            except Resident.DoesNotExist:
-                return Response({"error": "Không tìm thấy Cư dân ID này"}, status=status.HTTP_404_NOT_FOUND)
+            except CuDan.DoesNotExist:
+                return Response(
+                    {"error": f"Không tìm thấy Cư dân có ID {cu_dan_id}"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
