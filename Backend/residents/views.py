@@ -156,6 +156,32 @@ class CuDanViewSet(viewsets.ModelViewSet):
         
         return Response(data)
 
+    @action(detail=True, methods=['get'], url_path='history')
+    def history(self, request, pk=None):
+        """
+        Endpoint: GET /api/residents/{id}/history/
+        """
+        # 1. Lấy cư dân hiện tại dựa trên ID (pk)
+        resident = self.get_object()
+        
+        # 2. Truy vấn lịch sử biến động của cư dân này
+        # Dùng select_related('can_ho') để lấy nhanh mã căn hộ
+        history_qs = BienDongDanCu.objects.filter(
+            cu_dan=resident
+        ).select_related('can_ho').order_by('-ngay_thuc_hien')
+        
+        # 3. Trả về dữ liệu rút gọn (không dùng Serializer class)
+        data = [
+            {
+                "ma_can_ho": item.can_ho.ma_can_ho, # ID của căn hộ
+                "loai_bien_dong": item.loai_bien_dong, # 'Thường trú', 'Chuyển đi'... nếu lấy tên thì dùng item.get_loai_bien_dong_display()
+                "ngay_thuc_hien": item.ngay_thuc_hien
+            }
+            for item in history_qs
+        ]
+        
+        return Response(data)
+
 class CuDanHistoryView(generics.ListAPIView):
     serializer_class = CuDanHistorySerializer
     permission_classes = [IsAuthenticated]

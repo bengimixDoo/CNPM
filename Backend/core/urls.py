@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from residents.urls import resident_router, apartment_router, history_router
+from services.urls import vehicle_router, request_router, news_router
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,4 +18,8 @@ urlpatterns = [
     path('api/residents/', include(resident_router.urls)),
     path('api/apartments/', include(apartment_router.urls)),
     path('api/history/', include(history_router.urls)),
+
+    path('api/vehicles/', include(vehicle_router.urls)),
+    path('api/support-tickets/', include(request_router.urls)),
+    path('api/news/', include(news_router.urls)),
 ]
