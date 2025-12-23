@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 class CanHoViewSet(viewsets.ModelViewSet):
     queryset = CanHo.objects.all().order_by('ma_can_ho')
     serializer_class = CanHoSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['get'], url_path='thongke')
     def thong_ke(self, request):
@@ -128,7 +128,7 @@ class CanHoHistoryView(generics.ListAPIView):
 class CuDanViewSet(viewsets.ModelViewSet):
     queryset = CuDan.objects.all().order_by('ma_cu_dan')
     serializer_class = CuDanSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['get'], url_path='history')
     def history(self, request, pk=None):
@@ -169,7 +169,7 @@ class CuDanHistoryView(generics.ListAPIView):
 class BienDongDanCuViewSet(viewsets.ModelViewSet):
     queryset = BienDongDanCu.objects.all().order_by('ma_bien_dong')
     serializer_class = BienDongDanCuSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 class BienDongDanCuHistoryView(generics.ListAPIView):
     serializer_class = BienDongDanCuHistorySerializer
