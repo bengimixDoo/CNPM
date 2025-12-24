@@ -85,4 +85,4 @@ class PhuongTien(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.get_loai_xe_display()} - {self.bien_so if self.bien_so else 'Không biển'} - {self.chu_so_huu.ho_ten}"
+        return f"{self.get_loai_xe_display()} - {self.bien_so if self.bien_so else 'Không biển'}"

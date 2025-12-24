@@ -50,10 +50,21 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         #if request.method in permissions.SAFE_METHODS:
         #    return True
 
-        # 3. Kiểm tra xem user đang request có phải là chủ sở hữu object đó không
+        # 3. Kiểm tra xem user đang request có phải là chủ sở hữu object đó không (với CanHo)
         if hasattr(obj, 'user'):
             return obj.user == request.user
         if hasattr(obj, 'chu_so_huu'):
             return obj.chu_so_huu == request.user
+        
+        # Dùng cho YeuCau
+        if hasattr(obj, 'cu_dan') and obj.cu_dan:
+            return obj.cu_dan.user_account == request.user
+        
+        # Logic cho ChiSoDienNuoc, PhuongTien
+        if hasattr(obj, 'can_ho'):
+            user_profile = getattr(request.user, 'cu_dan', None)
+            if user_profile:
+                # Kiểm tra nếu căn hộ của bản ghi khớp với căn hộ cư dân đang ở
+                return obj.can_ho == user_profile.can_ho_dang_o
 
         return False

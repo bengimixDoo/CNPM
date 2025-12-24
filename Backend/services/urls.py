@@ -12,6 +12,7 @@ request_router.register(r'', YeuCauViewSet, basename='support-tickets')
 news_router = DefaultRouter()
 news_router.register(r'', TinTucViewSet, basename='news')
 
+
 urlpatterns = [
     path('vehicles/', include(vehicle_router.urls)),
     path('support-tickets/', include(request_router.urls)),

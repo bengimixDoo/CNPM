@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import PhuongTien, ChiSoDienNuoc, TinTuc, YeuCau
 
 class PhuongTienSerializer(serializers.ModelSerializer):
+    # loai_xe_display = serializers.CharField(source='get_loai_xe_display', read_only=True)
     class Meta:
         model = PhuongTien
         fields = '__all__'
@@ -23,6 +24,7 @@ class PhuongTienSerializer(serializers.ModelSerializer):
         return data
 
 class ChiSoDienNuocSerializer(serializers.ModelSerializer):
+    # loai_dich_vu_display = serializers.CharField(source='get_loai_dich_vu_display', read_only=True)
     class Meta:
         model = ChiSoDienNuoc
         fields = '__all__'
