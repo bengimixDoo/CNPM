@@ -3,6 +3,27 @@ from datetime import date
 from django.core.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
+# [MỚI] Model Dịch Vụ: Đây là cái Kế toán cần để nhập giá tiền (Menu)
+class DichVu(models.Model):
+    ma_dich_vu = models.AutoField(primary_key=True)
+    ten_dich_vu = models.CharField(max_length=200) # VD: Tiền điện, Phí gửi xe máy
+    don_gia = models.DecimalField(max_digits=12, decimal_places=0) # VD: 3000
+    don_vi_tinh = models.CharField(max_length=50) # VD: kWh, m3, Tháng
+
+    # Kế toán cần phân loại để biết cái nào tính theo số (biến đổi), cái nào cố định
+    LOAI_DICH_VU_CHOICES = [
+        ('CO_DINH', 'Phí cố định'), # Gửi xe, phí quản lý
+        ('BIEN_DOI', 'Phí biến đổi'), # Điện, nước
+    ]
+    loai_dich_vu = models.CharField(max_length=20, choices=LOAI_DICH_VU_CHOICES, default='CO_DINH')
+
+    history = HistoricalRecords(user_model='users.User')
+
+    def __str__(self):
+        return f"{self.ten_dich_vu} ({self.don_gia}/{self.don_vi_tinh})"
+
+# --- CÁC MODEL CŨ CỦA BẠN (GIỮ NGUYÊN) ---
+
 class ChiSoDienNuoc(models.Model):
     ma_chi_so = models.AutoField(primary_key=True)
     can_ho = models.ForeignKey('residents.CanHo', on_delete=models.CASCADE, related_name='chi_so_dien_nuoc')
@@ -70,7 +91,6 @@ class PhuongTien(models.Model):
 
     history = HistoricalRecords(user_model='users.User')
 
-
     def clean(self):
         super().clean()
         # Kiểm tra nếu là Ô tô (C) hoặc Xe máy (M) mà biển số để trống
@@ -80,7 +100,7 @@ class PhuongTien(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        # Gọi full_clean để đảm bảo hàm clean() luôn được chạy 
+        # Gọi full_clean để đảm bảo hàm clean() luôn được chạy
         self.full_clean()
         super().save(*args, **kwargs)
 

@@ -38,9 +38,11 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     Quyền sở hữu (Object Level Permission):
     - Admin/Quản lý: Có toàn quyền (Sửa/Xóa bất kỳ ai).
     - Cư dân: Chỉ được thao tác trên dữ liệu CỦA CHÍNH MÌNH.
-
     """
-    def has_object_permission(self, request, view, obj):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+    
+    def has_object_permission(self, request, view, obj):       
         # 1. Admin và Quản lý luôn được phép
         if request.user.role in ['ADMIN', 'QUAN_LY'] or request.user.is_superuser:
             return True

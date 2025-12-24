@@ -1,11 +1,12 @@
 from rest_framework import viewsets
-from .models import PhuongTien, ChiSoDienNuoc, TinTuc, YeuCau
+from .models import PhuongTien, ChiSoDienNuoc, TinTuc, YeuCau, DichVu
 from .serializers import PhuongTienSerializer, ChiSoDienNuocSerializer, TinTucSerializer
 # from .serializers import  YeuCauSerializer
-from .serializers import CuDanYeuCauSerializer, QuanLyYeuCauSerializer
+from .serializers import CuDanYeuCauSerializer, QuanLyYeuCauSerializer, DichVuSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from users.permissions import IsManager, IsResident, IsOwnerOrReadOnly, IsAccountant
+from rest_framework.exceptions import PermissionDenied
 
 class PhuongTienViewSet(viewsets.ModelViewSet):
     serializer_class = PhuongTienSerializer
@@ -41,6 +42,29 @@ class PhuongTienViewSet(viewsets.ModelViewSet):
 
         return PhuongTien.objects.none()
 
+# --- HÀM HỖ TRỢ LẤY CĂN HỘ CHUẨN XÁC ---
+def get_user_can_ho(user):
+    # Kiểm tra xem User có hồ sơ Cư Dân không
+    if hasattr(user, 'cu_dan') and user.cu_dan:
+        # [QUAN TRỌNG] Lấy đúng trường 'can_ho_dang_o' từ model CuDan
+        return user.cu_dan.can_ho_dang_o
+    return None
+
+# ----------------------------------------------------------------------
+# 1. VIEWSET DỊCH VỤ (BẢNG GIÁ)
+# ----------------------------------------------------------------------
+class DichVuViewSet(viewsets.ModelViewSet):
+    queryset = DichVu.objects.all().order_by('ma_dich_vu')
+    serializer_class = DichVuSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsManager()]
+        return [IsAuthenticated()]
+
+# ----------------------------------------------------------------------
+# 2. VIEWSET CHỈ SỐ ĐIỆN NƯỚC (ĐÃ SỬA LOGIC LỌC)
+# ----------------------------------------------------------------------
 class ChiSoDienNuocViewSet(viewsets.ModelViewSet):
     serializer_class = ChiSoDienNuocSerializer
 
@@ -60,7 +84,8 @@ class ChiSoDienNuocViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        
+        if not user or not user.is_authenticated:
+            return ChiSoDienNuoc.objects.none()
         # 1. Quản lý, Kế toán, Admin: Xem toàn bộ
         if user.role in ['QUAN_LY', 'KE_TOAN', 'ADMIN'] or user.is_superuser:
             return ChiSoDienNuoc.objects.all().order_by('-nam', '-thang')
@@ -101,11 +126,12 @@ class TinTucViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        # Tự động gán người đăng là tài khoản đang thực hiện thao tác
         serializer.save(nguoi_dang=self.request.user)
 
-# Chỉ được tạo khi có user.role == 'CU_DAN', cư dân có quyền xem các yêu cầu của mình và chỉnh trạng thái sang Hủy.
-# Quản lý được xem toàn bộ yêu cầu, có quyền chỉnh sửa.
+
+# ----------------------------------------------------------------------
+# 5. VIEWSET YÊU CẦU (PHẢN ÁNH)
+# ----------------------------------------------------------------------
 class YeuCauViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         # Trả về Serializer tương ứng với vai trò
@@ -134,10 +160,33 @@ class YeuCauViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'CU_DAN':
-            return YeuCau.objects.filter(cu_dan=user.cu_dan)
-        return YeuCau.objects.all()
+        if not user or not user.is_authenticated:
+            return YeuCau.objects.none()
+        if user.role in ['QUAN_LY', 'KE_TOAN', 'ADMIN']:
+            return YeuCau.objects.all().order_by('-ngay_gui')
+
+        if user.role == 'CU_DAN' and hasattr(user, 'cu_dan'):
+            return YeuCau.objects.filter(cu_dan=user.cu_dan).order_by('-ngay_gui')
+
+        return YeuCau.objects.none()
 
     def perform_create(self, serializer):
-        # Tự động gán cư dân khi tạo
-        serializer.save(cu_dan=self.request.user.cu_dan)
+        user = self.request.user
+        if user.role == 'CU_DAN':
+            # 1. Lấy hồ sơ cư dân của user đang đăng nhập
+            cu_dan_profile = getattr(user, 'cu_dan', None)
+
+            # 2. Kiểm tra sự tồn tại của hồ sơ
+            if not cu_dan_profile:
+                raise PermissionDenied({
+                    "Tài khoản của bạn chưa được liên kết với hồ sơ cư dân."
+                })
+
+            # 3. RÀNG BUỘC: Kiểm tra mã căn hộ đang ở
+            if cu_dan_profile.can_ho_dang_o is None:
+                raise PermissionDenied({
+                    "Bạn chưa được gán vào căn hộ nào. Vui lòng liên hệ Ban quản lý để cập nhật thông tin trước khi gửi yêu cầu."
+                })
+
+            # 4. Nếu thỏa mãn, tiến hành lưu yêu cầu
+            serializer.save(cu_dan=cu_dan_profile)
