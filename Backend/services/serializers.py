@@ -10,7 +10,7 @@ class DichVuSerializer(serializers.ModelSerializer):
 
 # --- 2. SERIALIZER PHƯƠNG TIỆN ---
 class PhuongTienSerializer(serializers.ModelSerializer):
-    # Hiển thị thêm mã căn hộ cho Kế toán dễ nhìn
+    # loai_xe_display = serializers.CharField(source='get_loai_xe_display', read_only=True)
     ma_can_ho = serializers.CharField(source='can_ho.ma_can_ho', read_only=True)
 
     class Meta:
@@ -32,6 +32,7 @@ class PhuongTienSerializer(serializers.ModelSerializer):
 
 # --- 3. SERIALIZER CHỈ SỐ ĐIỆN NƯỚC ---
 class ChiSoDienNuocSerializer(serializers.ModelSerializer):
+    # loai_dich_vu_display = serializers.CharField(source='get_loai_dich_vu_display', read_only=True)
     ma_can_ho = serializers.CharField(source='can_ho.ma_can_ho', read_only=True)
 
     class Meta:
@@ -70,6 +71,17 @@ class CuDanYeuCauSerializer(serializers.ModelSerializer):
             if value != 'W':
                 raise serializers.ValidationError("Trạng thái khi tạo yêu cầu phải là 'Chờ xử lý'.")
         return value
+    
+    def validate(self, data):
+        user = self.context['request'].user
+        cu_dan_profile = getattr(user, 'cu_dan', None)
+
+        if not cu_dan_profile or cu_dan_profile.can_ho_dang_o is None:
+            raise serializers.ValidationError(
+                "Yêu cầu không thể gửi do bạn chưa có thông tin căn hộ đang cư trú."
+            )
+        
+        return data
 
 class QuanLyYeuCauSerializer(serializers.ModelSerializer):
     ten_cu_dan = serializers.CharField(source='cu_dan.ho_ten', read_only=True)

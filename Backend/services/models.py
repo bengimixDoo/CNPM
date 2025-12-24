@@ -105,5 +105,4 @@ class PhuongTien(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        # [SỬA NHẸ] Sửa self.chu_so_huu thành self.can_ho vì model này không có trường chu_so_huu
-        return f"{self.get_loai_xe_display()} - {self.bien_so if self.bien_so else 'Không biển'} - {self.can_ho}"
+        return f"{self.get_loai_xe_display()} - {self.bien_so if self.bien_so else 'Không biển'}"
