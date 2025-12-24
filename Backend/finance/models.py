@@ -16,6 +16,7 @@ class HoaDon(models.Model):
     nam = models.IntegerField()
     tong_tien = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     trang_thai = models.IntegerField(default=0) # 0: Chua thanh toan, 1: Da thanh toan
+    ngay_thanh_toan = models.DateTimeField(null=True, blank=True)
     ngay_tao = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
