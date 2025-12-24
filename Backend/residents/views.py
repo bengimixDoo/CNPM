@@ -19,29 +19,44 @@ from .serializers import (
 # -----------------------------------------------------------
 class CanHoViewSet(viewsets.ModelViewSet):
     serializer_class = CanHoSerializer
-    # Kế toán cũng cần đăng nhập để xem
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    # [QUAN TRỌNG] Phân quyền chặt chẽ
+    def get_permissions(self):
+        # Hành động sửa đổi dữ liệu (Thêm, Sửa, Xóa) -> Chỉ QUẢN LÝ
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsManager()]
+
+        # Hành động Xem thống kê -> Chỉ KẾ TOÁN hoặc QUẢN LÝ (đã set ở @action bên dưới)
+        if self.action == 'thong_ke':
+            return [IsAccountant()]
+
+        # Các hành động xem danh sách (list, retrieve) -> Ai có tài khoản cũng xem được
+        # (Nhưng sẽ bị lọc dữ liệu ở get_queryset)
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user
 
-        # [CẬP NHẬT] Thêm 'KE_TOAN' vào đây để họ thấy hết danh sách mà thu tiền
+        # 1. Quản lý, Kế toán, Admin: Xem hết toàn bộ
         if user.role in ['ADMIN', 'QUAN_LY', 'KE_TOAN'] or user.is_superuser:
             return CanHo.objects.all().order_by('ma_can_ho')
 
-        # Cư dân: Chỉ xem được nhà mình
+        # 2. Cư dân: Chỉ xem được nhà mình đang ở
+        # Logic: Dựa vào trường 'cu_dan_hien_tai' (related_name trong model CuDan)
         if hasattr(user, 'cu_dan') and user.cu_dan:
             return CanHo.objects.filter(cu_dan_hien_tai=user.cu_dan).distinct().order_by('ma_can_ho')
 
+        # 3. Người lạ: Không thấy gì
         return CanHo.objects.none()
 
-    # Thống kê thì Kế toán cũng nên được xem để biết tình hình lấp đầy
-    @action(detail=False, methods=['get'], url_path='thongke', permission_classes=[IsAccountant])
+    # --- CÁC ACTION MỞ RỘNG ---
+
+    @action(detail=False, methods=['get'], url_path='thongke')
     def thong_ke(self, request):
         """
-        Endpoint: GET /api/residents/canho/thongke/
-        Dành cho: Quản lý + Kế toán (IsAccountant đã bao gồm cả Manager)
+        Thống kê tổng quan tình trạng căn hộ (Trống, Đã bán, Đang thuê).
         """
+        # Lưu ý: Dùng CanHo.objects.all() để thống kê toàn bộ, không phụ thuộc vào get_queryset
         queryset = CanHo.objects.all()
 
         thong_ke_tong_quat = queryset.aggregate(
@@ -77,8 +92,12 @@ class CanHoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='detail')
     def thong_ke_chi_tiet_can_ho(self, request, pk=None):
+        """
+        Xem chi tiết nhân khẩu trong 1 căn hộ cụ thể.
+        """
         can_ho = self.get_object()
 
+        # 'cu_dan_hien_tai' là related_name trỏ ngược về bảng CuDan
         stats = can_ho.cu_dan_hien_tai.aggregate(
             tong_nguoi=Count('ma_cu_dan'),
             tam_vang=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TV')),
@@ -122,7 +141,7 @@ class CanHoViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 # -----------------------------------------------------------
-# 2. VIEW HISTORY (LOG HỆ THỐNG)
+# 2. VIEW HISTORY (LOG HỆ THỐNG - SIMPLE HISTORY)
 # -----------------------------------------------------------
 class CanHoHistoryView(generics.ListAPIView):
     serializer_class = CanHoHistorySerializer
@@ -138,15 +157,21 @@ class CanHoHistoryView(generics.ListAPIView):
 # -----------------------------------------------------------
 class CuDanViewSet(viewsets.ModelViewSet):
     serializer_class = CuDanSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def get_permissions(self):
+        # Chỉ Quản lý mới được Thêm/Sửa/Xóa hồ sơ cư dân
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsManager()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user
 
-        # [CẬP NHẬT] Kế toán được xem hết danh sách cư dân (để xuất hóa đơn)
+        # Kế toán/Quản lý: Xem hết để làm việc
         if user.role in ['ADMIN', 'QUAN_LY', 'KE_TOAN'] or user.is_superuser:
             return CuDan.objects.all().order_by('ma_cu_dan')
 
+        # Cư dân: Chỉ xem được hồ sơ của chính mình
         if hasattr(user, 'cu_dan') and user.cu_dan:
             return CuDan.objects.filter(ma_cu_dan=user.cu_dan.ma_cu_dan)
 
@@ -154,44 +179,24 @@ class CuDanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='history')
     def history(self, request, pk=None):
+        """
+        Xem lịch sử di chuyển (biến động) của 1 cư dân
+        """
         resident = self.get_object()
+
         history_qs = BienDongDanCu.objects.filter(
             cu_dan=resident
         ).select_related('can_ho').order_by('-ngay_thuc_hien')
+
         data = [
             {
                 "ma_can_ho": item.can_ho.ma_can_ho,
+                "ten_can_ho": str(item.can_ho), # Thêm tên căn hộ cho dễ nhìn
                 "loai_bien_dong": item.get_loai_bien_dong_display(),
                 "ngay_thuc_hien": item.ngay_thuc_hien
             }
             for item in history_qs
         ]
-        return Response(data)
-
-    @action(detail=True, methods=['get'], url_path='history')
-    def history(self, request, pk=None):
-        """
-        Endpoint: GET /api/residents/{id}/history/
-        """
-        # 1. Lấy cư dân hiện tại dựa trên ID (pk)
-        resident = self.get_object()
-        
-        # 2. Truy vấn lịch sử biến động của cư dân này
-        # Dùng select_related('can_ho') để lấy nhanh mã căn hộ
-        history_qs = BienDongDanCu.objects.filter(
-            cu_dan=resident
-        ).select_related('can_ho').order_by('-ngay_thuc_hien')
-        
-        # 3. Trả về dữ liệu rút gọn (không dùng Serializer class)
-        data = [
-            {
-                "ma_can_ho": item.can_ho.ma_can_ho, # ID của căn hộ
-                "loai_bien_dong": item.loai_bien_dong, # 'Thường trú', 'Chuyển đi'... nếu lấy tên thì dùng item.get_loai_bien_dong_display()
-                "ngay_thuc_hien": item.ngay_thuc_hien
-            }
-            for item in history_qs
-        ]
-        
         return Response(data)
 
 class CuDanHistoryView(generics.ListAPIView):
