@@ -6,6 +6,7 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
         QUAN_LY = "QUAN_LY", "Quản lý"
+        KE_TOAN = "KE_TOAN", "Kế toán"
         CU_DAN = "CU_DAN", "Cư dân"
 
     role = models.CharField(
@@ -25,4 +26,4 @@ class User(AbstractUser):
     )
 
     def __str__(self):
-        return f"{self.username} ({self.role})"
+        return f"{self.username} ({self.get_role_display()})"

@@ -1,36 +1,71 @@
-from rest_framework import viewsets, status
-from django.db.models import Count, Q
-from .models import CanHo, CuDan, BienDongDanCu
-from .serializers import CanHoSerializer, CuDanSerializer, BienDongDanCuSerializer
-from .serializers import CanHoHistorySerializer, CuDanHistorySerializer, BienDongDanCuHistorySerializer
-from rest_framework import generics
+from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Count, Q
 
+# Import Permissions
+from users.permissions import IsManager, IsOwnerOrReadOnly, IsAccountant
 
-# Create your views here.
+# Import Models & Serializers
+from .models import CanHo, CuDan, BienDongDanCu
+from .serializers import (
+    CanHoSerializer, CuDanSerializer, BienDongDanCuSerializer,
+    CanHoHistorySerializer, CuDanHistorySerializer, BienDongDanCuHistorySerializer
+)
+
+# -----------------------------------------------------------
+# 1. VIEWSET CĂN HỘ (Apartments)
+# -----------------------------------------------------------
 class CanHoViewSet(viewsets.ModelViewSet):
-    queryset = CanHo.objects.all().order_by('ma_can_ho')
     serializer_class = CanHoSerializer
-    # permission_classes = [IsAuthenticated]
+
+    # [QUAN TRỌNG] Phân quyền chặt chẽ
+    def get_permissions(self):
+        # Hành động sửa đổi dữ liệu (Thêm, Sửa, Xóa) -> Chỉ QUẢN LÝ
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsManager()]
+
+        # Hành động Xem thống kê -> Chỉ KẾ TOÁN hoặc QUẢN LÝ (đã set ở @action bên dưới)
+        if self.action == 'thong_ke':
+            return [IsAccountant()]
+
+        # Các hành động xem danh sách (list, retrieve) -> Ai có tài khoản cũng xem được
+        # (Nhưng sẽ bị lọc dữ liệu ở get_queryset)
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # 1. Quản lý, Kế toán, Admin: Xem hết toàn bộ
+        if user.role in ['ADMIN', 'QUAN_LY', 'KE_TOAN'] or user.is_superuser:
+            return CanHo.objects.all().order_by('ma_can_ho')
+
+        # 2. Cư dân: Chỉ xem được nhà mình đang ở
+        # Logic: Dựa vào trường 'cu_dan_hien_tai' (related_name trong model CuDan)
+        if hasattr(user, 'cu_dan') and user.cu_dan:
+            return CanHo.objects.filter(cu_dan_hien_tai=user.cu_dan).distinct().order_by('ma_can_ho')
+
+        # 3. Người lạ: Không thấy gì
+        return CanHo.objects.none()
+
+    # --- CÁC ACTION MỞ RỘNG ---
 
     @action(detail=False, methods=['get'], url_path='thongke')
     def thong_ke(self, request):
         """
-        Endpoint: GET /api/apartments/thongke/
+        Thống kê tổng quan tình trạng căn hộ (Trống, Đã bán, Đang thuê).
         """
-        queryset = self.get_queryset()
+        # Lưu ý: Dùng CanHo.objects.all() để thống kê toàn bộ, không phụ thuộc vào get_queryset
+        queryset = CanHo.objects.all()
 
-        # 1. Thống kê tổng quát toàn bộ hệ thống
         thong_ke_tong_quat = queryset.aggregate(
             tong_so_can_ho=Count('ma_can_ho'),
             so_can_trong_E=Count('ma_can_ho', filter=Q(trang_thai='E')),
             so_da_ban_S=Count('ma_can_ho', filter=Q(trang_thai='S')),
             so_dang_thue_H=Count('ma_can_ho', filter=Q(trang_thai='H'))
         )
-        # 2. Thống kê chi tiết theo từng Tòa nhà (Bao gồm trạng thái trong mỗi tòa)
-        # Sử dụng values('toa_nha') để Group By
+
         thong_ke_theo_toa = (
             queryset.values('toa_nha')
             .annotate(
@@ -42,7 +77,6 @@ class CanHoViewSet(viewsets.ModelViewSet):
             .order_by('toa_nha')
         )
 
-        # Cấu trúc lại dữ liệu để trả về JSON sạch đẹp
         data_response = {
             "tong_quan": thong_ke_tong_quat,
             "chi_tiet": {
@@ -55,24 +89,22 @@ class CanHoViewSet(viewsets.ModelViewSet):
             }
         }
         return Response(data_response, status=status.HTTP_200_OK)
-    
+
     @action(detail=True, methods=['get'], url_path='detail')
     def thong_ke_chi_tiet_can_ho(self, request, pk=None):
         """
-        Endpoint: GET /api/apartments/{id}/detail/
+        Xem chi tiết nhân khẩu trong 1 căn hộ cụ thể.
         """
-        # Lấy đối tượng căn hộ cụ thể, nếu không có sẽ trả về 404
         can_ho = self.get_object()
 
-        # Thực hiện thống kê tập hợp trên liên kết ngược 'cu_dan_hien_tai'
-        # (related_name bạn đã đặt trong model CuDan)
+        # 'cu_dan_hien_tai' là related_name trỏ ngược về bảng CuDan
         stats = can_ho.cu_dan_hien_tai.aggregate(
             tong_nguoi=Count('ma_cu_dan'),
             tam_vang=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TV')),
             tam_tru=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TT')),
             thuong_tru=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TH'))
         )
-        danh_sach_cu_dan = can_ho.cu_dan_hien_tai.values('ma_cu_dan')
+        danh_sach_cu_dan = can_ho.cu_dan_hien_tai.values('ma_cu_dan', 'ho_ten')
 
         data = {
             "thong_tin_can_ho": {
@@ -81,7 +113,7 @@ class CanHoViewSet(viewsets.ModelViewSet):
                 "tang": can_ho.tang,
                 "toa_nha": can_ho.toa_nha,
                 "dien_tich": can_ho.dien_tich,
-                "trang_thai_hien_tai": can_ho.trang_thai, # Trả về "Trống", "Đã bán"...
+                "trang_thai_hien_tai": can_ho.get_trang_thai_display(),
             },
             "thong_ke_nhan_khau": {
                 "danh_sach_cu_dan": list(danh_sach_cu_dan),
@@ -91,118 +123,105 @@ class CanHoViewSet(viewsets.ModelViewSet):
                 "so_nguoi_tam_vang": stats['tam_vang'],
             }
         }
-
         return Response(data, status=status.HTTP_200_OK)
-    
+
     @action(detail=True, methods=['get'], url_path='history')
     def history(self, request, pk=None):
-        # 1. Lấy căn hộ hiện tại
         apartment = self.get_object()
-        
-        # 2. Truy vấn và sắp xếp giảm dần theo ngày
-        # select_related giúp truy vấn tên cư dân nhanh hơn (tránh lỗi N+1)
         history_qs = BienDongDanCu.objects.filter(can_ho=apartment).select_related('cu_dan').order_by('-ngay_thuc_hien')
-        
-        # 3. Tạo list dữ liệu thủ công (Không cần Serializer class)
         data = [
             {
                 "ma_cu_dan": item.cu_dan.ma_cu_dan,
-                "loai_bien_dong": item.loai_bien_dong,
+                "ten_cu_dan": item.cu_dan.ho_ten,
+                "loai_bien_dong": item.get_loai_bien_dong_display(),
                 "ngay_thuc_hien": item.ngay_thuc_hien
-            } 
+            }
             for item in history_qs
         ]
-        
         return Response(data)
 
+# -----------------------------------------------------------
+# 2. VIEW HISTORY (LOG HỆ THỐNG - SIMPLE HISTORY)
+# -----------------------------------------------------------
 class CanHoHistoryView(generics.ListAPIView):
     serializer_class = CanHoHistorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsManager] # Chỉ quản lý xem log sửa đổi cấu trúc
 
     def get_queryset(self):
-        # Lấy MaHoKhau từ URL
-        ma_can_ho = self.kwargs['ma_can_ho'] 
-        # Trả về tất cả các phiên bản lịch sử của đối tượng đó
-        return CanHo.history.filter(MaCanHo=ma_can_ho).order_by('-history_date')
+        ma_can_ho = self.kwargs['ma_can_ho']
+        return CanHo.history.filter(ma_can_ho=ma_can_ho).order_by('-history_date')
 
+
+# -----------------------------------------------------------
+# 3. VIEWSET CƯ DÂN
+# -----------------------------------------------------------
 class CuDanViewSet(viewsets.ModelViewSet):
-    queryset = CuDan.objects.all().order_by('ma_cu_dan')
     serializer_class = CuDanSerializer
-    # permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        # Chỉ Quản lý mới được Thêm/Sửa/Xóa hồ sơ cư dân
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsManager()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Kế toán/Quản lý: Xem hết để làm việc
+        if user.role in ['ADMIN', 'QUAN_LY', 'KE_TOAN'] or user.is_superuser:
+            return CuDan.objects.all().order_by('ma_cu_dan')
+
+        # Cư dân: Chỉ xem được hồ sơ của chính mình
+        if hasattr(user, 'cu_dan') and user.cu_dan:
+            return CuDan.objects.filter(ma_cu_dan=user.cu_dan.ma_cu_dan)
+
+        return CuDan.objects.none()
 
     @action(detail=True, methods=['get'], url_path='history')
     def history(self, request, pk=None):
         """
-        Endpoint: GET /api/residents/{id}/history/
+        Xem lịch sử di chuyển (biến động) của 1 cư dân
         """
-        # 1. Lấy cư dân hiện tại dựa trên ID (pk)
         resident = self.get_object()
-        
-        # 2. Truy vấn lịch sử biến động của cư dân này
-        # Dùng select_related('can_ho') để lấy nhanh mã căn hộ
-        history_qs = BienDongDanCu.objects.filter(
-            cu_dan=resident
-        ).select_related('can_ho').order_by('-ngay_thuc_hien')
-        
-        # 3. Trả về dữ liệu rút gọn (không dùng Serializer class)
-        data = [
-            {
-                "ma_can_ho": item.can_ho.ma_can_ho, # ID của căn hộ
-                "loai_bien_dong": item.loai_bien_dong, # 'Thường trú', 'Chuyển đi'... nếu lấy tên thì dùng item.get_loai_bien_dong_display()
-                "ngay_thuc_hien": item.ngay_thuc_hien
-            }
-            for item in history_qs
-        ]
-        
-        return Response(data)
 
-    @action(detail=True, methods=['get'], url_path='history')
-    def history(self, request, pk=None):
-        """
-        Endpoint: GET /api/residents/{id}/history/
-        """
-        # 1. Lấy cư dân hiện tại dựa trên ID (pk)
-        resident = self.get_object()
-        
-        # 2. Truy vấn lịch sử biến động của cư dân này
-        # Dùng select_related('can_ho') để lấy nhanh mã căn hộ
         history_qs = BienDongDanCu.objects.filter(
             cu_dan=resident
         ).select_related('can_ho').order_by('-ngay_thuc_hien')
-        
-        # 3. Trả về dữ liệu rút gọn (không dùng Serializer class)
+
         data = [
             {
-                "ma_can_ho": item.can_ho.ma_can_ho, # ID của căn hộ
-                "loai_bien_dong": item.loai_bien_dong, # 'Thường trú', 'Chuyển đi'... nếu lấy tên thì dùng item.get_loai_bien_dong_display()
+                "ma_can_ho": item.can_ho.ma_can_ho,
+                "ten_can_ho": str(item.can_ho), # Thêm tên căn hộ cho dễ nhìn
+                "loai_bien_dong": item.get_loai_bien_dong_display(),
                 "ngay_thuc_hien": item.ngay_thuc_hien
             }
             for item in history_qs
         ]
-        
         return Response(data)
 
 class CuDanHistoryView(generics.ListAPIView):
     serializer_class = CuDanHistorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsManager] # Log nhạy cảm
 
     def get_queryset(self):
-        # Lấy MaCuDan từ URL
-        ma_cu_dan = self.kwargs['ma_cu_dan'] 
-        # Trả về tất cả các phiên bản lịch sử của đối tượng đó
-        return CuDan.history.filter(MaCuDan=ma_cu_dan).order_by('-history_date')
-    
+        ma_cu_dan = self.kwargs['ma_cu_dan']
+        return CuDan.history.filter(ma_cu_dan=ma_cu_dan).order_by('-history_date')
+
+
+# -----------------------------------------------------------
+# 4. VIEWSET BIẾN ĐỘNG DÂN CƯ
+# -----------------------------------------------------------
 class BienDongDanCuViewSet(viewsets.ModelViewSet):
     queryset = BienDongDanCu.objects.all().order_by('ma_bien_dong')
     serializer_class = BienDongDanCuSerializer
-    # permission_classes = [IsAuthenticated]
+
+    # Kế toán không được phép nhập/cắt khẩu -> Vẫn giữ IsManager
+    permission_classes = [IsManager]
 
 class BienDongDanCuHistoryView(generics.ListAPIView):
     serializer_class = BienDongDanCuHistorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsManager]
 
     def get_queryset(self):
-        # Lấy MaBienDong từ URL
-        ma_bien_dong = self.kwargs['ma_bien_dong'] 
-        # Trả về tất cả các phiên bản lịch sử của đối tượng đó
-        return BienDongDanCu.history.filter(MaBienDong=ma_bien_dong).order_by('-history_date')
+        ma_bien_dong = self.kwargs['ma_bien_dong']
+        return BienDongDanCu.history.filter(ma_bien_dong=ma_bien_dong).order_by('-history_date')
