@@ -14,17 +14,17 @@ urlpatterns = [
     path('swagger/', SpectacularSwaggerView.as_view(url_name='schema')),
 
     # Users App
-    path('api/', include('users.urls')),
+    path('api/v1', include('users.urls')),
     
     # Residents App
-    path('api/', include('residents.urls')),
+    path('api/v1', include('residents.urls')),
     
     # Finance App
-    path('api/', include('finance.urls')),
+    path('api/v1', include('finance.urls')),
     
     # Services App
-    path('api/', include('services.urls')),
+    path('api/v1', include('services.urls')),
 
     # Dashboard & Cross-Cutting APIs
-    path('api/', include('dashboard.urls')),
+    path('api/v1', include('dashboard.urls')),
 ]
