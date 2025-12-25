@@ -37,17 +37,20 @@ export default function LandingPage() {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">
-            <span className="text-gradient">BlueMoon</span> Apartments
+            Your Future <span className="text-gradient">Home</span> Awaits.
           </h1>
           <p className="hero-subtitle">
-            Experience the pinnacle of luxury living. A perfect blend of
-            comfort, security, and modern architecture.
+            Experience the pinnacle of luxury living at BlueMoon Apartments.
+            Smart technologies meet modern architecture for a lifestyle like no
+            other.
           </p>
           <div className="hero-buttons">
             <Link to="/login" className="btn-primary">
-              Access Resident Portal
+              Resident Portal
             </Link>
-            <button className="btn-secondary">Explore Amenities</button>
+            <a href="#showcase" className="btn-secondary">
+              View Showcase
+            </a>
           </div>
         </div>
 
@@ -55,49 +58,89 @@ export default function LandingPage() {
         <div className="hero-bg-shapes">
           <div className="shape shape-1"></div>
           <div className="shape shape-2"></div>
-          <div className="shape shape-3"></div>
         </div>
       </header>
+
+      {/* Visual Showcase Section */}
+      <section id="showcase" className="showcase-section">
+        <div className="container">
+          <div className="showcase-wrapper">
+            <div className="showcase-image">
+              <img
+                src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=2000"
+                alt="Modern Apartment Exterior"
+              />
+              <div className="showcase-overlay">
+                <div className="glass-tag">Premium Architecture</div>
+              </div>
+            </div>
+            <div className="showcase-info">
+              <h2>Elegance in Every Detail</h2>
+              <p>
+                Our buildings are designed by award-winning architects to
+                provide the perfect balance of aesthetics and functional living
+                space.
+              </p>
+              <div className="showcase-stats">
+                <div className="s-item">
+                  <span>40+</span> Floors
+                </div>
+                <div className="s-item">
+                  <span>Sky</span> Garden
+                </div>
+                <div className="s-item">
+                  <span>Smart</span> Entry
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose BlueMoon?</h2>
-            <p>Redefining standards for modern urban living.</p>
+            <h2>Luxury Redefined</h2>
+            <p>
+              We provide more than just a place to stay. We provide a lifestyle
+              of excellence.
+            </p>
           </div>
 
           <div className="features-grid">
             <div className="feature-card">
               <div className="icon-box">
-                <span className="material-symbols-outlined">security</span>
+                <span className="material-symbols-outlined">bolt</span>
               </div>
-              <h3>Top-Tier Security</h3>
+              <h3>Smart Home</h3>
               <p>
-                24/7 surveillance and smart control access to ensure your peace
-                of mind.
+                Fully integrated smart control systems for lighting, climate,
+                and security directly from your smartphone.
               </p>
             </div>
 
             <div className="feature-card">
               <div className="icon-box">
-                <span className="material-symbols-outlined">spa</span>
+                <span className="material-symbols-outlined">verified_user</span>
               </div>
-              <h3>Premium Amenities</h3>
+              <h3>Elite Security</h3>
               <p>
-                Infinity pool, state-of-the-art gym, and lush green parks for
-                residents.
+                Biometric access, 24/7 professional surveillance, and secure
+                private parking for all residents.
               </p>
             </div>
 
             <div className="feature-card">
               <div className="icon-box">
-                <span className="material-symbols-outlined">groups</span>
+                <span className="material-symbols-outlined">
+                  fitness_center
+                </span>
               </div>
-              <h3>Vibrant Community</h3>
+              <h3>Wellness Center</h3>
               <p>
-                Regular events and spacious community halls to connect with
-                neighbors.
+                Access to our world-class gym, infinity pool, and spa treatments
+                exclusively for the BlueMoon community.
               </p>
             </div>
           </div>
@@ -105,65 +148,28 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section
-        className="stats-section"
-        style={{
-          padding: "4rem 1.5rem",
-          background: "linear-gradient(to right, #1e1b4b, #312e81)",
-          position: "relative",
-          zIndex: 10,
-          borderTop: "1px solid rgba(255,255,255,0.1)",
-          borderBottom: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
+      <section className="stats-section">
         <div
           className="container"
           style={{
             display: "flex",
             justifyContent: "space-around",
             flexWrap: "wrap",
-            gap: "2rem",
+            gap: "3rem",
             textAlign: "center",
           }}
         >
           <div className="stat-item">
-            <h3
-              style={{
-                fontSize: "3rem",
-                fontWeight: "800",
-                color: "#818cf8",
-                marginBottom: "0.5rem",
-              }}
-            >
-              500+
-            </h3>
-            <p style={{ color: "#cbd5e1" }}>Happy Residents</p>
+            <h3>500+</h3>
+            <p>Current Residents</p>
           </div>
           <div className="stat-item">
-            <h3
-              style={{
-                fontSize: "3rem",
-                fontWeight: "800",
-                color: "#818cf8",
-                marginBottom: "0.5rem",
-              }}
-            >
-              50
-            </h3>
-            <p style={{ color: "#cbd5e1" }}>World-Class Amenities</p>
+            <h3>24/7</h3>
+            <p>Active Support</p>
           </div>
           <div className="stat-item">
-            <h3
-              style={{
-                fontSize: "3rem",
-                fontWeight: "800",
-                color: "#818cf8",
-                marginBottom: "0.5rem",
-              }}
-            >
-              100%
-            </h3>
-            <p style={{ color: "#cbd5e1" }}>Secure Environment</p>
+            <h3>100%</h3>
+            <p>Modern Living</p>
           </div>
         </div>
       </section>
@@ -175,14 +181,23 @@ export default function LandingPage() {
             <div className="footer-brand">
               <h3>BlueMoon</h3>
               <p>
-                &copy; {new Date().getFullYear()} BlueMoon Apartments. All
-                rights reserved.
+                The standard of modern urban architecture and community-first
+                living. Designed for those who seek excellence in every detail.
+              </p>
+              <p
+                style={{
+                  marginTop: "2rem",
+                  fontSize: "0.8rem",
+                  color: "#334155",
+                }}
+              >
+                &copy; {new Date().getFullYear()} BlueMoon. All rights reserved.
               </p>
             </div>
             <div className="footer-social">
-              <a href="#">Facebook</a>
-              <a href="#">Instagram</a>
-              <a href="#">Twitter</a>
+              <a href="#fb">Facebook</a>
+              <a href="#ig">Instagram</a>
+              <a href="#tw">Twitter</a>
             </div>
           </div>
         </div>
