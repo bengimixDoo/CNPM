@@ -360,7 +360,7 @@ export default function Apartments() {
             variant="outlined"
             size="small"
             placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
-            sx={{ width: 500 }}
+            sx={{ width: 400 }}
           />
 
           <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -393,16 +393,13 @@ export default function Apartments() {
             Trạng thái
           </Button>
         </Box>
-
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{ backgroundColor: "var(--blue)" }}
-          >
-            Thêm Căn hộ
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{ backgroundColor: "var(--blue)", height: 40 , marginLeft: "10px"}}
+        >
+          Thêm Căn hộ
+        </Button>
       </Box>
 
       <div
@@ -413,6 +410,8 @@ export default function Apartments() {
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: "20px",
           marginTop: "20px",
+          minHeight: "600px",
+          alignContent: "start",
         }}
       >
         {currentApartments.map((apt) => (
@@ -476,7 +475,7 @@ export default function Apartments() {
           onChange={handlePageChange}
           shape="rounded"
           color="primary"
-          size="large"
+          size="small"
           showFirstButton
           showLastButton
         />

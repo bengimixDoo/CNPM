@@ -96,10 +96,7 @@ export default function Main() {
                   heightColor: 190,
                 },
               ].map((item, index) => (
-                <div
-                  className="chart-bar-group"
-                  key={index}
-                >
+                <div className="chart-bar-group" key={index}>
                   <div
                     className="bar-container"
                     style={{ height: `${item.heightColor}px` }}
@@ -122,12 +119,13 @@ export default function Main() {
           <div className="dashboard-card">
             <div className="card-header">
               <div>
-                <h3 className="card-title">Biến động cư dân tháng hiện tại</h3>
-                <p className="card-subtitle">
-                  Danh sách chi tiết tạm trú và tạm vắng
-                </p>
+                <h3 className="card-title">Biến động cư dân</h3>
               </div>
-              <button className="btn-link">Xem tất cả</button>
+              <select className="select-input">
+                <option value="">Tất cả</option>
+                <option value="">Tạm trú</option>
+                <option value="">Tạm vắng</option>
+              </select>
             </div>
             <div className="table-wrapper">
               <table className="custom-table">
@@ -212,7 +210,12 @@ export default function Main() {
             <div className="card-header">
               <h3 className="card-title">Thông báo</h3>
               <div
-                style={{ display: "flex", gap: "8px", alignItems: "center", color: "blue"}}
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                  color: "blue",
+                }}
               >
                 <AddCircleOutlineIcon />
               </div>
@@ -251,7 +254,7 @@ export default function Main() {
 
               <div className="notify-item">
                 <div className="notify-icon icon-orange">
-                  <CampaignIcon />  
+                  <CampaignIcon />
                 </div>
                 <div className="notify-text">
                   <h4>Thông báo từ BQL</h4>

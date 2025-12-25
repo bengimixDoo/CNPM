@@ -35,7 +35,7 @@ body {
 
   /* Màu sáng (Light Mode Defaults) */
   --color-bg-white: #ffffff;
-  --color-gray-900: #1f2937; /* Màu chữ chính/Nền tối */
+  --color-gray-900: #0f172a; /* Màu chữ chính/Nền tối */
   --color-gray-200: #e5e7eb; /* Màu border/divider nhẹ */
   --color-gray-800: #1f2937; /* Màu chữ đậm/Nền tối */
   --color-gray-500: #6b7280; /* Màu chữ phụ */
@@ -673,15 +673,21 @@ input::placeholder {
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 6px;  /* Độ rộng của thanh scroll dọc */
+  width: 7px;  /* Chiều rộng scrollbar dọc */
+  height: 7px; /* Chiều cao scrollbar ngang */
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--muted); /* Màu nền của đường ray scroll */
+  background: transparent; /* Nền trong suốt giúp thoáng hơn */
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--color-slate-700); /* Màu của thanh trượt */
-  border-radius: 3px; /* Bo góc của thanh trượt */
+  background-color: #cbd5e1; /* Màu xám nhẹ (Slate 300) */
+  border-radius: 10px;       /* Bo tròn mềm mại */
+  border: 2px solid transparent; /* Tạo khoảng cách với track nếu cần (tùy chọn) */
+  background-clip: content-box;  /* Giúp thumb nhỏ lại một chút nếu dùng border */
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-slate-600); /* Màu thanh trượt khi di chuột vào */
+  background-color: #94a3b8; /* Đậm hơn khi hover (Slate 400) */
 }

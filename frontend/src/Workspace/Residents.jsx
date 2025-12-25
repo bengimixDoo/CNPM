@@ -663,29 +663,19 @@ export default function Residents() {
             alignItems: "center",
             padding: "16px",
             backgroundColor: "white",
-            borderBottom: "1px solid #e0e0e0",
             borderRadius: "12px",
+            border: "1px solid #e0e0e0",
+            marginBottom: "16px",
           }}
         >
-          {/* --- 1. Khu vực Tìm kiếm và Lọc Nâng cao --- */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1.5,
-              alignItems: "center",
-              borderRadius: "12px",
-            }}
-          >
-            {/* 1.1. Tìm kiếm (Dạng Input) */}
+          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
             <TextField
-              // Tương đương với input.search-input
               variant="outlined"
               size="small"
               placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
-              sx={{ width: 500 }}
+              sx={{ width: 400 }}
             />
 
-            {/* 1.2. Lọc theo Tòa nhà */}
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Tòa nhà</InputLabel>
               <Select label="Tòa nhà" defaultValue="all">
@@ -695,12 +685,10 @@ export default function Residents() {
               </Select>
             </FormControl>
 
-            {/* 1.3. Lọc theo Tầng */}
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Tầng</InputLabel>
               <Select label="Tầng" defaultValue="all">
                 <MenuItem value="all">Tất cả</MenuItem>
-                {/* Thêm các tầng từ 1 đến 30 */}
                 {[...Array(30)].map((_, i) => (
                   <MenuItem key={i} value={i + 1}>
                     Tầng {i + 1}
@@ -709,30 +697,27 @@ export default function Residents() {
               </Select>
             </FormControl>
 
-            {/* 1.4. Lọc theo Trạng thái (Tái sử dụng ý tưởng từ DataGrid) */}
             <Button
               variant="outlined"
               size="small"
               startIcon={<FilterListIcon />}
-              sx={{
-                width: 125,
-                height: 40,
-              }}
+              sx={{ width: 125, height: 40 }}
             >
               Trạng thái
             </Button>
           </Box>
-
-          {/* --- 2. Khu vực Hành động (Buttons) --- */}
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{ backgroundColor: "var(--blue)" }} // Màu xanh nổi bật
-            >
-              Thêm Căn hộ
-            </Button>
-          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{
+              backgroundColor: "var(--blue)",
+              height: 40,
+              marginLeft: "10px",
+            }}
+            onClick={() => setOpenCreate(true)}
+          >
+            Thêm Cư dân
+          </Button>
         </Box>
       </div>
 
