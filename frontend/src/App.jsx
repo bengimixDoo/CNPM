@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./Page/Login.jsx";
+import LandingPage from "./Page/LandingPage.jsx";
 import AdminLayout from "./Page/AdminDashboard.jsx";
 import Residents from "./Workspace/Residents.jsx";
 import Main from "./Workspace/Main.jsx";
@@ -13,7 +14,8 @@ import Docs from "./Workspace/Docs.jsx";
 export default function App() {
   return (
     <Routes>
-      <Route index element={<LoginPage />} />
+      <Route index element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
       {/* All admin pages use AdminLayout */}
       <Route path="/dashboard" element={<AdminLayout />}>
         <Route index element={<Main />} />

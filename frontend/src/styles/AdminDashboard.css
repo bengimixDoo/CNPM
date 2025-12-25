@@ -6,6 +6,7 @@ body {
   padding: 0;
   font-family: Inter, sans-serif;
   box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
 :root {
@@ -670,3 +671,17 @@ input::placeholder {
   box-shadow: none !important;
 }
 
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;  /* Độ rộng của thanh scroll dọc */
+}
+::-webkit-scrollbar-track {
+  background: var(--muted); /* Màu nền của đường ray scroll */
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-slate-700); /* Màu của thanh trượt */
+  border-radius: 3px; /* Bo góc của thanh trượt */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-slate-600); /* Màu thanh trượt khi di chuột vào */
+}
