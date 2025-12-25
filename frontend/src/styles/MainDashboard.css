@@ -1,0 +1,346 @@
+/* MainDashboard.css */
+
+/* --- Layout Grid --- */
+.main-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (min-width: 1024px) {
+  .main-content-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Common Card Styles --- */
+.dashboard-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.card-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* --- Controls --- */
+.select-input {
+  background-color: #f8fafc;
+  border: none;
+  font-size: 14px;
+  color: #475569;
+  border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.btn-link {
+  font-size: 14px;
+  color: #137fec;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.btn-primary-sm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #137fec;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(19, 127, 236, 0.2);
+}
+.btn-primary-sm:hover {
+  background-color: #2563eb;
+}
+
+.btn-text-sm {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.btn-text-sm:hover {
+  color: #137fec;
+}
+
+/* --- Fee Chart --- */
+.chart-body {
+  height: 256px;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 8px;
+}
+
+.chart-bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.bar-container {
+  position: relative;
+  width: 100%;
+  height: 100%; /* Determine height via inline style or fixed height classes if needed */
+  background-color: #dbeafe; /* Initial light bg */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  transition: all 0.3s;
+  /* Specific heights for demo are handled in JSX via style */
+}
+.chart-bar-group:hover .bar-container {
+  background-color: #bfdbfe;
+}
+
+.bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #137fec;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  transition: background-color 0.3s;
+}
+.chart-bar-group:hover .bar-fill {
+  background-color: #2563eb;
+}
+
+.bar-tooltip {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1e293b;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+.chart-bar-group:hover .bar-tooltip {
+  opacity: 1;
+}
+
+.bar-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* --- Resident Table --- */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #0f172a;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.custom-table tr:hover {
+  background-color: #f8fafc;
+}
+.custom-table tr:last-child td {
+  border-bottom: none;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.bg-blue-light { background-color: #dbeafe; color: #2563eb; }
+.bg-orange-light { background-color: #ffedd5; color: #ea580c; }
+.bg-purple-light { background-color: #f3e8ff; color: #9333ea; }
+.bg-green-light { background-color: #dcfce7; color: #16a34a; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.badge-temp-res {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #dbeafe;
+}
+.badge-temp-abs {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border-color: #ffedd5;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.dot-blue { background-color: #3b82f6; }
+.dot-orange { background-color: #f97316; }
+
+/* --- Notification List --- */
+.notify-container {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 600px;
+  padding: 8px;
+}
+
+.notify-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 4px;
+}
+.notify-item:hover {
+  background-color: #f8fafc;
+}
+
+.notify-item.unread {
+  background-color: rgba(239, 246, 255, 0.5);
+}
+
+.notify-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.icon-red { background-color: #fee2e2; color: #dc2626; }
+.icon-blue { background-color: #dbeafe; color: #2563eb; }
+.icon-orange { background-color: #ffedd5; color: #ea580c; }
+.icon-green { background-color: #dcfce7; color: #16a34a; }
+
+.notify-text h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.notify-text p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notify-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.card-footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 16px;
+  text-align: center;
+}
