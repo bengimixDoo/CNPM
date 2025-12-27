@@ -1,285 +1,406 @@
-# Tài Liệu API Hệ Thống Quản Lý Chung Cư
+# Tài Liệu API Chi Tiết - Hệ Thống Quản Lý Chung Cư
 
 **Base URL**: `/api/v1`
 
 ---
 
-## 1. Xác thực & Người dùng (Authentication & Users)
+## 1. AUTHENTICATION & USERS (Xác thực & Người dùng)
+**Base Path**: `/users`
 
-### 1.1. Đăng nhập
-- **Endpoint**: `/api/v1/auth/token/`
-- **Method**: `POST`
-- **Mô tả**: Đăng nhập hệ thống để nhận Token truy cập (JWT).
-- **Role**: Tất cả (Khách).
-
-**JSON Gửi đi**:
-```json
-{
-  "username": "admin",
-  "password": "password123"
-}
-```
-
-**JSON Gửi về (200 OK)**:
-```json
-{
-  "refresh": "eyJ0eX...",
-  "access": "eyJ0eX...",
-  "role": "ADMIN",
-  "cu_dan_id": null,
-  "username": "admin"
-}
-```
+### 1.1. Đăng nhập (Login)
+*   **Endpoint:** `/auth/token/`
+*   **Method:** `POST`
+*   **Role:** Tất cả (Khách)
+*   **Mô tả:** Đăng nhập để nhận Access Token và Refresh Token.
+*   **Request JSON:**
+    ```json
+    {
+      "username": "manager",
+      "password": "password123"
+    }
+    ```
+*   **Response JSON (200 OK):**
+    ```json
+    {
+      "refresh": "eyJ0eXAi...",
+      "access": "eyJ0eXAi...",
+      "role": "QUAN_LY",
+      "cu_dan_id": null,
+      "username": "manager"
+    }
+    ```
 
 ### 1.2. Làm mới Token (Refresh Token)
-- **Endpoint**: `/api/v1/auth/token/refresh/`
-- **Method**: `POST`
-- **Mô tả**: Cấp lại Access Token mới khi token cũ hết hạn.
-- **Role**: Tất cả.
+*   **Endpoint:** `/auth/token/refresh/`
+*   **Method:** `POST`
+*   **Role:** Tất cả
+*   **Mô tả:** Cấp lại Access Token mới từ Refresh Token.
+*   **Request JSON:**
+    ```json
+    {
+      "refresh": "eyJ0eXAi..."
+    }
+    ```
+*   **Response JSON (200 OK):**
+    ```json
+    {
+      "access": "eyJ0eXAi...",
+      "refresh": "eyJ0eXAi..." // (Tuỳ chọn)
+    }
+    ```
 
-**JSON Gửi đi**:
-```json
-{
-  "refresh": "eyJ0eX..."
-}
-```
+### 1.3. Lấy thông tin bản thân (Get Me)
+*   **Endpoint:** `/users/me/`
+*   **Method:** `GET`
+*   **Role:** Đã đăng nhập
+*   **Mô tả:** Xem thông tin tài khoản hiện tại.
+*   **Response JSON (200 OK):**
+    ```json
+    {
+      "id": 1,
+      "username": "manager",
+      "role": "QUAN_LY",
+      "cu_dan_id": null,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+    ```
 
-**JSON Gửi về (200 OK)**:
-```json
-{
-  "access": "eyJ0eX...",
-  "refresh": "..." // (Optional)
-}
-```
+### 1.4. Đổi mật khẩu
+*   **Endpoint:** `/users/change-password/`
+*   **Method:** `POST`
+*   **Role:** Đã đăng nhập
+*   **Request JSON:**
+    ```json
+    {
+      "old_password": "password123",
+      "new_password": "NewStrongPassword@123"
+    }
+    ```
+*   **Response JSON (200 OK):**
+    ```json
+    {
+      "message": "Đổi mật khẩu thành công"
+    }
+    ```
 
-### 1.3. Lấy thông tin cá nhân (Profile)
-- **Endpoint**: `/api/v1/users/me/`
-- **Method**: `GET`
-- **Mô tả**: Lấy thông tin chi tiết của người dùng đang đăng nhập.
-- **Role**: Đã đăng nhập.
+### 1.5. Tạo người dùng mới
+*   **Endpoint:** `/users/users/`
+*   **Method:** `POST`
+*   **Role:** Quản lý (Manager)
+*   **Mô tả:** Tạo tài khoản quản trị hoặc tài khoản cư dân.
+*   **Request JSON:**
+    ```json
+    {
+      "username": "resident101",
+      "password": "password123",
+      "role": "CU_DAN" // ADMIN, QUAN_LY, KE_TOAN, CU_DAN
+    }
+    ```
+*   **Response JSON (201 Created):**
+    ```json
+    {
+      "id": 5,
+      "username": "resident101",
+      "role": "CU_DAN"
+    }
+    ```
 
-**JSON Gửi về (200 OK)**:
-```json
-{
-  "id": 1,
-  "username": "manager",
-  "role": "QUAN_LY",
-  "cu_dan_id": null,
-  "is_active": true,
-  "date_joined": "2024-01-01T12:00:00Z"
-}
-```
-
----
-
-## 2. Quản lý Cư dân & Căn hộ (Residents App)
-
-### 2.1. Danh sách Căn hộ (Apartments)
-- **Endpoint**: `/api/v1/apartments/`
-- **Method**: `GET`
-- **Mô tả**: Xem danh sách căn hộ. Quản lý xem tất cả, Cư dân chỉ xem căn hộ mình đang ở.
-- **Role**: Tất cả (Đã đăng nhập).
-
-**JSON Gửi về (200 OK)**:
-```json
-[
-  {
-    "ma_can_ho": 1,
-    "phong": "101",
-    "tang": 1,
-    "toa_nha": "A",
-    "dien_tich": 75.5,
-    "trang_thai": "H", // E: Trống, S: Đã bán, H: Đang thuê
-    "chu_so_huu": 10 // ID của Cư dân chủ sở hữu
-  }
-]
-```
-
-### 2.2. Tạo Căn hộ mới
-- **Endpoint**: `/api/v1/apartments/`
-- **Method**: `POST`
-- **Mô tả**: Thêm căn hộ mới vào hệ thống.
-- **Role**: Quản lý (QUAN_LY), Admin.
-
-**JSON Gửi đi**:
-```json
-{
-  "phong": "205",
-  "tang": 2,
-  "toa_nha": "B",
-  "dien_tich": 80.0,
-  "trang_thai": "E"
-}
-```
-
-### 2.3. Danh sách Cư dân
-- **Endpoint**: `/api/v1/residents/`
-- **Method**: `GET`
-- **Mô tả**: Xem danh sách cư dân.
-- **Role**: Tất cả (Filter theo quyền).
-
-**JSON Gửi về (200 OK)**:
-```json
-[
-  {
-    "ma_cu_dan": 1,
-    "ho_ten": "Nguyễn Văn A",
-    "gioi_tinh": "M", // M: Nam, F: Nữ
-    "ngay_sinh": "1990-05-20",
-    "so_cccd": "001090000001",
-    "so_dien_thoai": "0901234567",
-    "la_chu_ho": true,
-    "trang_thai_cu_tru": "TT", // TT: Tạm trú, TH: Thường trú, TV: Tạm vắng
-    "can_ho_dang_o": 1
-  }
-]
-```
-
-### 2.4. Thêm Cư dân mới
-- **Endpoint**: `/api/v1/residents/`
-- **Method**: `POST`
-- **Mô tả**: Tạo hồ sơ cư dân mới.
-- **Role**: Quản lý, Admin.
-
-**JSON Gửi đi**:
-```json
-{
-  "ho_ten": "Trần Thị B",
-  "gioi_tinh": "F",
-  "ngay_sinh": "1995-08-15",
-  "so_cccd": "001095000002",
-  "so_dien_thoai": "0912345678",
-  "la_chu_ho": false,
-  "trang_thai_cu_tru": "TT",
-  "can_ho_dang_o": 1 // ID căn hộ
-}
-```
+### 1.6. Liên kết User với Cư Dân
+*   **Endpoint:** `/users/users/{id}/link-resident/`
+*   **Method:** `POST`
+*   **Role:** Quản lý (Manager)
+*   **Mô tả:** Gắn tài khoản User vào một hồ sơ Cư Dân cụ thể.
+*   **Request JSON:**
+    ```json
+    {
+      "cu_dan_id": 10
+    }
+    ```
+*   **Response JSON (200 OK):**
+    ```json
+    {
+      "message": "Mapping thành công",
+      "user": "resident101",
+      "resident_linked": "Nguyễn Văn A",
+      "resident_id": 10
+    }
+    ```
 
 ---
 
-## 3. Tài chính & Phí (Finance App)
+## 2. RESIDENTS APP (Cư dân & Căn hộ)
 
-### 3.1. Danh mục Phí (Fee Categories)
-- **Endpoint**: `/api/v1/finance/fees/`
-- **Method**: `GET`
-- **Mô tả**: Xem bảng giá các loại phí (Phí quản lý, gửi xe...).
-- **Role**: Tất cả.
+### 2.1. Quản lý Căn hộ (Apartments)
+**Base Path:** `/apartments/`
 
-**JSON Gửi về (200 OK)**:
-```json
-[
-  {
-    "ma_loai_phi": 1,
-    "ten_loai_phi": "Phí Quản Lý",
-    "dong_gia_hien_tai": "7000.00",
-    "don_vi_tinh": "m2",
-    "loai_phi": "BAT_BUOC"
-  }
-]
-```
-
-### 3.2. Hóa đơn (Invoices)
-- **Endpoint**: `/api/v1/finance/invoices/`
-- **Method**: `GET`
-- **Mô tả**: Xem hóa đơn hàng tháng.
-- **Role**: Cư dân (xem của mình), Kế toán (xem tất cả).
-
-**JSON Gửi về (200 OK)**:
-```json
-[
-  {
-    "ma_hoa_don": 101,
-    "can_ho": 1,
-    "tieu_de": "Hóa đơn tháng 12/2025",
-    "tong_tien": "1500000.00",
-    "ngay_tao": "2025-12-01",
-    "ngay_het_han": "2025-12-10",
-    "trang_thai": "CHUA_THANH_TOAN",
-    "chi_tiet": [
+#### 2.1.1. Danh sách Căn hộ
+*   **Endpoint:** `/apartments/`
+*   **Method:** `GET`
+*   **Role:** Tất cả (Filter: Cư dân chỉ thấy nhà mình).
+*   **Response JSON:**
+    ```json
+    [
       {
-         "ten_phi": "Phí quản lý",
-         "so_luong": 75.5,
-         "thanh_tien": "528500.00"
+        "ma_can_ho": 1,
+        "phong": "101",
+        "tang": 1,
+        "toa_nha": "A",
+        "dien_tich": 70.0,
+        "trang_thai": "H", // E=Trống, S=Đã bán, H=Đang thuê
+        "chu_so_huu": 5 // ID Cư dân chủ hộ
       }
     ]
-  }
-]
-```
+    ```
 
-### 3.3. Đóng góp & Thiện nguyện (Donations)
-- **Endpoint**: `/api/v1/finance/donations/`
-- **Method**: `POST`
-- **Mô tả**: Ghi nhận đóng góp của cư dân cho một đợt vận động.
-- **Role**: Kế toán, Quản lý.
+#### 2.1.2. Thống kê tổng quan (Dashboard)
+*   **Endpoint:** `/apartments/thongke/`
+*   **Method:** `GET`
+*   **Role:** Quản lý, Kế toán
+*   **Response JSON:**
+    ```json
+    {
+      "tong_quan": {
+        "tong_so_can_ho": 100,
+        "so_can_trong_E": 10,
+        "so_da_ban_S": 80,
+        "so_dang_thue_H": 10
+      },
+      "chi_tiet": {
+        "A": { "tong_can": 50, "trong": 5, ... }
+      }
+    }
+    ```
 
-**JSON Gửi đi**:
-```json
-{
-  "dot_dong_gop": 1, // ID đợt vận động (Ví dụ: Ủng hộ bão lụt)
-  "can_ho": 1,
-  "so_tien": "500000"
-}
-```
+#### 2.1.3. Chi tiết nhân khẩu 1 căn hộ
+*   **Endpoint:** `/apartments/{id}/detail/`
+*   **Method:** `GET`
+*   **Role:** Quản lý, Kế toán
+*   **Mô tả:** Xem ai đang ở trong căn hộ này.
+*   **Response JSON:**
+    ```json
+    {
+      "thong_tin_can_ho": { "phong": "101", ... },
+      "thong_ke_nhan_khau": {
+        "danh_sach_cu_dan": [ {"ma_cu_dan": 1, "ho_ten": "Nguyen Van A"} ],
+        "tong_so_nguoi": 3
+      }
+    }
+    ```
+
+#### 2.1.4. Lịch sử thay đổi nhân khẩu của căn hộ
+*   **Endpoint:** `/apartments/{id}/history/`
+*   **Method:** `GET`
+*   **Role:** Quản lý, Admin
+*   **Response JSON:**
+    ```json
+    [
+      {
+        "ma_cu_dan": 1,
+        "ten_cu_dan": "Nguyen Van A",
+        "loai_bien_dong": "Tạm Trú",
+        "ngay_thuc_hien": "2024-01-15"
+      }
+    ]
+    ```
+
+### 2.2. Quản lý Cư dân (Residents)
+**Base Path:** `/residents/`
+
+#### 2.2.1. Tạo hồ sơ Cư dân
+*   **Endpoint:** `/residents/`
+*   **Method:** `POST`
+*   **Role:** Quản lý (Manager)
+*   **Request JSON:**
+    ```json
+    {
+      "ho_ten": "Nguyễn Văn B",
+      "gioi_tinh": "M",
+      "ngay_sinh": "1995-05-20",
+      "so_cccd": "001234567890",
+      "so_dien_thoai": "0987654321",
+      "la_chu_ho": false,
+      "trang_thai_cu_tru": "TT", // TT, TH, TV, OUT
+      "can_ho_dang_o": 1
+    }
+    ```
+
+#### 2.2.2. Lịch sử biến động cá nhân
+*   **Endpoint:** `/residents/{id}/history/`
+*   **Method:** `GET`
+*   **Role:** Tất cả
+*   **Mô tả:** Xem lại lịch sử chuyển đến/chuyển đi của 1 người.
+
+### 2.3. Biến động Dân cư (History)
+**Base Path:** `/history/`
+
+#### 2.3.1. Ghi nhận biến động (Chuyển khẩu/Tạm vắng)
+*   **Endpoint:** `/history/`
+*   **Method:** `POST`
+*   **Role:** Quản lý
+*   **Request JSON:**
+    ```json
+    {
+      "cu_dan": 1,
+      "loai_bien_dong": "TV", // TV: Tạm vắng, OUT: Chuyển đi
+      "ngay_thuc_hien": "2025-12-28",
+      "ghi_chu": "Về quê ăn tết"
+    }
+    ```
+---
+
+## 3. FINANCE APP (Tài chính & Đóng góp)
+**Base Path:** `/finance/`
+
+### 3.1. Danh mục Phí (Fees)
+*   **Endpoint:** `/finance/fees/`
+*   **Method:** `GET`, `POST` (Manager/Accountant)
+*   **Request JSON (Create):**
+    ```json
+    {
+      "ten_loai_phi": "Phí Gửi Xe Ô Tô",
+      "dong_gia_hien_tai": "1200000",
+      "don_vi_tinh": "chiếc/tháng",
+      "loai_phi": "BAT_BUOC" // BAT_BUOC, TU_NGUYEN, KHAC
+    }
+    ```
+
+### 3.2. Hóa đơn (Invoices)
+*   **Endpoint:** `/finance/invoices/`
+*   **Method:** `GET`
+*   **Role:** Cư dân (xem của mình), Kế toán (xem tất cả)
+*   **Filter Params:** `?status=0` (Chưa TT), `?status=1` (Đã TT), `?month=12`
+
+#### 3.2.1. Tạo hóa đơn hàng loạt
+*   **Endpoint:** `/finance/invoices/generate/`
+*   **Method:** `POST`
+*   **Role:** Kế toán, Manager
+*   **Request JSON:**
+    ```json
+    {
+      "thang": 12,
+      "nam": 2025
+    }
+    ```
+
+#### 3.2.2. Xác nhận Thanh toán
+*   **Endpoint:** `/finance/invoices/{id}/confirm-payment/`
+*   **Method:** `POST`
+*   **Role:** Kế toán (Xác nhận thu tiền), Cư dân (Báo đã chuyển khoản)
+*   **Response JSON:**
+    ```json
+    { "message": "Xác nhận thanh toán thành công bởi Quản lý." }
+    ```
+
+### 3.3. Đợt vận động (Fundraising Drives)
+*   **Endpoint:** `/finance/fundraising-drives/`
+*   **Method:** `POST`
+*   **Role:** Quản lý, Kế toán
+*   **Request JSON:**
+    ```json
+    {
+      "ten_dot": "Ủng hộ đồng bào lũ lụt",
+      "ngay_bat_dau": "2025-10-01",
+      "ngay_ket_thuc": "2025-10-31"
+    }
+    ```
+
+#### 3.3.1. Phát động quyên góp (Launch)
+*   **Endpoint:** `/finance/fundraising-drives/{id}/launch/`
+*   **Method:** `POST`
+*   **Role:** Quản lý
+*   **Mô tả:** Tạo phiếu đóng góp cho tất cả các hộ dân.
+*   **Request JSON:**
+    ```json
+    { "so_tien_goi_y": 50000 }
+    ```
+
+### 3.4. Đóng góp (Donations)
+*   **Endpoint:** `/finance/donations/{id}/respond/`
+*   **Method:** `POST`
+*   **Role:** Cư dân
+*   **Mô tả:** Cư dân xác nhận tham gia đóng góp.
+*   **Request JSON:**
+    ```json
+    {
+      "decision": "agree", // hoặc "reject"
+      "so_tien": 100000 // Có thể đóng nhiều hơn gợi ý
+    }
+    ```
 
 ---
 
-## 4. Dịch vụ & Tiện ích (Services App)
+## 4. SERVICES APP (Dịch vụ & Tiện ích)
+**Base Path:** `/services/`
 
 ### 4.1. Phương tiện (Vehicles)
-- **Endpoint**: `/api/v1/services/vehicles/`
-- **Method**: `POST`
-- **Mô tả**: Đăng ký xe mới cho căn hộ.
-- **Role**: Quản lý.
+*   **Endpoint:** `/services/vehicles/`
+*   **Method:** `POST`
+*   **Role:** Quản lý
+*   **Request JSON:**
+    ```json
+    {
+      "can_ho": 10,
+      "bien_so": "30A-999.99",
+      "loai_xe": "C", // C=Car, M=Motorbike, B=Bicycle
+      "mo_ta": "Mercedes đen"
+    }
+    ```
 
-**JSON Gửi đi**:
-```json
-{
-  "can_ho": 1,
-  "bien_so": "29A-12345",
-  "loai_xe": "C", // C: Ô tô, M: Xe máy, B: Xe đạp
-  "mo_ta": "Xe Vios màu đen"
-}
-```
+### 4.2. Tin tức (News)
+*   **Endpoint:** `/services/news/`
+*   **Method:** `GET` (All), `POST` (Accountant/Manager)
+*   **Request JSON:**
+    ```json
+    {
+      "tieu_de": "Thông báo cắt điện",
+      "noi_dung": "Cắt điện từ 8h-17h ngày 30/12 để bảo trì.",
+      "loai_tin": "TB" // TB=Thông báo, SK=Sự kiện
+    }
+    ```
 
-### 4.2. Gửi Phản ánh (Support Tickets)
-- **Endpoint**: `/api/v1/services/support-tickets/`
-- **Method**: `POST`
-- **Mô tả**: Cư dân gửi yêu cầu/phản ánh đến Ban quản lý.
-- **Role**: Cư dân.
+### 4.3. Bảng giá Dịch vụ (Pricing)
+*   **Endpoint:** `/services/pricing/`
+*   **Method:** `GET`, `POST` (Manager)
+*   **Mô tả:** Quản lý bảng giá dịch vụ chung (Gym, BBQ,...).
 
-**JSON Gửi đi**:
-```json
-{
-  "tieu_de": "Báo hỏng đèn hành lang",
-  "noi_dung": "Đèn hành lang tầng 2 bị nhấp nháy, xin kiểm tra."
-}
-```
+### 4.4. Chỉ số Điện nước (Utilities)
+*   **Endpoint:** `/services/utilities/`
+*   **Method:** `POST`
+*   **Role:** Kế toán, Manager
+*   **Request JSON:**
+    ```json
+    {
+      "can_ho": 1,
+      "thang": 12,
+      "nam": 2025,
+      "chi_so_dien_cu": 1000,
+      "chi_so_dien_moi": 1100,
+      "chi_so_nuoc_cu": 50,
+      "chi_so_nuoc_moi": 60
+    }
+    ```
 
-**JSON Gửi về (201 Created)**:
-```json
-{
-  "ma_yeu_cau": 55,
-  "tieu_de": "Báo hỏng đèn hành lang",
-  "trang_thai": "W", // W: Chờ xử lý
-  "ngay_gui": "2025-12-27T10:00:00Z"
-}
-```
+### 4.5. Phản ánh & Yêu cầu (Support Tickets)
+*   **Endpoint:** `/services/support-tickets/`
+*   **Method:** `POST`
+*   **Role:** Cư dân (Resident)
+*   **Request JSON:**
+    ```json
+    {
+      "tieu_de": "Vòi nước bị rò rỉ",
+      "noi_dung": "Vòi nước bồn rửa bát bị rò rỉ nước, cần sửa gấp."
+    }
+    ```
 
-### 4.3. Xử lý Phản ánh
-- **Endpoint**: `/api/v1/services/support-tickets/{id}/`
-- **Method**: `PATCH`
-- **Mô tả**: Ban quản lý trả lời hoặc cập nhật trạng thái yêu cầu.
-- **Role**: Quản lý.
-
-**JSON Gửi đi**:
-```json
-{
-  "trang_thai": "P", // P: Đang xử lý, D: Đã xong
-  "phan_hoi_bql": "Đã tiếp nhận, kỹ thuật sẽ lên kiểm tra trong chiều nay."
-}
-```
-
----
-**Ghi chú**:
-- **Format ngày tháng**: `YYYY-MM-DD` (Ví dụ: `2025-12-27`).
-- **Phân trang**: Các API danh sách (`GET`) mặc định hỗ trợ phân trang (Pagination). Kết quả thường nằm trong trường `results`.
+#### 4.5.1. Xử lý phản ánh
+*   **Endpoint:** `/services/support-tickets/{id}/`
+*   **Method:** `PATCH`
+*   **Role:** Quản lý (Manager)
+*   **Request JSON:**
+    ```json
+    {
+      "trang_thai": "P", // P=Processing, D=Done, C=Cancelled
+      "phan_hoi_bql": "Kỹ thuật sẽ lên kiểm tra lúc 14h."
+    }
+    ```
