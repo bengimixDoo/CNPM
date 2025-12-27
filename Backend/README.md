@@ -1,70 +1,104 @@
-# Hệ Thống Quản Lý Chung Cư - Backend
+# Backend - Apartment Management System (CNPM)
 
-Backend API cho hệ thống Quản Lý Chung Cư (CNPM), được xây dựng bằng Django và Django REST Framework.
+Hệ thống Backend (API) cho Ứng dụng Quản lý Chung cư, được xây dựng bằng Django và Django REST Framework.
 
-## Công Nghệ Sử Dụng
-- **Framework**: Django 5.2, Django REST Framework
-- **Database**: PostgreSQL (Neon Tech)
-- **Xác thực**: JWT (Simple JWT)
+## 📋 Giới thiệu
 
-## Yêu Cầu Tiên Quyết
-- Python 3.10 trở lên
-- PostgreSQL (hoặc chuỗi kết nối Neon)
+Dự án cung cấp các API RESTful để quản lý toàn bộ hoạt động của một chung cư, bao gồm quản lý cư dân, căn hộ, các khoản phí, hóa đơn, dịch vụ tiện ích, và phản ánh của cư dân. Hệ thống hỗ trợ phân quyền chặt chẽ cho các vai trò: **Admin**, **Quản lý (Manager)**, **Kế toán (Accountant)**, và **Cư dân (Resident)**.
 
-## Hướng Dẫn Cài Đặt
+## 🛠️ Công nghệ sử dụng
 
-1. **Clone repository**
-   ```bash
-   git clone <repository_url>
-   cd Backend
-   ```
+- **Ngôn ngữ**: Python 3.10+
+- **Framework**: Django 5.x
+- **API Toolkit**: Django REST Framework (DRF)
+- **Authentication**: JWT (JSON Web Tokens) via `djangorestframework-simplejwt`
+- **Database**: SQLite (Môi trường Dev/Test), PostgreSQL (Khuyến nghị cho Production)
+- **API Documentation**: Swagger/Redoc via `drf-spectacular`
 
-2. **Tạo và kích hoạt môi trường ảo (Virtual Environment)**
-   ```bash
-   python -m venv .venv
-   # Windows
-   .\.venv\Scripts\activate
-   # Linux/Mac
-   source .venv/bin/activate
-   ```
+## 📂 Cấu trúc dự án
 
-3. **Cài đặt các thư viện phụ thuộc**
-   ```bash
-   pip install -r requirements.txt
-   ```
+- **`core/`**: Cấu hình chính của dự án (Settings, URLs).
+- **`users/`**: Quản lý người dùng, xác thực (Login/Logout), phân quyền.
+- **`residents/`**: Quản lý thông tin Căn hộ, Cư dân và Lịch sử biến động dân cư.
+- **`finance/`**: Quản lý các khoản Phí, Chỉ số điện nước, Hóa đơn, Thống kê doanh thu, Vận động đóng góp.
+- **`services/`**: Quản lý Phương tiện, Tin tức thông báo, Phản ánh (Support Tickets).
 
-4. **Cấu hình Môi trường**
-   Tạo file `.env` trong thư mục `Backend` với nội dung sau:
-   ```env
-   DATABASE_URL=postgres://user:password@ep-xyz.aws.neon.tech/dbname?sslmode=require
-   ```
+## 🚀 Cài đặt và Hướng dẫn chạy
 
-5. **Chạy Migrations (Khởi tạo Database)**
-   ```bash
-   python manage.py migrate
-   ```
+### 1. Yêu cầu tiên quyết
+- Python (phiên bản 3.10 trở lên) được cài đặt sẵn.
+- `pip` (trình quản lý gói của Python).
 
-6. **Tạo tài khoản Admin (Superuser)**
-   ```bash
-   python manage.py createsuperuser
-   ```
+### 2. Thiết lập môi trường
 
-7. **Chạy Server**
-   ```bash
-   python manage.py runserver
-   ```
+1.  **Clone repository** (nếu chưa có):
+    ```bash
+    git clone <repository_url>
+    cd Backend
+    ```
 
-## Danh Sách API (Endpoints)
+2.  **Tạo Virtual Environment (Môi trường ảo)**:
+    ```bash
+    # Windows
+    python -m venv .venv
+    .venv\Scripts\activate
 
-### Xác thực (Authentication)
-- **Đăng nhập**: `POST /api/users/login/`
-- **Lấy Token mới (Refresh)**: `POST /api/users/token/refresh/`
+    # Linux/Mac
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
 
-### Trang Quản Trị (Admin Interface)
-- Truy cập tại: `http://127.0.0.1:8000/admin/`
+3.  **Cài đặt các thư viện phụ thuộc**:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## Cấu Trúc Ứng Dụng (Apps)
-- **users**: Quản lý người dùng và xác thực.
-- **residents**: Quản lý Cư dân (`CuDan`), Căn hộ (`CanHo`), Biến động dân cư (`BienDongDanCu`).
-- **finance**: Quản lý Các loại phí (`DanhMucPhi`), Hóa đơn (`HoaDon`).
-- **services**: Quản lý Điện nước (`ChiSoDienNuoc`), Tin tức (`TinTuc`), Yêu cầu (`YeuCau`), Phương tiện (`PhuongTien`).
+4.  **Cấu hình Database**:
+    Mặc định dự án sử dụng SQLite. Bạn cần chạy migrations để khởi tạo database:
+    ```bash
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
+
+5.  **Tạo tài khoản Superuser (Admin)**:
+    ```bash
+    python manage.py createsuperuser
+    ```
+
+### 3. Chạy Server
+Khởi động server phát triển tại `http://localhost:8000`:
+```bash
+python manage.py runserver
+```
+
+## 🧪 Kiểm thử (Testing)
+
+Dự án đã bao gồm bộ test API hoàn chỉnh cho các module chính. Để chạy toàn bộ test:
+
+```bash
+python manage.py test users.tests_api residents.tests_api finance.tests_api services.tests_api
+```
+
+Hoặc chạy test cho từng app riêng lẻ:
+```bash
+python manage.py test users.tests_api
+```
+
+## 📖 Tài liệu API
+
+Dự án hỗ trợ tài liệu API tự động. Sau khi chạy server, bạn có thể truy cập:
+
+- **Swagger UI**: [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
+- **API Schema**: [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/)
+
+Ngoài ra, tài liệu chi tiết dạng Markdown có sẵn tại file: [API Docs.md](./API%20Docs.md)
+
+## 🔑 Tài khoản Test mặc định (Nếu có Seed Data)
+
+Nếu bạn đã chạy script tạo dữ liệu mẫu, các tài khoản thường dùng:
+- **Admin**: `admin` / `password123`
+- **Quản lý**: `manager` / `password123`
+- **Kế toán**: `accountant` / `password123`
+- **Cư dân**: `resident` / `password123`
+
+*(Lưu ý: Mật khẩu có thể khác tùy thuộc vào dữ liệu bạn khởi tạo)*

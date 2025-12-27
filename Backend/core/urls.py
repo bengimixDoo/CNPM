@@ -4,8 +4,6 @@ from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
 )
-
-# Import routers của residents (Giữ nguyên phần cũ của bạn)
 from residents.urls import resident_router, apartment_router, history_router
 
 
