@@ -89,7 +89,7 @@ export default function Invoices() {
     return (
         <div className="workspace-container">
             {/* 1. Header & Filter */}
-            <Paper sx={{ p: 2, mb: 3, borderRadius: 3, display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
+            <Paper sx={{ p: 2, mb: 3, borderRadius: 3, display: "flex", gap: 2, alignItems: "center" }}>
                 <TextField size="small" placeholder="Tìm mã hóa đơn, căn hộ..." sx={{ width: 250 }} />
                 <FormControl size="small" sx={{ minWidth: 150 }}>
                     <InputLabel>Trạng thái</InputLabel>
@@ -103,8 +103,7 @@ export default function Invoices() {
                 <TextField type="date" size="small" label="Đến ngày" InputLabelProps={{ shrink: true }} />
 
                 <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
-                    <Button variant="outlined" startIcon={<DownloadIcon />}>Xuất Excel</Button>
-                    <Button variant="contained" startIcon={<FilterListIcon />} sx={{ bgcolor: "var(--blue)" }}>Lọc</Button>
+                    <Button variant="outlined" startIcon={<PrintIcon />} >In Hóa đơn</Button>
                 </Box>
             </Paper>
 

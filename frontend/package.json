@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.6",
     "@mui/x-data-grid": "^8.20.0",
     "axios": "^1.13.2",
+    "framer-motion": "^12.23.26",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6"

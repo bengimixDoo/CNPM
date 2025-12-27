@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import LockOutlineIcon from "@mui/icons-material/LockOutline";
 // API
 const API_URL = "https://50a34806fe70.ngrok-free.app/api/v1/auth/login/";
-
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

@@ -15,10 +15,22 @@ import {
   DialogContent,
   DialogActions,
   Typography,
+  IconButton,
 } from "@mui/material";
+import Pagination from "@mui/material/Pagination";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import Pagination from "@mui/material/Pagination";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import EmailIcon from "@mui/icons-material/Email";
+import BusinessIcon from "@mui/icons-material/Business";
+import SquareFootIcon from "@mui/icons-material/SquareFoot";
+import DescriptionIcon from "@mui/icons-material/Description";
+import GroupsIcon from "@mui/icons-material/Groups";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
+import ApartmentIcon from "@mui/icons-material/Apartment";
 
 export default function Apartments() {
   const statusColors = {
@@ -313,6 +325,18 @@ export default function Apartments() {
     setOpenDetail(false);
   };
 
+  const handleDeleteApartment = () => {
+    alert("Chức năng xóa căn hộ đang được phát triển");
+  };
+
+  const handleEditApartment = () => {
+    alert("Chức năng chỉnh sửa thông tin đang được phát triển");
+  };
+
+  const handleAddResident = () => {
+    alert("Chức năng thêm nhân khẩu đang được phát triển");
+  };
+
   return (
     <>
       <div className="stats-row">
@@ -396,7 +420,7 @@ export default function Apartments() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          sx={{ backgroundColor: "var(--blue)", height: 40 , marginLeft: "10px"}}
+          sx={{ backgroundColor: "var(--blue)", height: 40, marginLeft: "10px" }}
         >
           Thêm Căn hộ
         </Button>
@@ -481,152 +505,300 @@ export default function Apartments() {
         />
       </Box>
 
-      <Dialog open={openDetail} onClose={handleCloseDetail} maxWidth="300px">
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          Chi tiết Căn hộ {selected ? selected.id : ""}
-        </DialogTitle>
-        <DialogContent dividers sx={{ backgroundColor: "#f8fafc" }}>
-          {selected ? (
-            <Box sx={{ display: "grid", gap: 3 }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" },
-                  gap: 2.5,
-                  p: 2.5,
-                  backgroundColor: "white",
-                  borderRadius: 2,
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-                }}
-              >
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Chủ hộ
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight={600}
-                    sx={{ mt: 0.5 }}
-                  >
-                    {selected.owner}
-                  </Typography>
+      <Dialog
+        open={openDetail}
+        onClose={handleCloseDetail}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          },
+        }}
+      >
+        {selected && (
+          <>
+            <DialogTitle
+              sx={{
+                fontWeight: 700,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottom: "1px solid #f1f5f9",
+                padding: "10px",
+                background: "linear-gradient(to right, #bcd9f2ff, #f8fafc)",
+                position: "relative",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "12px",
+                    backgroundColor: "var(--blue)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                  }}
+                >
+                  <ApartmentIcon sx={{ fontSize: 30 }}/>
                 </Box>
                 <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                    Căn hộ {selected.id}
+                  </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Số lượng cư dân
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight={600}
-                    sx={{ mt: 0.5 }}
-                  >
-                    {selected.residents}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Diện tích
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight={600}
-                    sx={{ mt: 0.5 }}
-                  >
-                    {selected.area}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Trạng thái
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight={600}
-                    sx={{ mt: 0.5 }}
-                  >
-                    {selected.status}
+                    Tòa {selected.building} • Tầng {selected.floor}
                   </Typography>
                 </Box>
               </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <IconButton
+                  onClick={handleCloseDetail}
+                  sx={{
+                    color: (theme) => theme.palette.grey[500],
+                    "&:hover": { color: (theme) => theme.palette.grey[900], backgroundColor: "#f1f5f9" },
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </DialogTitle>
 
-              <Box
-                sx={{
-                  p: 2.5,
-                  backgroundColor: "white",
-                  borderRadius: 2,
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-                }}
-              >
-                <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
-                  Danh sách Cư dân
-                </Typography>
+            <DialogContent
+              sx={{
+                backgroundColor: "#f8fafc",
+                p: 3,
+                display: "flex",
+                flexDirection: "column",
+                gap: 3,
+              }}
+            >
+              {/* Thông tin chung */}
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                    Thông tin cơ bản
+                  </Typography>
+                  <Box sx={{ flex: 1, height: "1px", backgroundColor: "#e2e8f0", ml: 1 }} />
+                </Box>
                 <Box
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    px: 1,
-                    py: 1.5,
-                    backgroundColor: "#f8fafc",
-                    borderRadius: 1,
-                    color: "#475467",
-                    fontSize: 14,
-                    fontWeight: 600,
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: 2,
                   }}
                 >
-                  <span>Họ và Tên</span>
-                  <span>Ngày sinh</span>
-                  <span>Quan hệ với chủ hộ</span>
-                  <span>Số điện thoại</span>
+                  {[
+                    { label: "Chủ hộ", value: selected.owner, icon: <PersonIcon sx={{ fontSize: 20 }} />, color: "#3b82f6" },
+                    { label: "Số điện thoại", value: selected.phone, icon: <PhoneIcon sx={{ fontSize: 20 }} />, color: "#10b981" },
+                    { label: "Email", value: selected.email, icon: <EmailIcon sx={{ fontSize: 20 }} />, color: "#6366f1" },
+                    { label: "Diện tích", value: selected.area, icon: <SquareFootIcon sx={{ fontSize: 20 }} />, color: "#f59e0b" },
+                    { label: "Vị trí", value: `Tòa ${selected.building} - Tầng ${selected.floor}`, icon: <BusinessIcon sx={{ fontSize: 20 }} />, color: "#ec4899" },
+                    { label: "Ghi chú", value: selected.note, icon: <DescriptionIcon sx={{ fontSize: 20 }} />, color: "#64748b" },
+                  ].map((item, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        backgroundColor: "white",
+                        p: 2,
+                        borderRadius: "12px",
+                        border: "1px solid #f1f5f9",
+                        transition: "all 0.2s",
+                        "&:hover": {
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+                          transform: "translateY(-2px)",
+                        },
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                        <Box sx={{ color: item.color, display: "flex" }}>{item.icon}</Box>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.025em" }}>
+                          {item.label}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b", pl: 3.5 }}>
+                        {item.value}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Box>
+              </Box>
 
-                {(selected.residentsList && selected.residentsList.length > 0
-                  ? selected.residentsList
-                  : [
-                      {
-                        name: "Chưa có dữ liệu",
-                        dob: "-",
-                        relation: "-",
-                        phone: "-",
-                      },
-                    ]
-                ).map((person, idx) => (
-                  <Box
-                    key={`${person.name}-${idx}`}
+              {/* Danh sách cư dân */}
+              <Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                      Thành viên trong hộ ({selected.residents})
+                    </Typography>
+                    <GroupsIcon sx={{ color: "#64748b", fontSize: 20 }} />
+                  </Box>
+                  <Button
+                    startIcon={<AddIcon />}
+                    size="small"
+                    variant="contained"
+                    onClick={handleAddResident}
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(4, 1fr)",
-                      px: 1,
-                      py: 1.4,
-                      borderBottom:
-                        idx === (selected.residentsList?.length || 1) - 1
-                          ? "none"
-                          : "1px solid #f1f5f9",
-                      alignItems: "center",
-                      fontSize: 14,
-                      color: "#111827",
+                      borderRadius: "8px",
+                      textTransform: "none",
+                      backgroundColor: "var(--blue)",
+                      width: "150px",
+                      boxShadow: "none",
+                      "&:hover": { boxShadow: "0 4px 12px rgba(0, 119, 255, 0.2)" },
                     }}
                   >
-                    <span>{person.name}</span>
-                    <span>{person.dob}</span>
-                    <span>{person.relation}</span>
-                    <span>{person.phone}</span>
+                    Thêm nhân khẩu
+                  </Button>
+                </Box>
+
+                <Box
+                  sx={{
+                    backgroundColor: "white",
+                    borderRadius: "12px",
+                    border: "1px solid #f1f5f9",
+                    overflow: "hidden",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr",
+                      backgroundColor: "#f8fafc",
+                      borderBottom: "2px solid #f1f5f9",
+                      p: 2,
+                      fontWeight: 700,
+                      color: "#475569",
+                      fontSize: "0.75rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    <Box>Họ và Tên</Box>
+                    <Box>Ngày sinh</Box>
+                    <Box>Quan hệ</Box>
+                    <Box>Số điện thoại</Box>
                   </Box>
-                ))}
+                  {selected.residentsList && selected.residentsList.length > 0 ? (
+                    selected.residentsList.map((resident, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr",
+                          p: 2,
+                          borderBottom: idx < selected.residentsList.length - 1 ? "1px solid #f1f5f9" : "none",
+                          fontSize: "0.875rem",
+                          color: "#1e293b",
+                          transition: "background-color 0.2s",
+                          "&:hover": { backgroundColor: "#fbfcfd" },
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box sx={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 1.5 }}>
+                          <Box
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: "50%",
+                              backgroundColor: "#eff6ff",
+                              color: "#3b82f6",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {resident.name.split(" ").pop().charAt(0)}
+                          </Box>
+                          {resident.name}
+                        </Box>
+                        <Box color="#64748b">{resident.dob}</Box>
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              px: 1.5,
+                              py: 0.25,
+                              borderRadius: "6px",
+                              backgroundColor: resident.relation === "Chủ hộ" ? "#8ffd00ff" : "#f1f5f9",
+                              color: "#475569",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {resident.relation}
+                          </Typography>
+                        </Box>
+                        <Box color="#64748b">{resident.phone}</Box>
+                      </Box>
+                    ))
+                  ) : (
+                    <Box sx={{ p: 6, textAlign: "center", color: "#94a3b8" }}>
+                      <GroupsIcon sx={{ fontSize: 48, mb: 1, opacity: 0.2 }} />
+                      <Typography variant="body2">Chưa có dữ liệu về cư dân trong hộ này.</Typography>
+                    </Box>
+                  )}
+                </Box>
               </Box>
-            </Box>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              Chọn một căn hộ để xem chi tiết.
-            </Typography>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2.5 }}>
-          <Button onClick={handleCloseDetail} variant="contained">
-            Đóng
-          </Button>
-        </DialogActions>
+            </DialogContent>
+
+            <DialogActions
+              sx={{
+                padding: "10px",
+                borderTop: "1px solid #f1f5f9",
+                justifyContent: "space-between",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              <Button
+                onClick={handleDeleteApartment}
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                sx={{
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  width: "150px", 
+                  "&:hover": { backgroundColor: "#fef2f2" },
+                }}
+              >
+                Xóa căn hộ
+              </Button>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button
+                  onClick={handleEditApartment}
+                  variant="contained"
+                  startIcon={<EditIcon />}
+                  sx={{
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    width: "150px",
+                    px: 3,
+                    py: 1,
+                    backgroundColor: "var(--blue)",
+                    boxShadow: "0 4px 14px rgba(0, 119, 255, 0.3)",
+                    "&:hover": {
+                      backgroundColor: "#0066dd",
+                      boxShadow: "0 6px 20px rgba(0, 119, 255, 0.4)",
+                    },
+                  }}
+                >
+                  Chỉnh sửa
+                </Button>
+              </Box>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
     </>
   );

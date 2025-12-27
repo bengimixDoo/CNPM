@@ -10,13 +10,14 @@ import CreateFees from "./Workspace/CreateFees.jsx";
 import Setting from "./Workspace/Setting.jsx";
 import Invoices from "./Workspace/Invoices.jsx";
 import Docs from "./Workspace/Docs.jsx";
+import ResidentHome from "./Page/ResidentHome.jsx";
 
 export default function App() {
   return (
     <Routes>
       <Route index element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      {/* All admin pages use AdminLayout */}
+      <Route path="/resident/home" element={<ResidentHome />} />
       <Route path="/dashboard" element={<AdminLayout />}>
         <Route index element={<Main />} />
         <Route path="residents" element={<Residents />} />
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="invoices" element={<Invoices />} />
         <Route path="docs" element={<Docs />} />
       </Route>
+      
     </Routes>
   );
 }
