@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'drf_spectacular',
+    'simple_history',
     
     # Local apps
     'users',
@@ -60,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 #HOSTS Settings
@@ -81,6 +83,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -95,40 +98,47 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-import sys
-
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    load_dotenv(BASE_DIR / '.env')
-    db_url = os.getenv("DATABASE_URL")
-    if db_url:
-        tmpPostgres = urlparse(db_url)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': tmpPostgres.path.replace('/', ''),
-                'USER': tmpPostgres.username,
-                'PASSWORD': tmpPostgres.password,
-                'HOST': tmpPostgres.hostname,
-                'PORT': tmpPostgres.port or 5432,
-                'OPTIONS': {
-                    'sslmode': 'require',
-                },
-            }
-        }
-    else:
-         DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+}
+
+# import sys
+#
+# if 'test' in sys.argv:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
+# else:
+#     load_dotenv(BASE_DIR / '.env')
+#     db_url = os.getenv("DATABASE_URL")
+#     if db_url:
+#         tmpPostgres = urlparse(db_url)
+#         DATABASES = {
+#             'default': {
+#                 'ENGINE': 'django.db.backends.postgresql',
+#                 'NAME': tmpPostgres.path.replace('/', ''),
+#                 'USER': tmpPostgres.username,
+#                 'PASSWORD': tmpPostgres.password,
+#                 'HOST': tmpPostgres.hostname,
+#                 'PORT': tmpPostgres.port or 5432,
+#                 'OPTIONS': {
+#                     'sslmode': 'require',
+#                 },
+#             }
+#         }
+#     else:
+#          DATABASES = {
+#             'default': {
+#                 'ENGINE': 'django.db.backends.sqlite3',
+#                 'NAME': BASE_DIR / 'db.sqlite3',
+#             }
+#         }
 
 
 # Password validation
@@ -191,6 +201,13 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_SETTINGS': {
         'docExpansion': 'none', # Thu gọn mặc định cho dễ nhìn
         'persistAuthorization': True,
+    },
+    'ENUM_NAME_OVERRIDES': {
+        'TrangThaiCanHoEnum': 'residents.models.CanHo.TRANG_THAI_CHOICES',
+        'TrangThaiCuDanEnum': 'residents.models.CuDan.TRANG_THAI_CHOICES',
+        'TrangThaiYeuCauEnum': 'services.models.YeuCau.TRANG_THAI_CHOICES',
+        'LoaiDichVuEnum': 'services.models.DichVu.LOAI_DICH_VU_CHOICES',
+        'LoaiDichVuChiSoEnum': 'services.models.ChiSoDienNuoc.LOAI_DICH_VU_CHOICES',
     }
 }
 
@@ -215,4 +232,3 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

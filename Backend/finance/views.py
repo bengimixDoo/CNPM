@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status, decorators
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from .models import DanhMucPhi, HoaDon, ChiTietHoaDon
-from .serializers import DanhMucPhiSerializer, HoaDonSerializer, BatchGenerateSerializer, ChiSoDienNuocSerializer
+from .serializers import DanhMucPhiSerializer, HoaDonSerializer, BatchGenerateSerializer, FinanceChiSoDienNuocSerializer, RevenueStatsResponseSerializer
 from residents.models import CanHo
 from services.models import ChiSoDienNuoc, PhuongTien
 from django.db import transaction
@@ -27,7 +27,7 @@ class UtilityReadingViewSet(viewsets.ModelViewSet):
     Quản lý Chỉ số điện nước.
     """
     queryset = ChiSoDienNuoc.objects.all()
-    serializer_class = ChiSoDienNuocSerializer
+    serializer_class = FinanceChiSoDienNuocSerializer
     permission_classes = [IsManagerOrAdmin]
 
     @decorators.action(detail=False, methods=['post'], url_path='batch')
@@ -194,7 +194,9 @@ class RevenueStatsView(viewsets.ViewSet):
     Quyền: Manager/Admin.
     """
     permission_classes = [IsManagerOrAdmin]
+    serializer_class = RevenueStatsResponseSerializer
 
+    @extend_schema(responses=RevenueStatsResponseSerializer)
     @decorators.action(detail=False, methods=['get'], url_path='monthly-revenue')
     def monthly_revenue(self, request):
         """
