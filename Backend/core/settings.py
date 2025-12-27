@@ -188,6 +188,8 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Finance - Utilities', 'description': 'Chỉ số Điện/Nước'},
         {'name': 'Finance - Invoices', 'description': 'Hóa đơn & Thanh toán'},
         {'name': 'Finance - Analytics', 'description': 'Thống kê doanh thu'},
+        {'name': 'Finance - Fundraising Drives', 'description': 'Quản lý Đợt vận động quyên góp'},
+        {'name': 'Finance - Donations', 'description': 'Quản lý Phiếu đóng góp & Phản hồi'},
         
         {'name': 'Services - Vehicles', 'description': 'Quản lý Phương tiện'},
         {'name': 'Services - Pricing', 'description': 'Bảng giá Dịch vụ'},
