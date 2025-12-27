@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions, status, decorators
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 from .models import DanhMucPhi, HoaDon, ChiTietHoaDon
 from .serializers import DanhMucPhiSerializer, HoaDonSerializer, BatchGenerateSerializer, ChiSoDienNuocSerializer
 from residents.models import CanHo
@@ -11,6 +12,7 @@ class IsManagerOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and (request.user.role == 'manager' or request.user.role == 'admin')
 
+@extend_schema(tags=['Finance - Fees'])
 class FeeCategoryViewSet(viewsets.ModelViewSet):
     """
     Quản lý danh mục phí.
@@ -19,6 +21,7 @@ class FeeCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = DanhMucPhiSerializer
     permission_classes = [IsManagerOrAdmin] # Chỉ Manager được chỉnh sửa phí
     
+@extend_schema(tags=['Finance - Utilities'])
 class UtilityReadingViewSet(viewsets.ModelViewSet):
     """
     Quản lý Chỉ số điện nước.
@@ -39,6 +42,7 @@ class UtilityReadingViewSet(viewsets.ModelViewSet):
             return Response({"message": f"Đã nhập {len(serializer.data)} chỉ số."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@extend_schema(tags=['Finance - Invoices'])
 class InvoiceViewSet(viewsets.ModelViewSet):
     """
     Quản lý Hóa đơn.
@@ -97,7 +101,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                     # Chỉ tạo nếu chưa có hóa đơn tháng đó
                     if HoaDon.objects.filter(can_ho=apt, thang=thang, nam=nam).exists():
                         continue 
-
+                    
                     total_amount = 0
                     details = []
 
@@ -182,6 +186,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.save()
         return Response({"message": "Xác nhận thanh toán thành công."})
 
+@extend_schema(tags=['Finance - Analytics'])
 class RevenueStatsView(viewsets.ViewSet):
     """
     Endpoint: GET /analytics/monthly-revenue/

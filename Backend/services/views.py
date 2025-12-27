@@ -7,7 +7,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from users.permissions import IsManager, IsResident, IsOwnerOrReadOnly, IsAccountant
 from rest_framework.exceptions import PermissionDenied
+from drf_spectacular.utils import extend_schema
 
+@extend_schema(tags=['Services - Vehicles'])
 class PhuongTienViewSet(viewsets.ModelViewSet):
     serializer_class = PhuongTienSerializer
 
@@ -53,6 +55,7 @@ def get_user_can_ho(user):
 # ----------------------------------------------------------------------
 # 1. VIEWSET DỊCH VỤ (BẢNG GIÁ)
 # ----------------------------------------------------------------------
+@extend_schema(tags=['Services - Pricing'])
 class DichVuViewSet(viewsets.ModelViewSet):
     queryset = DichVu.objects.all().order_by('ma_dich_vu')
     serializer_class = DichVuSerializer
@@ -65,6 +68,7 @@ class DichVuViewSet(viewsets.ModelViewSet):
 # ----------------------------------------------------------------------
 # 2. VIEWSET CHỈ SỐ ĐIỆN NƯỚC (ĐÃ SỬA LOGIC LỌC)
 # ----------------------------------------------------------------------
+@extend_schema(tags=['Services - Utility Readings'])
 class ChiSoDienNuocViewSet(viewsets.ModelViewSet):
     serializer_class = ChiSoDienNuocSerializer
 
@@ -107,6 +111,7 @@ class ChiSoDienNuocViewSet(viewsets.ModelViewSet):
         # 3. Các đối tượng khác
         return ChiSoDienNuoc.objects.none()
 
+@extend_schema(tags=['Services - News'])
 class TinTucViewSet(viewsets.ModelViewSet):
     queryset = TinTuc.objects.all().order_by('-ma_tin')
     serializer_class = TinTucSerializer
@@ -132,6 +137,7 @@ class TinTucViewSet(viewsets.ModelViewSet):
 # ----------------------------------------------------------------------
 # 5. VIEWSET YÊU CẦU (PHẢN ÁNH)
 # ----------------------------------------------------------------------
+@extend_schema(tags=['Services - Support Tickets'])
 class YeuCauViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         # Trả về Serializer tương ứng với vai trò

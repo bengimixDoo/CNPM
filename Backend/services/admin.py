@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ChiSoDienNuoc, TinTuc, YeuCau, PhuongTien
+from .models import ChiSoDienNuoc, TinTuc, YeuCau, PhuongTien, DichVu
 
 @admin.register(ChiSoDienNuoc)
 class ChiSoDienNuocAdmin(admin.ModelAdmin):
@@ -20,3 +20,8 @@ class YeuCauAdmin(admin.ModelAdmin):
 class PhuongTienAdmin(admin.ModelAdmin):
     list_display = ('bien_so', 'can_ho', 'loai_xe')
     search_fields = ('bien_so',)
+
+@admin.register(DichVu)
+class DichVuAdmin(admin.ModelAdmin):
+    list_display = ('ten_dich_vu', 'don_gia', 'don_vi_tinh')
+    search_fields = ('ten_dich_vu',)

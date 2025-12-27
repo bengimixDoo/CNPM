@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'residents',
     'finance',
     'services',
-    'dashboard',
 ]
 
 MIDDLEWARE = [
@@ -155,7 +154,8 @@ AUTH_USER_MODEL = 'users.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SPECTACULAR_SETTINGS = {
@@ -165,6 +165,33 @@ SPECTACULAR_SETTINGS = {
 
     'SECURITY': [{'BearerAuth': []}],
     'COMPONENT_SPLIT_REQUEST': True,
+    
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Xác thực & Token'},
+        {'name': 'Users', 'description': 'Quản lý người dùng hệ thống'},
+        
+        {'name': 'Residents', 'description': 'Hồ sơ Cư dân'},
+        {'name': 'Apartments', 'description': 'Quản lý Căn hộ'},
+        {'name': 'History', 'description': 'Lịch sử biến động dân cư'},
+        
+        {'name': 'Finance - Fees', 'description': 'Danh mục các loại phí'},
+        {'name': 'Finance - Utilities', 'description': 'Chỉ số Điện/Nước'},
+        {'name': 'Finance - Invoices', 'description': 'Hóa đơn & Thanh toán'},
+        {'name': 'Finance - Analytics', 'description': 'Thống kê doanh thu'},
+        
+        {'name': 'Services - Vehicles', 'description': 'Quản lý Phương tiện'},
+        {'name': 'Services - Pricing', 'description': 'Bảng giá Dịch vụ'},
+        {'name': 'Services - Utility Readings', 'description': 'Nhập chỉ số Điện/Nước (Services)'},
+        {'name': 'Services - News', 'description': 'Tin tức & Thông báo'},
+        {'name': 'Services - Support Tickets', 'description': 'Phản ánh & Yêu cầu'},
+        
+        {'name': 'Logs', 'description': 'Nhật ký hệ thống'},
+    ],
+    
+    'SWAGGER_UI_SETTINGS': {
+        'docExpansion': 'none', # Thu gọn mặc định cho dễ nhìn
+        'persistAuthorization': True,
+    }
 }
 
 from datetime import timedelta

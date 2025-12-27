@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Q
+from drf_spectacular.utils import extend_schema
 
 # Import Permissions
 from users.permissions import IsManager, IsOwnerOrReadOnly, IsAccountant
@@ -17,6 +18,7 @@ from .serializers import (
 # -----------------------------------------------------------
 # 1. VIEWSET CĂN HỘ (Apartments)
 # -----------------------------------------------------------
+@extend_schema(tags=['Apartments'])
 class CanHoViewSet(viewsets.ModelViewSet):
     serializer_class = CanHoSerializer
 
@@ -143,6 +145,7 @@ class CanHoViewSet(viewsets.ModelViewSet):
 # -----------------------------------------------------------
 # 2. VIEW HISTORY (LOG HỆ THỐNG - SIMPLE HISTORY)
 # -----------------------------------------------------------
+@extend_schema(tags=['Logs'])
 class CanHoHistoryView(generics.ListAPIView):
     serializer_class = CanHoHistorySerializer
     permission_classes = [IsManager] # Chỉ quản lý xem log sửa đổi cấu trúc
@@ -155,6 +158,7 @@ class CanHoHistoryView(generics.ListAPIView):
 # -----------------------------------------------------------
 # 3. VIEWSET CƯ DÂN
 # -----------------------------------------------------------
+@extend_schema(tags=['Residents'])
 class CuDanViewSet(viewsets.ModelViewSet):
     serializer_class = CuDanSerializer
 
@@ -199,6 +203,7 @@ class CuDanViewSet(viewsets.ModelViewSet):
         ]
         return Response(data)
 
+@extend_schema(tags=['Logs'])
 class CuDanHistoryView(generics.ListAPIView):
     serializer_class = CuDanHistorySerializer
     permission_classes = [IsManager] # Log nhạy cảm
@@ -211,6 +216,7 @@ class CuDanHistoryView(generics.ListAPIView):
 # -----------------------------------------------------------
 # 4. VIEWSET BIẾN ĐỘNG DÂN CƯ
 # -----------------------------------------------------------
+@extend_schema(tags=['History'])
 class BienDongDanCuViewSet(viewsets.ModelViewSet):
     queryset = BienDongDanCu.objects.all().order_by('ma_bien_dong')
     serializer_class = BienDongDanCuSerializer
@@ -218,6 +224,7 @@ class BienDongDanCuViewSet(viewsets.ModelViewSet):
     # Kế toán không được phép nhập/cắt khẩu -> Vẫn giữ IsManager
     permission_classes = [IsManager]
 
+@extend_schema(tags=['Logs'])
 class BienDongDanCuHistoryView(generics.ListAPIView):
     serializer_class = BienDongDanCuHistorySerializer
     permission_classes = [IsManager]

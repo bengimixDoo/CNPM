@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema
 
 # Import Serializers
 from .serializers import (
@@ -20,6 +21,7 @@ User = get_user_model()
 # ------------------------------------------------------------------
 # 1. Custom Login View (Trả về Token + Role)
 # ------------------------------------------------------------------
+@extend_schema(tags=['Auth'])
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -27,6 +29,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 # ------------------------------------------------------------------
 # 2. User ViewSet (Quản lý người dùng)
 # ------------------------------------------------------------------
+@extend_schema(tags=['Users'])
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('id')
 
