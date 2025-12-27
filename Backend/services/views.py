@@ -7,10 +7,15 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from users.permissions import IsManager, IsResident, IsOwnerOrReadOnly, IsAccountant
 from rest_framework.exceptions import PermissionDenied
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
-@extend_schema(tags=['Services - Vehicles'])
+@extend_schema(
+    tags=['Services - Vehicles'],
+    parameters=[OpenApiParameter("ma_xe", OpenApiTypes.INT, OpenApiParameter.PATH)]
+)
 class PhuongTienViewSet(viewsets.ModelViewSet):
+    lookup_field = 'ma_xe'
     serializer_class = PhuongTienSerializer
 
     def get_permissions(self):
@@ -68,8 +73,12 @@ class DichVuViewSet(viewsets.ModelViewSet):
 # ----------------------------------------------------------------------
 # 2. VIEWSET CHỈ SỐ ĐIỆN NƯỚC (ĐÃ SỬA LOGIC LỌC)
 # ----------------------------------------------------------------------
-@extend_schema(tags=['Services - Utility Readings'])
+@extend_schema(
+    tags=['Services - Utility Readings'],
+    parameters=[OpenApiParameter("ma_chi_so", OpenApiTypes.INT, OpenApiParameter.PATH)]
+)
 class ChiSoDienNuocViewSet(viewsets.ModelViewSet):
+    lookup_field = 'ma_chi_so'
     serializer_class = ChiSoDienNuocSerializer
 
     def get_permissions(self):
@@ -137,11 +146,15 @@ class TinTucViewSet(viewsets.ModelViewSet):
 # ----------------------------------------------------------------------
 # 5. VIEWSET YÊU CẦU (PHẢN ÁNH)
 # ----------------------------------------------------------------------
-@extend_schema(tags=['Services - Support Tickets'])
+@extend_schema(
+    tags=['Services - Support Tickets'],
+    parameters=[OpenApiParameter("ma_yeu_cau", OpenApiTypes.INT, OpenApiParameter.PATH)]
+)
 class YeuCauViewSet(viewsets.ModelViewSet):
+    lookup_field = 'ma_yeu_cau'
     def get_serializer_class(self):
         # Trả về Serializer tương ứng với vai trò
-        if self.request.user.role == 'CU_DAN':
+        if self.request.user.is_authenticated and self.request.user.role == 'CU_DAN':
             return CuDanYeuCauSerializer
         return QuanLyYeuCauSerializer
     

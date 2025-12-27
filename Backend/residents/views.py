@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Q
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 # Import Permissions
 from users.permissions import IsManager, IsOwnerOrReadOnly, IsAccountant
@@ -18,8 +19,12 @@ from .serializers import (
 # -----------------------------------------------------------
 # 1. VIEWSET CĂN HỘ (Apartments)
 # -----------------------------------------------------------
-@extend_schema(tags=['Apartments'])
+@extend_schema(
+    tags=['Apartments'],
+    parameters=[OpenApiParameter("ma_can_ho", OpenApiTypes.INT, OpenApiParameter.PATH)]
+)
 class CanHoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'ma_can_ho'
     serializer_class = CanHoSerializer
 
     # [QUAN TRỌNG] Phân quyền chặt chẽ
@@ -158,8 +163,12 @@ class CanHoHistoryView(generics.ListAPIView):
 # -----------------------------------------------------------
 # 3. VIEWSET CƯ DÂN
 # -----------------------------------------------------------
-@extend_schema(tags=['Residents'])
+@extend_schema(
+    tags=['Residents'],
+    parameters=[OpenApiParameter("ma_cu_dan", OpenApiTypes.INT, OpenApiParameter.PATH)]
+)
 class CuDanViewSet(viewsets.ModelViewSet):
+    lookup_field = 'ma_cu_dan'
     serializer_class = CuDanSerializer
 
     def get_permissions(self):
@@ -171,31 +180,28 @@ class CuDanViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # Kế toán/Quản lý: Xem hết để làm việc
+        # 1. Quản lý, Kế toán, Admin: Xem hết
         if user.role in ['ADMIN', 'QUAN_LY', 'KE_TOAN'] or user.is_superuser:
             return CuDan.objects.all().order_by('ma_cu_dan')
 
-        # Cư dân: Chỉ xem được hồ sơ của chính mình
+        # 2. Cư dân: Chỉ xem được hồ sơ của chính mình và thành viên trong cùng căn hộ
         if hasattr(user, 'cu_dan') and user.cu_dan:
-            return CuDan.objects.filter(ma_cu_dan=user.cu_dan.ma_cu_dan)
+            # Lấy căn hộ hiện tại của user
+            current_apartment = user.cu_dan.can_ho_dang_o
+            if current_apartment:
+                return CuDan.objects.filter(can_ho_dang_o=current_apartment).order_by('ma_cu_dan')
+            else:
+                # Nếu chưa vào ở đâu, chỉ xem được chính mình
+                return CuDan.objects.filter(pk=user.cu_dan.pk)
 
         return CuDan.objects.none()
 
     @action(detail=True, methods=['get'], url_path='history')
     def history(self, request, pk=None):
-        """
-        Xem lịch sử di chuyển (biến động) của 1 cư dân
-        """
         resident = self.get_object()
-
-        history_qs = BienDongDanCu.objects.filter(
-            cu_dan=resident
-        ).select_related('can_ho').order_by('-ngay_thuc_hien')
-
+        history_qs = BienDongDanCu.objects.filter(cu_dan=resident).order_by('-ngay_thuc_hien')
         data = [
             {
-                "ma_can_ho": item.can_ho.ma_can_ho,
-                "ten_can_ho": str(item.can_ho), # Thêm tên căn hộ cho dễ nhìn
                 "loai_bien_dong": item.get_loai_bien_dong_display(),
                 "ngay_thuc_hien": item.ngay_thuc_hien
             }

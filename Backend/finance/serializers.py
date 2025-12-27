@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import DanhMucPhi, HoaDon, ChiTietHoaDon
 from services.models import ChiSoDienNuoc
 
-class ChiSoDienNuocSerializer(serializers.ModelSerializer):
+class FinanceChiSoDienNuocSerializer(serializers.ModelSerializer):
     """
     Serializer cho Chỉ số điện nước.
     """
@@ -44,3 +44,12 @@ class BatchGenerateSerializer(serializers.Serializer):
     """
     thang = serializers.IntegerField(min_value=1, max_value=12)
     nam = serializers.IntegerField(min_value=2000)
+
+class RevenueStatsSerializer(serializers.Serializer):
+    thang = serializers.IntegerField()
+    phat_sinh = serializers.DecimalField(max_digits=15, decimal_places=2)
+    thuc_thu = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+class RevenueStatsResponseSerializer(serializers.Serializer):
+    nam = serializers.IntegerField()
+    data = RevenueStatsSerializer(many=True)
