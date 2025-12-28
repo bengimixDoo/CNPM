@@ -29,7 +29,6 @@ export default function App() {
         <Route path="invoices" element={<Invoices />} />
         <Route path="docs" element={<Docs />} />
       </Route>
-      
     </Routes>
   );
 }
