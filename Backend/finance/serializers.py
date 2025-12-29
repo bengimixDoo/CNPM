@@ -60,3 +60,11 @@ class DongGopSerializer(serializers.ModelSerializer):
         model = DongGop
         fields = '__all__'
         read_only_fields = ['ngay_dong', 'trang_thai'] # Admin cần nhập can_ho
+
+class MonthlyExpenseSerializer(serializers.Serializer):
+    ma_can_ho = serializers.CharField()
+    chu_ho = serializers.CharField()
+    thang = serializers.IntegerField()
+    nam = serializers.IntegerField()
+    tong_tien = serializers.DecimalField(max_digits=12, decimal_places=2)
+    trang_thai = serializers.IntegerField() # 0: Chua thanh toan, 1: Da thanh toan

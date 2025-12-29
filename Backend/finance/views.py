@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+﻿from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +13,8 @@ from services.models import ChiSoDienNuoc
 from .serializers import (
     FeeCategorySerializer, InvoiceSerializer, FinanceChiSoDienNuocSerializer,
     RevenueStatsSerializer, RevenueStatsResponseSerializer,
-    DotDongGopSerializer, DongGopSerializer, BatchGenerateSerializer
+    DotDongGopSerializer, DongGopSerializer, BatchGenerateSerializer,
+    MonthlyExpenseSerializer
 )
 from users.permissions import IsManager, IsAccountant, IsOwnerOrReadOnly
 
@@ -201,3 +202,44 @@ class DongGopViewSet(viewsets.ModelViewSet):
             return Response({"message": "Đã từ chối đóng góp."})
         else:
             return Response({"error": "Lựa chọn không hợp lệ (agree/reject)."}, status=status.HTTP_400_BAD_REQUEST)
+
+@extend_schema(tags=['Finance - Analytics'])
+class MonthlyExpenseViewSet(viewsets.ViewSet):
+    permission_classes = [IsManager | IsAccountant]
+
+    @extend_schema(
+        responses=MonthlyExpenseSerializer(many=True),
+        parameters=[
+            OpenApiParameter("month", OpenApiTypes.INT, required=True, description="Tháng (1-12)"),
+            OpenApiParameter("year", OpenApiTypes.INT, required=True, description="Năm (e.g. 2025)"),
+        ]
+    )
+    def list(self, request):
+        """
+        Lấy danh sách tổng chi phí theo từng tháng của từng căn hộ.
+        """
+        month = request.query_params.get('month')
+        year = request.query_params.get('year')
+
+        if not month or not year:
+            return Response({"error": "Vui lòng cung cấp tham số month và year."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Lấy tất cả hóa đơn trong tháng/năm đó
+        invoices = HoaDon.objects.filter(thang=month, nam=year).select_related('can_ho', 'can_ho__chu_so_huu')
+        
+        results = []
+        for invoice in invoices:
+            chu_so_huu_name = "Chưa có chủ sở hữu"
+            if invoice.can_ho.chu_so_huu:
+                chu_so_huu_name = invoice.can_ho.chu_so_huu.ho_ten
+            
+            results.append({
+                "ma_can_ho": invoice.can_ho.ma_can_ho,
+                "chu_ho": chu_so_huu_name,
+                "thang": invoice.thang,
+                "nam": invoice.nam,
+                "tong_tien": invoice.tong_tien,
+                "trang_thai": invoice.trang_thai
+            })
+            
+        return Response(results)
