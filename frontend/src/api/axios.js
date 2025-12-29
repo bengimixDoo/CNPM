@@ -1,20 +1,20 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Base URL từ backend
-const BASE_URL = 'http://127.0.0.1:8000/api';
+const BASE_URL = "http://127.0.0.1:8000/api/v1";
 
 // Tạo axios instance
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor - Tự động gắn token vào mọi request
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,12 +38,12 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        
+        const refreshToken = localStorage.getItem("refresh_token");
+
         if (!refreshToken) {
           // Không có refresh token → đăng xuất
           localStorage.clear();
-          window.location.href = '/login';
+          window.location.href = "/login";
           return Promise.reject(error);
         }
 
@@ -53,17 +53,17 @@ axiosInstance.interceptors.response.use(
         });
 
         const { access } = response.data;
-        
+
         // Lưu token mới
-        localStorage.setItem('access_token', access);
-        
+        localStorage.setItem("access_token", access);
+
         // Retry request ban đầu với token mới
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         // Refresh thất bại → đăng xuất
         localStorage.clear();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }

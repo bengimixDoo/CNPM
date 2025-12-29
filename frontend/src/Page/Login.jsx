@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import "../styles/AdminDashboard.css";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import LockOutlineIcon from "@mui/icons-material/LockOutline";
-// API
-const API_URL = "https://50a34806fe70.ngrok-free.app/api/v1/auth/login/";
+import { authService } from "../api/services";
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,23 +20,28 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Gửi yêu cầu POST tới API (dữ liệu là username và password)
-      const response = await axios.post(API_URL, {
-        username: username,
-        password: password,
-      });
+      // 1. Gửi yêu cầu POST tới API để lấy token
+      await authService.login(username, password);
 
-      // THÀNH CÔNG: Lưu token và chuyển hướng
-      const { token } = response.data;
-      localStorage.setItem("auth_token", token);
-      console.log("Đăng nhập thành công! Token:", token);
-      navigate("/admin/dashboard");
+      // 2. Lấy thông tin user hiện tại để biết Role
+      const user = await authService.getMe();
+
+      // THÀNH CÔNG: Chuyển hướng theo role dựa trên Route trong App.jsx
+      console.log("Đăng nhập thành công! Role:", user.role);
+
+      if (user.role === "CU_DAN") {
+        navigate("/resident/home");
+      } else {
+        // ADMIN, QUAN_LY, KE_TOAN đều vào dashboard admin
+        navigate("/dashboard");
+      }
     } catch (err) {
       // THẤT BẠI: Hiển thị lỗi xác thực
       if (err.response && err.response.status === 401) {
         setError("Tên đăng nhập hoặc mật khẩu không chính xác!");
       } else {
         setError("Lỗi kết nối Server Backend. Vui lòng kiểm tra dịch vụ!");
+        console.error("Login Error:", err);
       }
     } finally {
       setIsLoading(false);

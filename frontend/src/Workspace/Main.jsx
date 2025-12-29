@@ -6,32 +6,73 @@ import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import BuildIcon from "@mui/icons-material/Build";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { useState, useEffect } from "react";
+import { residentsService, utilitiesService } from "../api/services";
 export default function Main() {
+  const [stats, setStats] = useState({
+    apartments: 0,
+    residents: 0,
+    vehicles: 0,
+    totalFees: 0,
+  });
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Vì backend chưa có endpoint dashboard tổng hợp, ta gọi đồng thời các API cơ bản
+      const [apts, reds, vehicles, hist] = await Promise.all([
+        residentsService.getApartments(),
+        residentsService.getResidents(),
+        utilitiesService.getVehicles(),
+        residentsService.getHistory({ limit: 4 })
+      ]);
+
+      setStats({
+        apartments: apts.length,
+        residents: reds.length,
+        vehicles: vehicles.length,
+        totalFees: 0 // Mock for now
+      });
+
+      setHistory(hist.slice(0, 4)); // Chỉ lấy 4 dòng mới nhất
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   return (
     <div className="dashboard-wrapper">
       {/* Stats Row (unchanged as requested) */}
       <div className="stats-row">
         <StatCard
           title="Tổng số căn hộ"
-          value="1234"
+          value={stats.apartments}
           colorBackground="var(--background-blue)"
           typeCard={"Home"}
         />
         <StatCard
           title="Cư dân"
-          value="567,890"
+          value={stats.residents}
           colorBackground="var(--background-green)"
           typeCard={"Resident"}
         />
         <StatCard
           title="Phương tiện"
-          value="345"
+          value={stats.vehicles}
           colorBackground="var(--background-yellow)"
           typeCard={"Vehicle"}
         />
         <StatCard
-          title="Tổng khoản thu"
-          value="78"
+          title="Thông báo mới"
+          value="12"
           colorBackground="var(--background-red)"
           typeCard={"Fee"}
         />
@@ -138,66 +179,30 @@ export default function Main() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>
-                      <div className="user-info">
-                        <div className="avatar-circle bg-blue-light">NB</div>
-                        <span className="font-medium">Nguyễn Văn B</span>
-                      </div>
-                    </td>
-                    <td>P.1205</td>
-                    <td>
-                      <span className="status-badge badge-temp-res">
-                        <span className="dot dot-blue"></span> Tạm trú
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>01/11 - 30/11/2023</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="user-info">
-                        <div className="avatar-circle bg-orange-light">TC</div>
-                        <span className="font-medium">Trần Thị C</span>
-                      </div>
-                    </td>
-                    <td>P.0802</td>
-                    <td>
-                      <span className="status-badge badge-temp-abs">
-                        <span className="dot dot-orange"></span> Tạm vắng
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>15/11 - 20/11/2023</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="user-info">
-                        <div className="avatar-circle bg-purple-light">LH</div>
-                        <span className="font-medium">Lê Hùng</span>
-                      </div>
-                    </td>
-                    <td>A.0501</td>
-                    <td>
-                      <span className="status-badge badge-temp-res">
-                        <span className="dot dot-blue"></span> Tạm trú
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>20/11 - 20/05/2024</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="user-info">
-                        <div className="avatar-circle bg-green-light">PM</div>
-                        <span className="font-medium">Phạm Minh</span>
-                      </div>
-                    </td>
-                    <td>B.1102</td>
-                    <td>
-                      <span className="status-badge badge-temp-abs">
-                        <span className="dot dot-orange"></span> Tạm vắng
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>22/11 - 25/11/2023</td>
-                  </tr>
+                  {history.length > 0 ? history.map((item, index) => (
+                    <tr key={index}>
+                      <td>
+                        <div className="user-info">
+                          <div className="avatar-circle bg-blue-light">
+                            {item.cu_dan_info?.ho_ten?.charAt(0) || "C"}
+                          </div>
+                          <span className="font-medium">{item.cu_dan_info?.ho_ten || "Cư dân"}</span>
+                        </div>
+                      </td>
+                      <td>{item.can_ho_info?.ma_can_ho || "N/A"}</td>
+                      <td>
+                        <span className={`status-badge ${item.loai_bien_dong === 'TAM_TRU' ? 'badge-temp-res' : 'badge-temp-abs'}`}>
+                          <span className={`dot ${item.loai_bien_dong === 'TAM_TRU' ? 'dot-blue' : 'dot-orange'}`}></span>
+                          {item.loai_bien_dong_display || item.loai_bien_dong}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>{item.ngay_bat_dau}</td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Không có biến động mới</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

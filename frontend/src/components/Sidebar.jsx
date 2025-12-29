@@ -121,17 +121,17 @@ export default function Sidebar() {
           Icon={MonetizationOnIcon}
           items={[
             { to: "/dashboard/create_fees", label: "Tạo khoản thu" },
-            { to: "/dashboard/fees", label: "Chi tiết khoản thu" },
+            { to: "/dashboard/invoices", label: "Hóa đơn" },
           ]}
         />
 
-        <NavLink
+        {/* <NavLink
           to="/dashboard/invoices"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         >
           <ReceiptLongIcon className="nav-icon" aria-hidden />
           <span className="nav-label">Hóa đơn</span>
-        </NavLink>
+        </NavLink> */}
         <NavLink
           to="/dashboard/docs"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
@@ -151,14 +151,18 @@ export default function Sidebar() {
           <span className="nav-label">Cài đặt</span>
         </NavLink>
 
-        <NavLink
-          to="/dashboard/logout"
-          end
-          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        <div
+          className="nav-item"
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+              authService.logout();
+            }
+          }}
         >
           <LogoutIcon className="nav-icon" aria-hidden />
           <span className="nav-label">Đăng xuất</span>
-        </NavLink>
+        </div>
       </nav>
     </aside>
   );

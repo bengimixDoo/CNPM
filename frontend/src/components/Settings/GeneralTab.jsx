@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Grid,
   Paper,
@@ -24,8 +24,72 @@ import {
   labelStyle,
   inputStyle,
 } from "./SettingsStyle";
+import { authService } from "../../api/services";
+
+const ROLE_LABELS = {
+  ADMIN: "Quản trị viên",
+  QUAN_LY: "Quản lý",
+  KE_TOAN: "Kế toán",
+  CU_DAN: "Cư dân",
+};
 
 export default function GeneralTab() {
+  const [passwords, setPasswords] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+  });
+  const [changeLoading, setChangeLoading] = useState(false);
+  const [me, setMe] = useState(null);
+  const [loadingMe, setLoadingMe] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      console.error("Đăng xuất thất bại", e);
+    }
+  };
+
+  useEffect(() => {
+    const loadMe = async () => {
+      setLoadingMe(true);
+      try {
+        const data = await authService.getMe();
+        setMe(data);
+      } catch (e) {
+        console.error("Tải thông tin người dùng thất bại", e);
+      } finally {
+        setLoadingMe(false);
+      }
+    };
+    loadMe();
+  }, []);
+
+  const handleChangePassword = async () => {
+    if (!passwords.current || !passwords.next || !passwords.confirm) {
+      alert("Vui lòng nhập đủ 3 trường mật khẩu.");
+      return;
+    }
+    if (passwords.next !== passwords.confirm) {
+      alert("Mật khẩu mới và xác nhận không khớp.");
+      return;
+    }
+    setChangeLoading(true);
+    try {
+      await authService.changePassword(passwords.current, passwords.next);
+      alert("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.");
+      setPasswords({ current: "", next: "", confirm: "" });
+      await authService.logout();
+    } catch (e) {
+      console.error("Đổi mật khẩu thất bại", e);
+      alert(
+        "Không thể đổi mật khẩu. Vui lòng kiểm tra mật khẩu hiện tại hoặc thử lại."
+      );
+    } finally {
+      setChangeLoading(false);
+    }
+  };
   return (
     <Paper
       sx={{
@@ -91,7 +155,7 @@ export default function GeneralTab() {
             </Box>
             <Box sx={{ zIndex: 10, mt: 2 }}>
               <Typography variant="h6" fontWeight={700} color={TEXT_PRIMARY}>
-                Nguyễn Văn A
+                {loadingMe ? "Đang tải..." : me?.username || "Người dùng"}
               </Typography>
               <Box
                 display="flex"
@@ -106,7 +170,7 @@ export default function GeneralTab() {
                   color={TEXT_SECONDARY}
                   fontWeight={500}
                 >
-                  Quản lý tòa nhà A
+                  {loadingMe ? "" : ROLE_LABELS[me?.role] || ""}
                 </Typography>
               </Box>
               <Button
@@ -126,6 +190,21 @@ export default function GeneralTab() {
                 }}
               >
                 Thay đổi ảnh
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleLogout}
+                sx={{
+                  mt: 2,
+                  textTransform: "none",
+                  bgcolor: PRIMARY_COLOR,
+                  "&:hover": { bgcolor: PRIMARY_HOVER },
+                  fontWeight: 700,
+                  borderRadius: "10px",
+                  px: 3,
+                }}
+              >
+                Đăng xuất
               </Button>
             </Box>
           </Box>
@@ -171,28 +250,35 @@ export default function GeneralTab() {
                 <Typography sx={labelStyle}>Họ và tên</Typography>
                 <TextField
                   fullWidth
-                  defaultValue="Nguyễn Văn A"
+                  value={loadingMe ? "" : me?.first_name + " " + me?.last_name || ""}
                   sx={inputStyle}
+                  InputProps={{ readOnly: true }}
+                  helperText="Username (không chỉnh sửa tại đây)"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={labelStyle}>Số điện thoại</Typography>
                 <TextField
                   fullWidth
-                  defaultValue="0912 345 678"
+                  value={loadingMe ? "" : (me?.role !== "CƯ DÂN" ? "0123456789" : "") || ""}
                   sx={inputStyle}
+                  placeholder="Không có trong API"
+                  InputProps={{ readOnly: true }}
                 />
               </Grid>
               <Grid item xs={12}>
                 <Typography sx={labelStyle}>Email</Typography>
                 <TextField
                   fullWidth
-                  defaultValue="admin@smartcondo.vn"
+                  value={loadingMe ? "" : me?.email || ""}
                   sx={inputStyle}
+                  placeholder="Không có trong API"
+                  InputProps={{ readOnly: true }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
                         <MailIcon sx={{ color: "#94a3b8" }} />
+                        
                       </InputAdornment>
                     ),
                   }}
@@ -243,6 +329,10 @@ export default function GeneralTab() {
                 placeholder="••••••••"
                 type="password"
                 sx={inputStyle}
+                value={passwords.current}
+                onChange={(e) =>
+                  setPasswords((p) => ({ ...p, current: e.target.value }))
+                }
               />
             </Box>
             <Grid container spacing={3}>
@@ -253,6 +343,10 @@ export default function GeneralTab() {
                   placeholder="Nhập mật khẩu mới"
                   type="password"
                   sx={inputStyle}
+                  value={passwords.next}
+                  onChange={(e) =>
+                    setPasswords((p) => ({ ...p, next: e.target.value }))
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -262,6 +356,10 @@ export default function GeneralTab() {
                   placeholder="Nhập lại mật khẩu"
                   type="password"
                   sx={inputStyle}
+                  value={passwords.confirm}
+                  onChange={(e) =>
+                    setPasswords((p) => ({ ...p, confirm: e.target.value }))
+                  }
                 />
               </Grid>
             </Grid>
@@ -287,9 +385,12 @@ export default function GeneralTab() {
                   py: 1,
                   border: `1px solid ${BORDER_COLOR}`,
                   "&:hover": { bgcolor: "#e2e8f0" },
+                  opacity: changeLoading ? 0.7 : 1,
                 }}
+                disabled={changeLoading}
+                onClick={handleChangePassword}
               >
-                Cập nhật mật khẩu
+                {changeLoading ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
               </Button>
             </Box>
           </Box>

@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { residentsService } from "../api/services";
 import StatCard from "../components/StatCard.jsx";
 import "../styles/AdminDashboard.css";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -34,262 +35,73 @@ import ApartmentIcon from "@mui/icons-material/Apartment";
 
 export default function Apartments() {
   const statusColors = {
-    "Đang ở": "var(--color-green-100)",
     Trống: "var(--color-yellow-100)",
-    "Đang sửa": "var(--color-red-100)",
+    "Đã bán": "var(--color-green-100)",
+    "Đang thuê": "var(--color-green-100)",
   };
 
-  const apartments = [
-    {
-      id: "A-0702",
-      building: "A",
-      floor: 7,
-      owner: "Lê Văn C",
-      residents: 4,
-      area: "75 m²",
-      status: "Trống",
-      phone: "0901 234 567",
-      email: "chuho.a702@example.com",
-      note: "Căn hộ vừa trống, cần dọn dẹp nhẹ.",
-      residentsList: [
-        {
-          name: "Nguyễn Văn A",
-          dob: "15/05/1980",
-          relation: "Chủ hộ",
-          phone: "0901234567",
-        },
-        {
-          name: "Trần Thị B",
-          dob: "20/10/1982",
-          relation: "Vợ",
-          phone: "0908765432",
-        },
-        {
-          name: "Nguyễn Hoàng C",
-          dob: "12/03/2005",
-          relation: "Con",
-          phone: "0912345678",
-        },
-        {
-          name: "Nguyễn Thị D",
-          dob: "08/09/2010",
-          relation: "Con",
+  const [apartmentsData, setApartmentsData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    occupied: 0,
+    empty: 0,
+    fixing: 0,
+  });
+
+  const fetchApartments = async () => {
+    setLoading(true);
+    try {
+      const data = await residentsService.getApartments();
+      const formattedData = data.map((apt) => {
+        // Map trạng thái từ mã -> chữ hiển thị
+        const statusMap = { E: "Trống", S: "Đã bán", H: "Đang thuê" };
+        return {
+          id: apt.ma_can_ho,
+          building: apt.toa_nha,
+          floor: apt.tang,
+          owner: apt.chu_so_huu ? "Có chủ" : "Chưa có",
+          residents: 0, // sẽ nạp khi mở chi tiết
+          area: `${apt.dien_tich} m²`,
+          status: statusMap[apt.trang_thai] || apt.trang_thai,
           phone: "N/A",
-        },
-      ],
-    },
-    {
-      id: "A-1203",
-      building: "A",
-      floor: 12,
-      owner: "Nguyễn Văn An",
-      residents: 3,
-      area: "82 m²",
-      status: "Đang ở",
-      phone: "0909 888 777",
-      email: "an.nguyen@example.com",
-      note: "Sinh hoạt bình thường.",
-      residentsList: [
-        {
-          name: "Nguyễn Văn An",
-          dob: "05/04/1988",
-          relation: "Chủ hộ",
-          phone: "0909888777",
-        },
-        {
-          name: "Lê Thị Hoa",
-          dob: "10/02/1990",
-          relation: "Vợ",
-          phone: "0911999888",
-        },
-        {
-          name: "Nguyễn Gia Hân",
-          dob: "30/11/2018",
-          relation: "Con",
-          phone: "N/A",
-        },
-      ],
-    },
-    {
-      id: "B-0508",
-      building: "B",
-      floor: 5,
-      owner: "Trần Thị B",
-      residents: 2,
-      area: "68 m²",
-      status: "Đang sửa",
-      phone: "0912 345 678",
-      email: "b.tran@example.com",
-      note: "Đang sửa hệ thống điện, dự kiến xong 3 ngày.",
-      residentsList: [
-        {
-          name: "Trần Thị B",
-          dob: "15/09/1984",
-          relation: "Chủ hộ",
-          phone: "0912345678",
-        },
-      ],
-    },
-    {
-      id: "B-0901",
-      building: "B",
-      floor: 9,
-      owner: "Hoàng Văn E",
-      residents: 5,
-      area: "90 m²",
-      status: "Đang ở",
-      phone: "0933 666 555",
-      email: "hoang.e@example.com",
-      note: "Gia đình đông người, ưu tiên bảo trì định kỳ.",
-      residentsList: [
-        {
-          name: "Hoàng Văn E",
-          dob: "01/01/1978",
-          relation: "Chủ hộ",
-          phone: "0933666555",
-        },
-        {
-          name: "Phạm Thị F",
-          dob: "22/07/1980",
-          relation: "Vợ",
-          phone: "0933777666",
-        },
-        {
-          name: "Hoàng Gia K",
-          dob: "14/04/2010",
-          relation: "Con",
-          phone: "N/A",
-        },
-        {
-          name: "Hoàng Gia L",
-          dob: "09/08/2014",
-          relation: "Con",
-          phone: "N/A",
-        },
-        {
-          name: "Hoàng Gia M",
-          dob: "30/12/2017",
-          relation: "Con",
-          phone: "N/A",
-        },
-      ],
-    },
-    {
-      id: "C-0304",
-      building: "C",
-      floor: 3,
-      owner: "Phạm Thị D",
-      residents: 1,
-      area: "55 m²",
-      status: "Trống",
-      phone: "0902 222 333",
-      email: "d.pham@example.com",
-      note: "Trống, đang tìm khách mới.",
-      residentsList: [],
-    },
-    {
-      id: "C-1010",
-      building: "C",
-      floor: 10,
-      owner: "Lê Văn C",
-      residents: 2,
-      area: "70 m²",
-      status: "Đang ở",
-      phone: "0907 777 888",
-      email: "levanc@example.com",
-      note: "Yêu cầu kiểm tra ống nước tháng tới.",
-      residentsList: [
-        {
-          name: "Lê Văn C",
-          dob: "09/09/1985",
-          relation: "Chủ hộ",
-          phone: "0907777888",
-        },
-        {
-          name: "Nguyễn Thị N",
-          dob: "12/12/1986",
-          relation: "Vợ",
-          phone: "0908888999",
-        },
-      ],
-    },
-    {
-      id: "A-0702",
-      building: "A",
-      floor: 7,
-      owner: "Lê Văn C",
-      residents: 4,
-      area: "75 m²",
-      status: "Trống",
-      phone: "0901 234 567",
-      email: "chuho.a702@example.com",
-      note: "Căn hộ vừa trống, cần dọn dẹp nhẹ.",
-      residentsList: [
-        {
-          name: "Nguyễn Văn A",
-          dob: "15/05/1980",
-          relation: "Chủ hộ",
-          phone: "0901234567",
-        },
-        {
-          name: "Trần Thị B",
-          dob: "20/10/1982",
-          relation: "Vợ",
-          phone: "0908765432",
-        },
-        {
-          name: "Nguyễn Hoàng C",
-          dob: "12/03/2005",
-          relation: "Con",
-          phone: "0912345678",
-        },
-        {
-          name: "Nguyễn Thị D",
-          dob: "08/09/2010",
-          relation: "Con",
-          phone: "N/A",
-        },
-      ],
-    },
-    {
-      id: "A-0702",
-      building: "A",
-      floor: 7,
-      owner: "Lê Văn C",
-      residents: 4,
-      area: "75 m²",
-      status: "Trống",
-      phone: "0901 234 567",
-      email: "chuho.a702@example.com",
-      note: "Căn hộ vừa trống, cần dọn dẹp nhẹ.",
-      residentsList: [
-        {
-          name: "Nguyễn Văn A",
-          dob: "15/05/1980",
-          relation: "Chủ hộ",
-          phone: "0901234567",
-        },
-        {
-          name: "Trần Thị B",
-          dob: "20/10/1982",
-          relation: "Vợ",
-          phone: "0908765432",
-        },
-        {
-          name: "Nguyễn Hoàng C",
-          dob: "12/03/2005",
-          relation: "Con",
-          phone: "0912345678",
-        },
-        {
-          name: "Nguyễn Thị D",
-          dob: "08/09/2010",
-          relation: "Con",
-          phone: "N/A",
-        },
-      ],
-    },
-  ];
+          email: "N/A",
+          note: "",
+          residentsList: [],
+        };
+      });
+      setApartmentsData(formattedData);
+
+      // Gọi thống kê tổng quan từ API
+      try {
+        const statsApi = await residentsService.getApartmentStats();
+        const total =
+          statsApi?.tong_quan?.tong_so_can_ho || formattedData.length;
+        const empty = statsApi?.tong_quan?.so_can_trong_E || 0;
+        const sold = statsApi?.tong_quan?.so_da_ban_S || 0;
+        const rented = statsApi?.tong_quan?.so_dang_thue_H || 0;
+        setStats({ total, empty, occupied: sold + rented, fixing: 0 });
+      } catch (_) {
+        // fallback nếu thống kê lỗi
+        const byCode = (code) =>
+          data.filter((a) => a.trang_thai === code).length;
+        setStats({
+          total: data.length,
+          empty: byCode("E"),
+          occupied: byCode("S") + byCode("H"),
+          fixing: 0,
+        });
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách căn hộ:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApartments();
+  }, []);
 
   const [openDetail, setOpenDetail] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -300,8 +112,11 @@ export default function Apartments() {
   // Tính toán dữ liệu hiển thị theo trang
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentApartments = apartments.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(apartments.length / itemsPerPage);
+  const currentApartments = apartmentsData.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(apartmentsData.length / itemsPerPage);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -316,9 +131,28 @@ export default function Apartments() {
     }
   };
 
-  const handleOpenDetail = (apt) => {
+  const handleOpenDetail = async (apt) => {
     setSelected(apt);
     setOpenDetail(true);
+    try {
+      // Lấy thành viên và thống kê trong căn hộ này
+      const detail = await residentsService.getApartmentMembers(apt.id);
+      const danhSach = detail?.thong_ke_nhan_khau?.danh_sach_cu_dan || [];
+      const tong = detail?.thong_ke_nhan_khau?.tong_so_nguoi || 0;
+
+      setSelected((prev) => ({
+        ...prev,
+        residents: tong,
+        residentsList: danhSach.map((r) => ({
+          name: r.ho_ten,
+          dob: "-",
+          relation: "-",
+          phone: "-",
+        })),
+      }));
+    } catch (e) {
+      console.error("Không tải được chi tiết căn hộ:", e);
+    }
   };
 
   const handleCloseDetail = () => {
@@ -342,25 +176,25 @@ export default function Apartments() {
       <div className="stats-row">
         <StatCard
           title="Tổng số căn hộ"
-          value="1234"
+          value={stats.total}
           colorBackground="var(--background-blue)"
           typeCard="Home"
         />
         <StatCard
           title="Đang ở"
-          value="123"
+          value={stats.occupied}
           colorBackground="var(--background-green)"
           typeCard="Done"
         />
         <StatCard
           title="Trống"
-          value="345"
+          value={stats.empty}
           colorBackground="var(--background-yellow)"
           typeCard="Empty"
         />
         <StatCard
           title="Đang sửa chữa"
-          value="78"
+          value={stats.fixing}
           colorBackground="var(--background-red)"
           typeCard="Fix"
         />
@@ -420,7 +254,11 @@ export default function Apartments() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          sx={{ backgroundColor: "var(--blue)", height: 40, marginLeft: "10px" }}
+          sx={{
+            backgroundColor: "var(--blue)",
+            height: 40,
+            marginLeft: "10px",
+          }}
         >
           Thêm Căn hộ
         </Button>
@@ -513,7 +351,8 @@ export default function Apartments() {
         PaperProps={{
           sx: {
             borderRadius: "16px",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           },
         }}
       >
@@ -545,10 +384,13 @@ export default function Apartments() {
                     boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
                 >
-                  <ApartmentIcon sx={{ fontSize: 30 }}/>
+                  <ApartmentIcon sx={{ fontSize: 30 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 700, lineHeight: 1.2 }}
+                  >
                     Căn hộ {selected.id}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -561,7 +403,10 @@ export default function Apartments() {
                   onClick={handleCloseDetail}
                   sx={{
                     color: (theme) => theme.palette.grey[500],
-                    "&:hover": { color: (theme) => theme.palette.grey[900], backgroundColor: "#f1f5f9" },
+                    "&:hover": {
+                      color: (theme) => theme.palette.grey[900],
+                      backgroundColor: "#f1f5f9",
+                    },
                   }}
                 >
                   <CloseIcon />
@@ -580,11 +425,23 @@ export default function Apartments() {
             >
               {/* Thông tin chung */}
               <Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 700, color: "#1e293b" }}
+                  >
                     Thông tin cơ bản
                   </Typography>
-                  <Box sx={{ flex: 1, height: "1px", backgroundColor: "#e2e8f0", ml: 1 }} />
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: "1px",
+                      backgroundColor: "#e2e8f0",
+                      ml: 1,
+                    }}
+                  />
                 </Box>
                 <Box
                   sx={{
@@ -594,12 +451,42 @@ export default function Apartments() {
                   }}
                 >
                   {[
-                    { label: "Chủ hộ", value: selected.owner, icon: <PersonIcon sx={{ fontSize: 20 }} />, color: "#3b82f6" },
-                    { label: "Số điện thoại", value: selected.phone, icon: <PhoneIcon sx={{ fontSize: 20 }} />, color: "#10b981" },
-                    { label: "Email", value: selected.email, icon: <EmailIcon sx={{ fontSize: 20 }} />, color: "#6366f1" },
-                    { label: "Diện tích", value: selected.area, icon: <SquareFootIcon sx={{ fontSize: 20 }} />, color: "#f59e0b" },
-                    { label: "Vị trí", value: `Tòa ${selected.building} - Tầng ${selected.floor}`, icon: <BusinessIcon sx={{ fontSize: 20 }} />, color: "#ec4899" },
-                    { label: "Ghi chú", value: selected.note, icon: <DescriptionIcon sx={{ fontSize: 20 }} />, color: "#64748b" },
+                    {
+                      label: "Chủ hộ",
+                      value: selected.owner,
+                      icon: <PersonIcon sx={{ fontSize: 20 }} />,
+                      color: "#3b82f6",
+                    },
+                    {
+                      label: "Số điện thoại",
+                      value: selected.phone,
+                      icon: <PhoneIcon sx={{ fontSize: 20 }} />,
+                      color: "#10b981",
+                    },
+                    {
+                      label: "Email",
+                      value: selected.email,
+                      icon: <EmailIcon sx={{ fontSize: 20 }} />,
+                      color: "#6366f1",
+                    },
+                    {
+                      label: "Diện tích",
+                      value: selected.area,
+                      icon: <SquareFootIcon sx={{ fontSize: 20 }} />,
+                      color: "#f59e0b",
+                    },
+                    {
+                      label: "Vị trí",
+                      value: `Tòa ${selected.building} - Tầng ${selected.floor}`,
+                      icon: <BusinessIcon sx={{ fontSize: 20 }} />,
+                      color: "#ec4899",
+                    },
+                    {
+                      label: "Ghi chú",
+                      value: selected.note,
+                      icon: <DescriptionIcon sx={{ fontSize: 20 }} />,
+                      color: "#64748b",
+                    },
                   ].map((item, idx) => (
                     <Box
                       key={idx}
@@ -615,13 +502,33 @@ export default function Apartments() {
                         },
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                        <Box sx={{ color: item.color, display: "flex" }}>{item.icon}</Box>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.025em" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 0.5,
+                        }}
+                      >
+                        <Box sx={{ color: item.color, display: "flex" }}>
+                          {item.icon}
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: "#64748b",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.025em",
+                          }}
+                        >
                           {item.label}
                         </Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b", pl: 3.5 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, color: "#1e293b", pl: 3.5 }}
+                      >
                         {item.value}
                       </Typography>
                     </Box>
@@ -631,9 +538,19 @@ export default function Apartments() {
 
               {/* Danh sách cư dân */}
               <Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 700, color: "#1e293b" }}
+                    >
                       Thành viên trong hộ ({selected.residents})
                     </Typography>
                     <GroupsIcon sx={{ color: "#64748b", fontSize: 20 }} />
@@ -649,7 +566,9 @@ export default function Apartments() {
                       backgroundColor: "var(--blue)",
                       width: "150px",
                       boxShadow: "none",
-                      "&:hover": { boxShadow: "0 4px 12px rgba(0, 119, 255, 0.2)" },
+                      "&:hover": {
+                        boxShadow: "0 4px 12px rgba(0, 119, 255, 0.2)",
+                      },
                     }}
                   >
                     Thêm nhân khẩu
@@ -684,7 +603,8 @@ export default function Apartments() {
                     <Box>Quan hệ</Box>
                     <Box>Số điện thoại</Box>
                   </Box>
-                  {selected.residentsList && selected.residentsList.length > 0 ? (
+                  {selected.residentsList &&
+                  selected.residentsList.length > 0 ? (
                     selected.residentsList.map((resident, idx) => (
                       <Box
                         key={idx}
@@ -692,7 +612,10 @@ export default function Apartments() {
                           display: "grid",
                           gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr",
                           p: 2,
-                          borderBottom: idx < selected.residentsList.length - 1 ? "1px solid #f1f5f9" : "none",
+                          borderBottom:
+                            idx < selected.residentsList.length - 1
+                              ? "1px solid #f1f5f9"
+                              : "none",
                           fontSize: "0.875rem",
                           color: "#1e293b",
                           transition: "background-color 0.2s",
@@ -700,7 +623,14 @@ export default function Apartments() {
                           alignItems: "center",
                         }}
                       >
-                        <Box sx={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <Box
+                          sx={{
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
                           <Box
                             sx={{
                               width: 32,
@@ -727,7 +657,10 @@ export default function Apartments() {
                               px: 1.5,
                               py: 0.25,
                               borderRadius: "6px",
-                              backgroundColor: resident.relation === "Chủ hộ" ? "#8ffd00ff" : "#f1f5f9",
+                              backgroundColor:
+                                resident.relation === "Chủ hộ"
+                                  ? "#8ffd00ff"
+                                  : "#f1f5f9",
                               color: "#475569",
                               fontWeight: 600,
                             }}
@@ -741,7 +674,9 @@ export default function Apartments() {
                   ) : (
                     <Box sx={{ p: 6, textAlign: "center", color: "#94a3b8" }}>
                       <GroupsIcon sx={{ fontSize: 48, mb: 1, opacity: 0.2 }} />
-                      <Typography variant="body2">Chưa có dữ liệu về cư dân trong hộ này.</Typography>
+                      <Typography variant="body2">
+                        Chưa có dữ liệu về cư dân trong hộ này.
+                      </Typography>
                     </Box>
                   )}
                 </Box>
@@ -767,7 +702,7 @@ export default function Apartments() {
                   fontWeight: 600,
                   px: 3,
                   py: 1,
-                  width: "150px", 
+                  width: "150px",
                   "&:hover": { backgroundColor: "#fef2f2" },
                 }}
               >

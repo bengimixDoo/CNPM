@@ -6,7 +6,8 @@ import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { financeService } from "../api/services";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -17,81 +18,46 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import formatFee from "../util/FormatFee";
 
 const defaultPaginationModel = { page: 0, pageSize: 10 };
-const columns = [
+
+// Cột khớp API: ten_loai_phi, dong_gia_hien_tai, don_vi_tinh
+const makeColumns = (onEdit, onDelete) => [
   {
-    field: "fee_name",
-    headerName: "Loại Phí",
-    width: 100,
-    headerAlign: "center",
-    align: "center",
-  },
-  {
-    field: "fee_code",
-    headerName: "Mã Phí",
-    width: 130,
-    headerAlign: "center",
-    align: "center",
-  },
-  {
-    field: "calculation_type",
-    headerName: "Loại Tính",
-    width: 150,
-    headerAlign: "center",
-    align: "center",
-  },
-  {
-    field: "rate_value",
-    headerName: "Định mức",
+    field: "ma_phi",
+    headerName: "Mã loại phí",
     width: 120,
-    type: "number",
-    headerAlign: "center",
-    align: "right",
-    valueFormatter: (params) =>
-      params.value != null
-        ? params.value.toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          })
-        : "",
-  },
-  {
-    field: "unit",
-    headerName: "Đơn vị",
-    width: 150,
     headerAlign: "center",
     align: "center",
   },
   {
-    field: "billing_cycle",
-    headerName: "Chu Kỳ",
-    width: 140,
+    field: "ten_phi",
+    headerName: "Tên phí",
+    minWidth: 160,
     headerAlign: "center",
     align: "center",
   },
   {
-    field: "effective_date",
-    headerName: "Ngày Áp dụng",
-    width: 150,
+    field: "don_gia",
+    headerName: "Đơn giá",
+    width: 160,
     headerAlign: "center",
     align: "center",
   },
   {
-    field: "is_active",
-    headerName: "Trạng thái",
-    width: 140,
+    field: "don_vi_tinh",
+    headerName: "Đơn vị tính",
+    width: 160,
     headerAlign: "center",
     align: "center",
-    valueFormatter: (params) =>
-      params.value ? "Đang hoạt động" : "Ngừng áp dụng",
   },
   {
-    field: "description",
-    headerName: "Ghi chú",
-    width: 200,
+    field: "loai_phi",
+    headerName: "Loại phí",
+    width: 160,
     headerAlign: "center",
-    align: "left",
+    align: "center",
   },
   {
     field: "actions",
@@ -99,146 +65,62 @@ const columns = [
     type: "actions",
     width: 120,
     headerAlign: "center",
-    getActions: () => [
+    getActions: (params) => [
       <GridActionsCellItem
         icon={<EditIcon />}
         label="Sửa"
-        onClick={() => {}}
+        onClick={() => onEdit(params.row)}
         showInMenu={false}
       />,
       <GridActionsCellItem
         icon={<DeleteIcon />}
-        label="Ngừng áp dụng"
-        onClick={() => {}}
+        label="Xóa"
+        onClick={() => onDelete(params.row)}
         showInMenu={false}
       />,
     ],
   },
 ];
 
-const initialRows = [
-  {
-    id: "FEE-001",
-    fee_name: "Phí Dịch vụ",
-    fee_code: "DV-M2",
-    calculation_type: "Diện tích (m²)",
-    rate_value: 15000,
-    unit: "đồng/m²/tháng",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2025-01-01",
-    is_active: true,
-    description: "Áp dụng cho tất cả căn hộ",
-  },
-  {
-    id: "FEE-002",
-    fee_name: "Phí Quản lý",
-    fee_code: "QL-M2",
-    calculation_type: "Diện tích (m²)",
-    rate_value: 8000,
-    unit: "đồng/m²/tháng",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2025-01-01",
-    is_active: true,
-    description: "Bao gồm quản lý chung cư và bảo vệ",
-  },
-  {
-    id: "FEE-003",
-    fee_name: "Phí Gửi xe",
-    fee_code: "XEMAY-FIX",
-    calculation_type: "Cố định/xe",
-    rate_value: 200000,
-    unit: "đồng/xe/tháng",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2025-01-01",
-    is_active: true,
-    description: "Phí gửi xe máy hàng tháng",
-  },
-  {
-    id: "FEE-004",
-    fee_name: "Quỹ Đóng góp",
-    fee_code: "QDF-FIXED",
-    calculation_type: "Cố định",
-    rate_value: 5000000,
-    unit: "VND",
-    billing_cycle: "Một lần",
-    effective_date: "2025-01-15",
-    is_active: true,
-    description: "Quỹ bảo trì toà nhà - Thu một lần",
-  },
-  {
-    id: "FEE-005",
-    fee_name: "Phí Internet",
-    fee_code: "INET-FIXED",
-    calculation_type: "Cố định",
-    rate_value: 150000,
-    unit: "VND/tháng",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2024-06-01",
-    is_active: false,
-    description: "Ngừng áp dụng từ 2024-12-31",
-  },
-  {
-    id: "FEE-006",
-    fee_name: "Phí Nước",
-    fee_code: "WATER-UNIT",
-    calculation_type: "Theo đơn vị",
-    rate_value: 25000,
-    unit: "đồng/m³",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2025-01-01",
-    is_active: true,
-    description: "Tiền nước - Tính theo chỉ số đồng hồ",
-  },
-  {
-    id: "FEE-007",
-    fee_name: "Phí Điện",
-    fee_code: "ELEC-UNIT",
-    calculation_type: "Theo đơn vị",
-    rate_value: 3500,
-    unit: "đồng/kWh",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2025-01-01",
-    is_active: true,
-    description: "Tiền điện - Tính theo chỉ số đồng hồ",
-  },
-  {
-    id: "FEE-008",
-    fee_name: "Phí Vệ sinh",
-    fee_code: "CLEAN-M2",
-    calculation_type: "Diện tích (m²)",
-    rate_value: 5000,
-    unit: "đồng/m²/tháng",
-    billing_cycle: "Hàng tháng",
-    effective_date: "2024-12-01",
-    is_active: false,
-    description: "Đã hợp nhất vào Phí dịch vụ",
-  },
-];
-
 export default function CreateFees() {
-  const [rows, setRows] = useState(initialRows);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFees = async () => {
+    setLoading(true);
+    try {
+      const data = await financeService.getFeeCategories();
+      console.log("Fee data from API:", data);
+      const mapped = data.map((f) => ({
+        ...f,
+        _rowId: f.ma_phi,
+        dong_gia_hien_tai: f.dong_gia_hien_tai
+      }));
+      console.log("Mapped data:", mapped);
+      setRows(mapped);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách loại phí:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFees();
+  }, []);
   const [openCreate, setOpenCreate] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
-	title: "",
-	amount: "",
-	feetype: "Phí dịch vụ",
-	paymentMethod: "Chuyển khoản",
-	dateCreated: new Date().toISOString().slice(0, 10),
-	dateDue: "",
-	note: "",
-	apartment: "",
-	owner: "",
-	status: "Chưa thanh toán",
+    ten_loai_phi: "",
+    dong_gia_hien_tai: "",
+    don_vi_tinh: "",
   });
 
   const [paginationModel, setPaginationModel] = useState(
     defaultPaginationModel
   );
 
-  const gridRows = useMemo(
-    () => initialRows.map((r, i) => ({ ...r, _rowId: i })),
-    []
-  );
+  const gridRows = useMemo(() => rows, [rows]);
 
   const handlePaginationChange = (newModel) => {
     setPaginationModel(newModel);
@@ -321,7 +203,7 @@ export default function CreateFees() {
             }}
             onClick={() => setOpenCreate(true)}
           >
-            Thêm Khoản Thu
+            Thêm Loại Phí
           </Button>
         </Box>
       </div>
@@ -338,7 +220,29 @@ export default function CreateFees() {
         <DataGrid
           rows={gridRows}
           getRowId={(row) => row._rowId}
-          columns={columns}
+          columns={makeColumns(
+            (row) => {
+              setEditing(row);
+              setForm({
+                ten_loai_phi: row.ten_loai_phi,
+                dong_gia_hien_tai: formatFee(row.dong_gia_hien_tai) || 0,
+                don_vi_tinh: row.don_vi_tinh,
+              });
+              setOpenCreate(true);
+            },
+            async (row) => {
+              if (confirm(`Xóa loại phí "${row.ten_loai_phi}"?`)) {
+                try {
+                  await financeService.deleteFeeCategory(row.ma_loai_phi);
+                  await fetchFees();
+                } catch (e) {
+                  console.error("Xóa loại phí thất bại:", e);
+                  alert("Không thể xóa. Vui lòng thử lại hoặc kiểm tra quyền.");
+                }
+              }
+            }
+          )}
+          loading={loading}
           rowHeight={52}
           columnHeaderHeight={56}
           pagination
@@ -359,135 +263,103 @@ export default function CreateFees() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Tạo Khoản Thu Nhanh</DialogTitle>
+        <DialogTitle>{editing ? "Sửa loại phí" : "Thêm loại phí"}</DialogTitle>
         <DialogContent>
           <div style={{ marginTop: 8, color: "#6b7280", marginBottom: 12 }}>
-            Điền thông tin dưới đây để tạo một khoản thu mới.
+            Nhập thông tin loại phí để {editing ? "cập nhật" : "tạo mới"}.
           </div>
           <TextField
             fullWidth
-            label="Tên khoản thu"
-            placeholder="Ví dụ: Phí dịch vụ tháng 10"
+            label="Tên loại phí"
+            placeholder="Ví dụ: Phí Quản lý, Tiền Nước"
             margin="normal"
-            value={form.title}
-            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            value={form.ten_loai_phi}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, ten_loai_phi: e.target.value }))
+            }
           />
           <TextField
             fullWidth
-            label="Số tiền (VND)"
-            placeholder="Nhập số tiền"
+            label="Đơn giá (VND)"
+            placeholder="Nhập đơn giá"
             margin="normal"
-            value={form.amount}
-            onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-            inputProps={{ inputMode: "numeric" }}
+            value={form.dong_gia_hien_tai}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, dong_gia_hien_tai: e.target.value }))
+            }
+            inputProps={{ inputMode: "decimal" }}
           />
           <FormControl fullWidth margin="normal">
-            <InputLabel id="feetype-label">Loại khoản thu</InputLabel>
+            <InputLabel id="unit-label">Đơn vị tính</InputLabel>
             <Select
-              labelId="feetype-label"
-              value={form.feetype}
-              label="Loại khoản thu"
+              labelId="unit-label"
+              value={form.don_vi_tinh}
+              label="Đơn vị tính"
               onChange={(e) =>
-                setForm((f) => ({ ...f, feetype: e.target.value }))
+                setForm((f) => ({ ...f, don_vi_tinh: e.target.value }))
               }
             >
-              <MenuItem value={"Phí dịch vụ"}>Phí dịch vụ</MenuItem>
-              <MenuItem value={"Phí quản lý"}>Phí quản lý</MenuItem>
-              <MenuItem value={"Phí gửi xe"}>Phí gửi xe</MenuItem>
-              <MenuItem value={"Khác"}>Khác</MenuItem>
+              <MenuItem value={"m2"}>m²</MenuItem>
+              <MenuItem value={"kWh"}>kWh</MenuItem>
+              <MenuItem value={"m3"}>m³</MenuItem>
+              <MenuItem value={"xe"}>xe</MenuItem>
+              <MenuItem value={"tháng"}>tháng</MenuItem>
+              <MenuItem value={"khác"}>khác</MenuItem>
             </Select>
           </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="paymethod-label">Hình thức</InputLabel>
-            <Select
-              labelId="paymethod-label"
-              value={form.paymentMethod}
-              label="Hình thức"
-              onChange={(e) =>
-                setForm((f) => ({ ...f, paymentMethod: e.target.value }))
-              }
-            >
-              <MenuItem value={"Chuyển khoản"}>Chuyển khoản</MenuItem>
-              <MenuItem value={"Tiền mặt"}>Tiền mặt</MenuItem>
-              <MenuItem value={"QR"}>QR</MenuItem>
-            </Select>
-          </FormControl>
-          <div style={{ display: "flex", gap: 12 }}>
-            <TextField
-              label="Ngày tạo"
-              type="date"
-              value={form.dateCreated}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, dateCreated: e.target.value }))
-              }
-              sx={{ mt: 2, flex: 1 }}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Hạn thanh toán"
-              type="date"
-              value={form.dateDue}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, dateDue: e.target.value }))
-              }
-              sx={{ mt: 2, flex: 1 }}
-              InputLabelProps={{ shrink: true }}
-            />
-          </div>
-          <TextField
-            fullWidth
-            label="Ghi chú"
-            placeholder="Ghi chú thêm (tuỳ chọn)"
-            margin="normal"
-            value={form.note}
-            onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-          />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setOpenCreate(false)} variant="outlined">
+          <Button
+            onClick={() => {
+              setOpenCreate(false);
+              setEditing(null);
+            }}
+            variant="outlined"
+          >
             Hủy
           </Button>
           <Button
-            onClick={() => {
-              // basic validation
-              const amt = Number(String(form.amount).replace(/[^0-9]/g, ""));
-              if (!form.title || !amt) {
-                alert("Vui lòng nhập tên khoản thu và số tiền hợp lệ.");
+            onClick={async () => {
+              if (
+                !form.ten_loai_phi ||
+                !form.dong_gia_hien_tai ||
+                !form.don_vi_tinh
+              ) {
+                alert("Vui lòng nhập đủ Tên loại phí, Đơn giá và Đơn vị tính.");
                 return;
               }
-              const nextId = `F-${(rows.length + 1)
-                .toString()
-                .padStart(3, "0")}`;
-              const newRow = {
-                id: nextId,
-                invoice: nextId,
-                apartment: form.apartment || "A1-XXXX",
-                owner: form.owner || "",
-                feetype: form.feetype || "Phí dịch vụ",
-                amount: amt,
-                paymentMethod: form.paymentMethod || "Chuyển khoản",
-                dateCreated:
-                  form.dateCreated || new Date().toISOString().slice(0, 10),
-                dateDue: form.dateDue || "",
-                status: form.status || "Chưa thanh toán",
-                note: form.note || "",
+              const payload = {
+                ten_loai_phi: form.ten_loai_phi,
+                dong_gia_hien_tai: parseFloat(form.dong_gia_hien_tai) || 0,
+                don_vi_tinh: form.don_vi_tinh,
               };
-              setRows((prev) => [newRow, ...prev]);
-              setOpenCreate(false);
-              // reset form
-              setForm({
-                title: "",
-                amount: "",
-                feetype: "Phí dịch vụ",
-                paymentMethod: "Chuyển khoản",
-                dateCreated: new Date().toISOString().slice(0, 10),
-                dateDue: "",
-                note: "",
-              });
+              try {
+                if (editing) {
+                  await financeService.updateFeeCategory(
+                    editing.ma_loai_phi,
+                    payload
+                  );
+                } else {
+                  await financeService.createFeeCategory(payload);
+                }
+                setOpenCreate(false);
+                setEditing(null);
+                setForm({
+                  ten_loai_phi: "",
+                  dong_gia_hien_tai: "",
+                  don_vi_tinh: "",
+                });
+                await fetchFees();
+              } catch (e) {
+                console.error("Lưu loại phí thất bại:", e);
+                alert(
+                  "Không thể lưu loại phí. Vui lòng thử lại hoặc kiểm tra quyền."
+                );
+              }
             }}
             variant="contained"
           >
-            Lưu
+            {editing ? "Cập nhật" : "Lưu"}
           </Button>
         </DialogActions>
       </Dialog>
