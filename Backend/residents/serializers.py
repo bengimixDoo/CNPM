@@ -2,11 +2,29 @@ from datetime import date
 from rest_framework import serializers
 from .models import CanHo, CuDan, BienDongDanCu
 
+
+class ThongTinCuDanRutGonSerializer(serializers.ModelSerializer):
+    """
+    Serializer rút gọn dùng để hiển thị thông tin cư dân bên trong Căn hộ
+    """
+    class Meta:
+        model = CuDan
+        fields = ['ma_cu_dan', 'ho_ten', 'ngay_sinh', 'so_dien_thoai', 'so_cccd', 'la_chu_ho', 'trang_thai_cu_tru']
+
 class CanHoSerializer(serializers.ModelSerializer):
+    # Field hiển thị thông tin chi tiết (Read-only)
+    chu_so_huu_info = ThongTinCuDanRutGonSerializer(source='chu_so_huu', read_only=True)
+    danh_sach_cu_dan = ThongTinCuDanRutGonSerializer(source='cu_dan_hien_tai', many=True, read_only=True)
+
     class Meta:
         model = CanHo
-        fields = '__all__'
-        read_only_fields = ['chu_so_huu']
+        fields = [
+            'ma_can_ho', 'phong', 'tang', 'toa_nha', 'dien_tich', 
+            'trang_thai', 'chu_so_huu', # Giữ lại field ID gốc để POST/PUT dễ dàng
+            'chu_so_huu_info', 'danh_sach_cu_dan' # Fields thông tin chi tiết
+        ]
+        read_only_fields = ['chu_so_huu', 'chu_so_huu_info', 'danh_sach_cu_dan']
+        # Lưu ý: chu_so_huu là read_only theo yêu cầu cũ, nếu muốn đổi chủ phải dùng API riêng hoặc set lại read_only_fields
 
     def validate(self, data):
         # Không cho chuyển sang Trống nếu còn cư dân đang ở

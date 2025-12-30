@@ -20,8 +20,7 @@ from .serializers import (
 # 1. VIEWSET CĂN HỘ (Apartments)
 # -----------------------------------------------------------
 @extend_schema(
-    tags=['Apartments'],
-    parameters=[OpenApiParameter("ma_can_ho", OpenApiTypes.INT, OpenApiParameter.PATH)]
+    tags=['Apartments']
 )
 class CanHoViewSet(viewsets.ModelViewSet):
     lookup_field = 'ma_can_ho'
@@ -46,12 +45,13 @@ class CanHoViewSet(viewsets.ModelViewSet):
 
         # 1. Quản lý, Kế toán, Admin: Xem hết toàn bộ
         if user.role in ['ADMIN', 'QUAN_LY', 'KE_TOAN'] or user.is_superuser:
-            return CanHo.objects.all().order_by('ma_can_ho')
+            # Tối ưu truy vấn: lấy luôn thông tin chủ sở hữu và danh sách cư dân
+            return CanHo.objects.all().select_related('chu_so_huu').prefetch_related('cu_dan_hien_tai').order_by('ma_can_ho')
 
         # 2. Cư dân: Chỉ xem được nhà mình đang ở
         # Logic: Dựa vào trường 'cu_dan_hien_tai' (related_name trong model CuDan)
         if hasattr(user, 'cu_dan') and user.cu_dan:
-            return CanHo.objects.filter(cu_dan_hien_tai=user.cu_dan).distinct().order_by('ma_can_ho')
+            return CanHo.objects.filter(cu_dan_hien_tai=user.cu_dan).select_related('chu_so_huu').prefetch_related('cu_dan_hien_tai').distinct().order_by('ma_can_ho')
 
         # 3. Người lạ: Không thấy gì
         return CanHo.objects.none()
@@ -164,8 +164,7 @@ class CanHoHistoryView(generics.ListAPIView):
 # 3. VIEWSET CƯ DÂN
 # -----------------------------------------------------------
 @extend_schema(
-    tags=['Residents'],
-    parameters=[OpenApiParameter("ma_cu_dan", OpenApiTypes.INT, OpenApiParameter.PATH)]
+    tags=['Residents']
 )
 class CuDanViewSet(viewsets.ModelViewSet):
     lookup_field = 'ma_cu_dan'
