@@ -1,13 +1,15 @@
 from django.db import models
 
 class DanhMucPhi(models.Model):
-    ma_loai_phi = models.AutoField(primary_key=True)
-    ten_loai_phi = models.CharField(max_length=100)
-    dong_gia_hien_tai = models.DecimalField(max_digits=10, decimal_places=2)
+    ma_phi = models.AutoField(primary_key=True)
+    ten_phi = models.CharField(max_length=100)
+    don_gia = models.DecimalField(max_digits=10, decimal_places=2)
     don_vi_tinh = models.CharField(max_length=50) # m3, kwh, thang...
+    loai_phi = models.CharField(max_length=50, default="") # Vi du: Nuoc, Dien, Quan ly...
+
 
     def __str__(self):
-        return self.ten_loai_phi
+        return self.ten_phi
 
 class HoaDon(models.Model):
     ma_hoa_don = models.AutoField(primary_key=True)

@@ -3,8 +3,8 @@ from .models import DanhMucPhi, HoaDon, ChiTietHoaDon, DotDongGop, DongGop
 
 @admin.register(DanhMucPhi)
 class DanhMucPhiAdmin(admin.ModelAdmin):
-    list_display = ('ten_loai_phi', 'dong_gia_hien_tai', 'don_vi_tinh')
-    search_fields = ('ten_loai_phi',)
+    list_display = ('ten_phi', 'don_gia', 'loai_phi', 'don_vi_tinh')
+    search_fields = ('ten_phi', 'loai_phi')
 
 class ChiTietHoaDonInline(admin.TabularInline):
     model = ChiTietHoaDon
