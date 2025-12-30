@@ -54,20 +54,41 @@ export default function Apartments() {
     try {
       const data = await residentsService.getApartments();
       const formattedData = data.map((apt) => {
-        // Map trạng thái từ mã -> chữ hiển thị
         const statusMap = { E: "Trống", S: "Đã bán", H: "Đang thuê" };
         return {
           id: apt.ma_can_ho,
           building: apt.toa_nha,
           floor: apt.tang,
-          owner: apt.chu_so_huu ? "Có chủ" : "Chưa có",
-          residents: 0, // sẽ nạp khi mở chi tiết
+          owner:
+            apt.danh_sach_cu_dan?.find((r) => r.la_chu_ho)?.ho_ten ||
+            apt.chu_so_huu_info?.ho_ten ||
+            "Chưa có",
+          residents: apt.danh_sach_cu_dan ? apt.danh_sach_cu_dan.length : 0,
           area: `${apt.dien_tich} m²`,
           status: statusMap[apt.trang_thai] || apt.trang_thai,
           phone: "N/A",
           email: "N/A",
           note: "",
-          residentsList: [],
+          residentsList: (apt.danh_sach_cu_dan || []).map((r) => ({
+            name: r.ho_ten,
+            dob: r.ngay_sinh
+              ? new Date(r.ngay_sinh).toLocaleDateString("vi-VN")
+              : "N/A",
+            relation: r.la_chu_ho
+              ? "Chủ hộ"
+              : r.trang_thai_cu_tru === "TT"
+              ? "Tạm trú"
+              : r.trang_thai_cu_tru === "TH"
+              ? "Thường trú"
+              : r.trang_thai_cu_tru === "TV"
+              ? "Tạm vắng"
+              : "Thành viên",
+            phone: r.so_dien_thoai || "N/A",
+            // Keep raw fields if needed for finding owner logic later
+            la_chu_ho: r.la_chu_ho,
+            so_dien_thoai: r.so_dien_thoai,
+            ho_ten: r.ho_ten,
+          })),
         };
       });
       setApartmentsData(formattedData);
@@ -131,28 +152,19 @@ export default function Apartments() {
     }
   };
 
-  const handleOpenDetail = async (apt) => {
+  const handleOpenDetail = (apt) => {
     setSelected(apt);
     setOpenDetail(true);
-    try {
-      // Lấy thành viên và thống kê trong căn hộ này
-      const detail = await residentsService.getApartmentMembers(apt.id);
-      const danhSach = detail?.thong_ke_nhan_khau?.danh_sach_cu_dan || [];
-      const tong = detail?.thong_ke_nhan_khau?.tong_so_nguoi || 0;
 
-      setSelected((prev) => ({
-        ...prev,
-        residents: tong,
-        residentsList: danhSach.map((r) => ({
-          name: r.ho_ten,
-          dob: "-",
-          relation: "-",
-          phone: "-",
-        })),
-      }));
-    } catch (e) {
-      console.error("Không tải được chi tiết căn hộ:", e);
-    }
+    const danhSach = apt.residentsList || [];
+    const ownerObj = danhSach.find((r) => r.la_chu_ho === true);
+
+    setSelected((prev) => ({
+      ...prev,
+      owner: ownerObj ? ownerObj.name : prev.owner || "Chưa có",
+      phone: ownerObj ? ownerObj.phone : prev.phone !== "N/A" ? prev.phone : "N/A",
+      // residents và residentsList đã có trong apt được set vào selected ở dòng đầu
+    }));
   };
 
   const handleCloseDetail = () => {
@@ -605,7 +617,7 @@ export default function Apartments() {
                   </Box>
                   {selected.residentsList &&
                   selected.residentsList.length > 0 ? (
-                    selected.residentsList.map((resident, idx) => (
+                      selected.residentsList.map((resident, idx) => (
                       <Box
                         key={idx}
                         sx={{

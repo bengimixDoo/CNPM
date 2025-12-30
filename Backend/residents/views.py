@@ -111,7 +111,7 @@ class CanHoViewSet(viewsets.ModelViewSet):
             tam_tru=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TT')),
             thuong_tru=Count('ma_cu_dan', filter=Q(trang_thai_cu_tru='TH'))
         )
-        danh_sach_cu_dan = can_ho.cu_dan_hien_tai.values('ma_cu_dan', 'ho_ten')
+        danh_sach_cu_dan = can_ho.cu_dan_hien_tai.values('ma_cu_dan', 'ho_ten', 'ngay_sinh', 'so_dien_thoai', 'la_chu_ho', 'trang_thai_cu_tru')
 
         data = {
             "thong_tin_can_ho": {
