@@ -19,8 +19,9 @@ import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import formatFee from "../util/FormatFee";
+import Typography from "@mui/material/Typography";
 
-const defaultPaginationModel = { page: 0, pageSize: 10 };
+const defaultPaginationModel = { page: 0, pageSize: 5 };
 
 // Cột khớp API: ten_loai_phi, dong_gia_hien_tai, don_vi_tinh
 const makeColumns = (onEdit, onDelete) => [
@@ -82,21 +83,62 @@ const makeColumns = (onEdit, onDelete) => [
   },
 ];
 
+const makeContributionColumns = () => [
+  {
+    field: "stt",
+    headerName: "STT",
+    width: 80,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "ten_dong_gop",
+    headerName: "Tên khoản đóng góp",
+    minWidth: 200,
+    headerAlign: "center",
+  },
+  {
+    field: "ngay_bat_dau",
+    headerName: "Ngày bắt đầu",
+    width: 140,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "ngay_ket_thuc",
+    headerName: "Ngày kết thúc",
+    width: 140,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "so_tien_du_kien",
+    headerName: "Số tiền dự kiến",
+    width: 160,
+    headerAlign: "right",
+    align: "right",
+    valueFormatter: (value) => {
+      if (!value) return "0 VND";
+      return Number(value).toLocaleString("vi-VN") + " VND";
+    },
+  },
+];
+
 export default function CreateFees() {
   const [rows, setRows] = useState([]);
+  const [contributions, setContributions] = useState([]); // State cho bảng Đóng góp
   const [loading, setLoading] = useState(false);
+  const [loadingContrib, setLoadingContrib] = useState(false);
 
   const fetchFees = async () => {
     setLoading(true);
     try {
       const data = await financeService.getFeeCategories();
-      console.log("Fee data from API:", data);
       const mapped = data.map((f) => ({
         ...f,
         _rowId: f.ma_phi,
-        dong_gia_hien_tai: f.dong_gia_hien_tai
+        dong_gia_hien_tai: f.dong_gia_hien_tai,
       }));
-      console.log("Mapped data:", mapped);
       setRows(mapped);
     } catch (error) {
       console.error("Lỗi khi tải danh sách loại phí:", error);
@@ -105,8 +147,34 @@ export default function CreateFees() {
     }
   };
 
+  const fetchContributions = async () => {
+    setLoadingContrib(true);
+    try {
+      const resp = await financeService.getContributions();
+      console.log("Fundraising data:", resp);
+
+      // Xử lý trường hợp phân trang (DRF often returns { results: [...] })
+      const rawData = Array.isArray(resp) ? resp : resp.results || [];
+
+      const mapped = rawData.map((d, index) => ({
+        id: d.ma_dot || d.id || `temp-id-${index}`, // Ưu tiên ID thực từ backend (ma_dot/id) hoặc tạo tạm index
+        stt: index + 1,
+        ten_dong_gop: d.ten_dot || d.name, // Support cả field cũ/mới nếu API thay đổi
+        ngay_bat_dau: d.ngay_bat_dau || d.start_date,
+        ngay_ket_thuc: d.ngay_ket_thuc || d.end_date,
+        so_tien_du_kien: d.so_tien_du_kien || d.expected_amount,
+      }));
+      setContributions(mapped);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách đóng góp:", error);
+    } finally {
+      setLoadingContrib(false);
+    }
+  };
+
   useEffect(() => {
     fetchFees();
+    fetchContributions();
   }, []);
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -208,13 +276,20 @@ export default function CreateFees() {
         </Box>
       </div>
 
+      <Typography
+        variant="h6"
+        fontWeight={700}
+        sx={{ mt: 3, mb: 2, color: "var(--blue)" }}
+      >
+        CÁC KHOẢN PHÍ
+      </Typography>
       <Paper
         sx={{
           height: containerHeight,
           borderRadius: "12px",
           transition: "height 0.2s ease",
           overflow: "hidden",
-          marginTop: "16px",
+          mb: 4,
         }}
       >
         <DataGrid
@@ -250,6 +325,35 @@ export default function CreateFees() {
           onPaginationModelChange={handlePaginationChange}
           pageSizeOptions={[5, 10]}
           checkboxSelection
+          sx={{
+            borderRadius: "12px",
+            "& .MuiDataGrid-root": { height: "100%" },
+          }}
+        />
+      </Paper>
+
+      <Typography
+        variant="h6"
+        fontWeight={700}
+        sx={{ mb: 2, color: "var(--color-yellow-800)" }}
+      >
+        ĐÓNG GÓP
+      </Typography>
+      <Paper
+        sx={{
+          height: 400, // Chiều cao cố định hoặc tính toán tương tự
+          borderRadius: "12px",
+          overflow: "hidden",
+          mb: 4,
+        }}
+      >
+        <DataGrid
+          rows={contributions}
+          columns={makeContributionColumns()}
+          loading={loadingContrib}
+          getRowId={(row) => row.id} // Đảm bảo lấy đúng ID
+          pageSizeOptions={[5, 10, 100]} // Thêm 100 để fix lỗi MUI X nếu cần
+          pagination
           sx={{
             borderRadius: "12px",
             "& .MuiDataGrid-root": { height: "100%" },

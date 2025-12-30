@@ -25,6 +25,9 @@ export default function LoginPage() {
 
       // 2. Lấy thông tin user hiện tại để biết Role
       const user = await authService.getMe();
+      console.log(user);
+      // Save user info to localStorage
+      localStorage.setItem("user_info", JSON.stringify(user));
 
       // THÀNH CÔNG: Chuyển hướng theo role dựa trên Route trong App.jsx
       console.log("Đăng nhập thành công! Role:", user.role);

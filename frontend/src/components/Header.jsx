@@ -11,7 +11,7 @@ export function SearchSection() {
         type="text"
         placeholder="Tìm kiếm..."
       />
-      <SearchIcon className="header-search__icon"/>
+      <SearchIcon className="header-search__icon" />
     </div>
   );
 }
@@ -37,13 +37,37 @@ export function NotificationIcon() {
 }
 
 export function ProfileSection() {
+  const userInfoStr = localStorage.getItem("user_info");
+  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : {};
+
+  // Determine display name and role
+  // Prefer full name, fallback to username, fallback to "User"
+  const displayName = (userInfo.first_name + " " + userInfo.last_name)  || "Người dùng";
+
+  // Format role for display
+  const getRoleDisplay = (role) => {
+    switch (role) {
+      case "ADMIN":
+        return "Quản trị viên";
+      case "QUAN_LY":
+        return "Quản lý";
+      case "KE_TOAN":
+        return "Kế toán";
+      case "CU_DAN":
+        return "Cư dân";
+      default:
+        return role || "Admin";
+    }
+  };
+
+  const displayRole = getRoleDisplay(userInfo.role);
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : "U";
+
   return (
     <div className="profile-wrapper">
       <div className="profile-info">
-        <div style={{ fontSize: "18px", color: "white" }}>
-          Phạm Ngọc Tuyên
-        </div>
-        <div style={{ fontSize: "15px", color: "white" }}>Admin</div>
+        <div style={{ fontSize: "18px", color: "white" }}>{displayName}</div>
+        <div style={{ fontSize: "15px", color: "white" }}>{displayRole}</div>
       </div>
 
       <Avatar
@@ -59,7 +83,7 @@ export function ProfileSection() {
           fontWeight: "700",
         }}
       >
-        P
+        {initial}
       </Avatar>
     </div>
   );

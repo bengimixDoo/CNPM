@@ -166,7 +166,9 @@ export const financeService = {
 
   // Lấy chỉ số điện nước
   getUtilityReadings: async (filters = {}) => {
-    const response = await axiosInstance.get("/readings/", { params: filters });
+    const response = await axiosInstance.get("/utilities/", {
+      params: filters,
+    });
     return response.data;
   },
 
@@ -213,6 +215,30 @@ export const financeService = {
     const response = await axiosInstance.get("/revenue-stats/", {
       params: { year },
     });
+    return response.data;
+  },
+
+  // Đóng góp
+  getContributions: async () => {
+    const response = await axiosInstance.get("/fundraising-drives/");
+    return response.data;
+  },
+
+  createContribution: async (data) => {
+    const response = await axiosInstance.post("/fundraising-drives/", data);
+    return response.data;
+  },
+
+  updateContribution: async (id, data) => {
+    const response = await axiosInstance.patch(
+      `/fundraising-drives/${id}/`,
+      data
+    );
+    return response.data;
+  },
+
+  deleteContribution: async (id) => {
+    const response = await axiosInstance.delete(`/fundraising-drives/${id}/`);
     return response.data;
   },
 };

@@ -9,6 +9,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import HomeFilledIcon from "@mui/icons-material/HomeFilled";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 
 // NavDropdown.jsx
 
@@ -56,7 +57,9 @@ function NavDropdown({ label, Icon, items = [] }) {
       >
         {Icon && <Icon className="nav-icon" aria-hidden />}
         <span className="nav-label">{label}</span>
-        <span style={{ marginLeft: "auto", fontSize: "1.5em" }}>{isOpen ? "▾" : "▸"}</span>
+        <span style={{ marginLeft: "auto", fontSize: "1.5em" }}>
+          {isOpen ? "▾" : "▸"}
+        </span>
       </button>
 
       {isOpen && (
@@ -116,11 +119,20 @@ export default function Sidebar() {
           <span className="nav-label">Dân cư</span>
         </NavLink>
 
+        <NavLink
+          to="/dashboard/vehicles"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
+          <DirectionsCarIcon className="nav-icon" aria-hidden />
+          <span className="nav-label">Phương tiện</span>
+        </NavLink>
+
         <NavDropdown
           label="Thu phí"
           Icon={MonetizationOnIcon}
           items={[
             { to: "/dashboard/create_fees", label: "Tạo khoản thu" },
+            { to: "/dashboard/utility_readings", label: "Chỉ số điện nước" },
             { to: "/dashboard/invoices", label: "Hóa đơn" },
           ]}
         />

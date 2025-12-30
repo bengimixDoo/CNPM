@@ -15,18 +15,18 @@ export default function Main() {
     vehicles: 0,
     totalFees: 0,
   });
-  const [history, setHistory] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
       // Vì backend chưa có endpoint dashboard tổng hợp, ta gọi đồng thời các API cơ bản
-      const [apts, reds, vehicles, hist] = await Promise.all([
+      const [apts, reds, vehicles, reqs] = await Promise.all([
         residentsService.getApartments(),
         residentsService.getResidents(),
         utilitiesService.getVehicles(),
-        residentsService.getHistory({ limit: 4 })
+        utilitiesService.getSupportTickets()
       ]);
 
       setStats({
@@ -36,7 +36,7 @@ export default function Main() {
         totalFees: 0 // Mock for now
       });
 
-      setHistory(hist.slice(0, 4)); // Chỉ lấy 4 dòng mới nhất
+      setRequests(reqs.slice(0, 5)); // Chỉ lấy 5 dòng mới nhất
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu dashboard:", error);
     } finally {
@@ -160,47 +160,68 @@ export default function Main() {
           <div className="dashboard-card">
             <div className="card-header">
               <div>
-                <h3 className="card-title">Biến động cư dân</h3>
+                <h3 className="card-title">Yêu cầu từ cư dân</h3>
               </div>
               <select className="select-input">
                 <option value="">Tất cả</option>
-                <option value="">Tạm trú</option>
-                <option value="">Tạm vắng</option>
+                <option value="W">Chờ xử lý</option>
+                <option value="P">Đang xử lý</option>
               </select>
             </div>
             <div className="table-wrapper">
               <table className="custom-table">
                 <thead>
                   <tr>
-                    <th>Tên cư dân</th>
-                    <th>Căn hộ</th>
-                    <th>Loại biến động</th>
-                    <th style={{ textAlign: "right" }}>Thời gian</th>
+                    <th>Người gửi</th>
+                    <th>Tiêu đề</th>
+                    <th>Trạng thái</th>
+                    <th style={{ textAlign: "right" }}>Ngày gửi</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {history.length > 0 ? history.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        <div className="user-info">
-                          <div className="avatar-circle bg-blue-light">
-                            {item.cu_dan_info?.ho_ten?.charAt(0) || "C"}
-                          </div>
-                          <span className="font-medium">{item.cu_dan_info?.ho_ten || "Cư dân"}</span>
-                        </div>
-                      </td>
-                      <td>{item.can_ho_info?.ma_can_ho || "N/A"}</td>
-                      <td>
-                        <span className={`status-badge ${item.loai_bien_dong === 'TAM_TRU' ? 'badge-temp-res' : 'badge-temp-abs'}`}>
-                          <span className={`dot ${item.loai_bien_dong === 'TAM_TRU' ? 'dot-blue' : 'dot-orange'}`}></span>
-                          {item.loai_bien_dong_display || item.loai_bien_dong}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: "right" }}>{item.ngay_bat_dau}</td>
-                    </tr>
-                  )) : (
+                  {requests.length > 0 ? (
+                    requests.map((item, index) => {
+                      const statusMap = {
+                        'W': { label: 'Chờ Xử Lý', class: 'badge-temp-res', dot: 'dot-orange' },
+                        'P': { label: 'Đang Xử Lý', class: 'badge-temp-res', dot: 'dot-blue' },
+                        'A': { label: 'Đã Xử Lý', class: 'badge-perm', dot: 'dot-green' },
+                        'C': { label: 'Đã Hủy', class: 'badge-temp-abs', dot: 'dot-red' },
+                      };
+                      const status = statusMap[item.trang_thai] || { label: item.trang_thai, class: '', dot: '' };
+                      
+                      return (
+                        <tr key={index}>
+                          <td>
+                            <div className="user-info">
+                              <div className="avatar-circle bg-blue-light">
+                                {item.ten_cu_dan ? item.ten_cu_dan.charAt(0) : "C"}
+                              </div>
+                              <div style={{display: 'flex', flexDirection: 'column'}}>
+                                <span className="font-medium">{item.ten_cu_dan || "Cư dân"}</span>
+                                <span style={{fontSize: '11px', color: '#666'}}>{item.ma_can_ho || ""}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.tieu_de}
+                          </td>
+                          <td>
+                            <span className={`status-badge ${status.class}`}>
+                              <span className={`dot ${status.dot}`}></span>
+                              {status.label}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            {new Date(item.ngay_gui).toLocaleDateString('vi-VN')}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
                     <tr>
-                      <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Không có biến động mới</td>
+                      <td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>
+                        Không có yêu cầu mới
+                      </td>
                     </tr>
                   )}
                 </tbody>
