@@ -10,8 +10,15 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import { useState, useMemo, useEffect } from "react";
-import { utilitiesService } from "../api/services";
+import { utilitiesService, apartmentsService } from "../api/services";
 
 // Define colors for vehicle types
 const vehicleTypeColors = {
@@ -27,7 +34,7 @@ const vehicleTypeColors = {
     bg: "var(--color-yellow-100)",
     text: "var(--color-yellow-800)",
   },
-  "Khác": { bg: "#f3f4f6", text: "#374151" },
+  Khác: { bg: "#f3f4f6", text: "#374151" },
 };
 
 // Define colors for status
@@ -89,7 +96,9 @@ const columns = [
     align: "center",
     renderCell: (params) => {
       if (!params.value || params.value === "N/A") {
-        return <span style={{ color: "#999", fontStyle: "italic" }}>Chưa có</span>;
+        return (
+          <span style={{ color: "#999", fontStyle: "italic" }}>Chưa có</span>
+        );
       }
       return (
         <span style={{ fontWeight: "500", color: "#333" }}>
@@ -138,7 +147,16 @@ export default function Vehicles() {
   );
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [apartments, setApartments] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [newVehicle, setNewVehicle] = useState({
+    can_ho_dang_o: "",
+    bien_so: "",
+    loai_xe: "M",
+    dang_hoat_dong: true,
+  });
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   // Filters state (frontend filtering for demo, can be API based)
   const [searchText, setSearchText] = useState("");
@@ -174,9 +192,101 @@ export default function Vehicles() {
     }
   };
 
+  const fetchApartments = async () => {
+    try {
+      const data = await apartmentsService.getApartments();
+      setApartments(data || []);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách căn hộ:", error);
+    }
+  };
+
   useEffect(() => {
     fetchVehicles();
+    fetchApartments();
   }, []);
+
+  const handleOpenCreate = () => {
+    setOpenCreate(true);
+    setErrors({});
+  };
+
+  const handleCloseCreate = () => {
+    setOpenCreate(false);
+    setErrors({});
+    setNewVehicle({
+      can_ho_dang_o: "",
+      bien_so: "",
+      loai_xe: "M",
+      dang_hoat_dong: true,
+    });
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate can_ho
+    if (!newVehicle.can_ho_dang_o) {
+      newErrors.can_ho_dang_o = "Mã căn hộ không được để trống";
+    }
+
+    // Validate loai_xe (Ô tô hoặc Xe máy phải có biển số)
+    if (["C", "M"].includes(newVehicle.loai_xe)) {
+      if (!newVehicle.bien_so) {
+        newErrors.bien_so = `Biển số bắt buộc cho ${
+          newVehicle.loai_xe === "C" ? "Ô tô" : "Xe máy"
+        }`;
+      } else if (!/^\d{2}[A-Z]-\d{4,5}$/.test(newVehicle.bien_so)) {
+        newErrors.bien_so = "Biển số không hợp lệ (VD: 59A-12345)";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreateVehicle = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoadingSubmit(true);
+    try {
+      const dataToSend = {
+        can_ho: newVehicle.can_ho_dang_o
+          ? parseInt(newVehicle.can_ho_dang_o)
+          : null,
+        bien_so: newVehicle.bien_so || null,
+        loai_xe: newVehicle.loai_xe,
+        dang_hoat_dong: newVehicle.dang_hoat_dong,
+      };
+
+      await utilitiesService.createVehicle(dataToSend);
+      handleCloseCreate();
+      await fetchVehicles();
+      alert("Thêm phương tiện thành công!");
+    } catch (error) {
+      console.error("Lỗi khi thêm phương tiện:", error);
+      if (error.response?.data) {
+        const serverErrors = error.response.data;
+        if (typeof serverErrors === "object") {
+          const formattedErrors = {};
+          Object.entries(serverErrors).forEach(([field, messages]) => {
+            formattedErrors[field] = Array.isArray(messages)
+              ? messages[0]
+              : messages;
+          });
+          setErrors(formattedErrors);
+        } else {
+          alert("Lỗi: " + serverErrors);
+        }
+      } else {
+        alert("Lỗi: " + error.message);
+      }
+    } finally {
+      setLoadingSubmit(false);
+    }
+  };
 
   // Filter logic
   const filteredVehicles = useMemo(() => {
@@ -267,7 +377,7 @@ export default function Vehicles() {
               height: 40,
               marginLeft: "10px",
             }}
-            onClick={() => setOpenCreate(true)}
+            onClick={handleOpenCreate}
           >
             Thêm Xe
           </Button>
@@ -301,6 +411,133 @@ export default function Vehicles() {
           }}
         />
       </Paper>
+
+      {/* Dialog Thêm Phương tiện */}
+      <Dialog
+        open={openCreate}
+        onClose={handleCloseCreate}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{
+            backgroundColor: "var(--blue)",
+            color: "white",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <DirectionsCarIcon />
+            Thêm Phương tiện Mới
+          </Box>
+          <IconButton onClick={handleCloseCreate} sx={{ color: "white" }}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <FormControl fullWidth error={!!errors.can_ho_dang_o}>
+              <InputLabel>Căn hộ</InputLabel>
+              <Select
+                value={newVehicle.can_ho_dang_o}
+                label="Căn hộ"
+                onChange={(e) =>
+                  setNewVehicle({
+                    ...newVehicle,
+                    can_ho_dang_o: e.target.value,
+                  })
+                }
+              >
+                <MenuItem value="">Chọn căn hộ</MenuItem>
+                {apartments.map((apt) => (
+                  <MenuItem key={apt.ma_can_ho} value={apt.ma_can_ho}>
+                    {apt.toa_nha}
+                    {apt.tang}
+                    {apt.phong.padStart(2, "0")}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel>Loại xe</InputLabel>
+              <Select
+                value={newVehicle.loai_xe}
+                label="Loại xe"
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, loai_xe: e.target.value })
+                }
+              >
+                <MenuItem value="C">Ô tô</MenuItem>
+                <MenuItem value="M">Xe máy</MenuItem>
+                <MenuItem value="B">Xe đạp</MenuItem>
+                <MenuItem value="O">Khác</MenuItem>
+              </Select>
+            </FormControl>
+
+            {["C", "M"].includes(newVehicle.loai_xe) && (
+              <TextField
+                fullWidth
+                label="Biển số xe"
+                placeholder="VD: 59A-12345.89"
+                value={newVehicle.bien_so}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, bien_so: e.target.value })
+                }
+                error={!!errors.bien_so}
+                helperText={errors.bien_so}
+                required
+              />
+            )}
+
+            {!["C", "M"].includes(newVehicle.loai_xe) && (
+              <TextField
+                fullWidth
+                label="Biển số xe (tùy chọn)"
+                placeholder="VD: 59A-12345.89 hoặc để trống"
+                value={newVehicle.bien_so}
+                onChange={(e) =>
+                  setNewVehicle({ ...newVehicle, bien_so: e.target.value })
+                }
+              />
+            )}
+
+            <FormControl fullWidth>
+              <InputLabel>Trạng thái</InputLabel>
+              <Select
+                value={newVehicle.dang_hoat_dong}
+                label="Trạng thái"
+                onChange={(e) =>
+                  setNewVehicle({
+                    ...newVehicle,
+                    dang_hoat_dong: e.target.value,
+                  })
+                }
+              >
+                <MenuItem value={true}>Đang sử dụng</MenuItem>
+                <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={handleCloseCreate} variant="outlined">
+            Hủy
+          </Button>
+          <Button
+            onClick={handleCreateVehicle}
+            variant="contained"
+            disabled={loadingSubmit}
+            sx={{ backgroundColor: "var(--blue)" }}
+          >
+            {loadingSubmit ? "Đang xử lý..." : "Thêm Phương tiện"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

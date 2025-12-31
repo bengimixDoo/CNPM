@@ -18,7 +18,7 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { useState, useMemo, useEffect } from "react";
-import { residentsService } from "../api/services";
+import { residentsService, apartmentsService } from "../api/services";
 
 const statusColors = {
   "Đang cư trú": {
@@ -120,6 +120,7 @@ export default function Residents() {
   );
   const [residents, setResidents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [apartments, setApartments] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [errors, setErrors] = useState({});
   const [newResident, setNewResident] = useState({
@@ -168,8 +169,18 @@ export default function Residents() {
     }
   };
 
+  const fetchApartments = async () => {
+    try {
+      const data = await apartmentsService.getApartments();
+      setApartments(data || []);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách căn hộ:", error);
+    }
+  };
+
   useEffect(() => {
     fetchResidents();
+    fetchApartments();
   }, []);
 
   const handleOpenCreate = () => {
@@ -244,7 +255,9 @@ export default function Residents() {
         so_dien_thoai: newResident.so_dien_thoai,
         la_chu_ho: newResident.la_chu_ho,
         trang_thai_cu_tru: newResident.trang_thai_cu_tru,
-        can_ho_dang_o: newResident.can_ho_dang_o || null,
+        can_ho_dang_o: newResident.can_ho_dang_o
+          ? parseInt(newResident.can_ho_dang_o)
+          : null,
       };
 
       await residentsService.createResident(dataToSend);
@@ -258,7 +271,9 @@ export default function Residents() {
         if (typeof serverErrors === "object") {
           const formattedErrors = {};
           Object.entries(serverErrors).forEach(([field, messages]) => {
-            formattedErrors[field] = Array.isArray(messages) ? messages[0] : messages;
+            formattedErrors[field] = Array.isArray(messages)
+              ? messages[0]
+              : messages;
           });
           setErrors(formattedErrors);
         } else {
@@ -388,7 +403,12 @@ export default function Residents() {
       </Paper>
 
       {/* Dialog Thêm Cư dân */}
-      <Dialog open={openCreate} onClose={handleCloseCreate} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openCreate}
+        onClose={handleCloseCreate}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle
           sx={{
             backgroundColor: "var(--blue)",
@@ -414,7 +434,9 @@ export default function Residents() {
               label="Họ và tên"
               placeholder="VD: Nguyễn Văn A"
               value={newResident.ho_ten}
-              onChange={(e) => setNewResident({ ...newResident, ho_ten: e.target.value })}
+              onChange={(e) =>
+                setNewResident({ ...newResident, ho_ten: e.target.value })
+              }
               error={!!errors.ho_ten}
               helperText={errors.ho_ten}
               required
@@ -426,7 +448,12 @@ export default function Residents() {
                 <Select
                   value={newResident.gioi_tinh}
                   label="Giới tính"
-                  onChange={(e) => setNewResident({ ...newResident, gioi_tinh: e.target.value })}
+                  onChange={(e) =>
+                    setNewResident({
+                      ...newResident,
+                      gioi_tinh: e.target.value,
+                    })
+                  }
                 >
                   <MenuItem value="M">Nam</MenuItem>
                   <MenuItem value="F">Nữ</MenuItem>
@@ -438,7 +465,9 @@ export default function Residents() {
                 label="Ngày sinh"
                 type="date"
                 value={newResident.ngay_sinh}
-                onChange={(e) => setNewResident({ ...newResident, ngay_sinh: e.target.value })}
+                onChange={(e) =>
+                  setNewResident({ ...newResident, ngay_sinh: e.target.value })
+                }
                 error={!!errors.ngay_sinh}
                 helperText={errors.ngay_sinh}
                 InputLabelProps={{ shrink: true }}
@@ -452,7 +481,9 @@ export default function Residents() {
                 label="Số CCCD"
                 placeholder="VD: 001234567890"
                 value={newResident.so_cccd}
-                onChange={(e) => setNewResident({ ...newResident, so_cccd: e.target.value })}
+                onChange={(e) =>
+                  setNewResident({ ...newResident, so_cccd: e.target.value })
+                }
                 error={!!errors.so_cccd}
                 helperText={errors.so_cccd}
                 required
@@ -463,7 +494,12 @@ export default function Residents() {
                 label="Số điện thoại"
                 placeholder="VD: 0912345678"
                 value={newResident.so_dien_thoai}
-                onChange={(e) => setNewResident({ ...newResident, so_dien_thoai: e.target.value })}
+                onChange={(e) =>
+                  setNewResident({
+                    ...newResident,
+                    so_dien_thoai: e.target.value,
+                  })
+                }
                 error={!!errors.so_dien_thoai}
                 helperText={errors.so_dien_thoai}
                 required
@@ -471,22 +507,41 @@ export default function Residents() {
             </Box>
 
             <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Mã căn hộ"
-                placeholder="VD: CH101 (để trống nếu chưa có)"
-                value={newResident.can_ho_dang_o}
-                onChange={(e) => setNewResident({ ...newResident, can_ho_dang_o: e.target.value })}
-                error={!!errors.can_ho_dang_o}
-                helperText={errors.can_ho_dang_o}
+              <FormControl fullWidth>
+                <InputLabel>Căn hộ</InputLabel>
+                <Select
+                  value={newResident.can_ho_dang_o}
+                  label="Căn hộ"
+                  onChange={(e) =>
+                    setNewResident({
+                      ...newResident,
+                      can_ho_dang_o: e.target.value,
+                    })
+                  }
+                  error={!!errors.can_ho_dang_o}
+                >
+                  <MenuItem value="">Chọn căn hộ</MenuItem>
+                  {apartments.map((apt) => (
+                    <MenuItem key={apt.ma_can_ho} value={apt.ma_can_ho}>
+                      {apt.toa_nha}
+                      {apt.tang}
+                      {apt.phong.padStart(2, "0")}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               />
-
               <FormControl fullWidth>
                 <InputLabel>Trạng thái cư trú</InputLabel>
                 <Select
                   value={newResident.trang_thai_cu_tru}
                   label="Trạng thái cư trú"
-                  onChange={(e) => setNewResident({ ...newResident, trang_thai_cu_tru: e.target.value })}
+                  onChange={(e) =>
+                    setNewResident({
+                      ...newResident,
+                      trang_thai_cu_tru: e.target.value,
+                    })
+                  }
                 >
                   <MenuItem value="TT">Tạm trú</MenuItem>
                   <MenuItem value="TH">Thường trú</MenuItem>
@@ -499,7 +554,9 @@ export default function Residents() {
               <Select
                 value={newResident.la_chu_ho}
                 label="Quan hệ với chủ hộ"
-                onChange={(e) => setNewResident({ ...newResident, la_chu_ho: e.target.value })}
+                onChange={(e) =>
+                  setNewResident({ ...newResident, la_chu_ho: e.target.value })
+                }
               >
                 <MenuItem value={false}>Thành viên</MenuItem>
                 <MenuItem value={true}>Chủ hộ</MenuItem>
