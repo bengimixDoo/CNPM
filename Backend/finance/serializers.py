@@ -6,7 +6,8 @@ from services.models import ChiSoDienNuoc
 class FeeCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = DanhMucPhi
-        fields = '__all__'
+        fields = ['ma_phi', 'ten_phi', 'don_gia', 'don_vi_tinh', 'loai_phi']
+        read_only_fields = ['ma_phi']
 
 class InvoiceDetailSerializer(serializers.ModelSerializer):
     class Meta:

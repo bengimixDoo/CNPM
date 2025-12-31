@@ -1,9 +1,10 @@
 import "../styles/AdminDashboard.css";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -49,7 +50,7 @@ const statusColors = {
 
 const defaultPaginationModel = { page: 0, pageSize: 10 };
 
-const columns = [
+const makeColumns = (onDelete) => [
   {
     field: "id",
     headerName: "Mã xe",
@@ -71,6 +72,21 @@ const columns = [
     headerAlign: "center",
     align: "center",
     renderCell: (params) => {
+      const vehicleTypeColors = {
+        "Ô tô": {
+          bg: "var(--color-blue-100)",
+          text: "var(--color-blue-800)",
+        },
+        "Xe máy": {
+          bg: "var(--color-green-100)",
+          text: "var(--color-green-800)",
+        },
+        "Xe đạp": {
+          bg: "var(--color-yellow-100)",
+          text: "var(--color-yellow-800)",
+        },
+        Khác: { bg: "#f3f4f6", text: "#374151" },
+      };
       const color =
         vehicleTypeColors[params.value] || vehicleTypeColors["Khác"];
       return (
@@ -116,14 +132,20 @@ const columns = [
     align: "center",
   },
   {
-    field: "status", // Changed from trang_thai to status to match structure
+    field: "status",
     headerName: "Trạng thái",
-    width: 160,
+    width: 150,
     headerAlign: "center",
     align: "center",
     renderCell: (params) => {
-      const color =
-        statusColors[params.value] || statusColors["Ngừng hoạt động"];
+      const statusColors = {
+        "Đang sử dụng": {
+          bg: "var(--color-green-100)",
+          text: "var(--color-green-800)",
+        },
+        "Ngừng hoạt động": { bg: "#fee2e2", text: "#dc2626" },
+      };
+      const color = statusColors[params.value] || statusColors["Đang sử dụng"];
       return (
         <span
           style={{
@@ -139,6 +161,20 @@ const columns = [
         </span>
       );
     },
+  },
+  {
+    field: "actions",
+    headerName: "Hành động",
+    type: "actions",
+    width: 100,
+    getActions: (params) => [
+      <GridActionsCellItem
+        icon={<DeleteIcon />}
+        label="Xóa"
+        onClick={() => onDelete(params.row)}
+        showInMenu={false}
+      />,
+    ],
   },
 ];
 
@@ -289,6 +325,28 @@ export default function Vehicles() {
     }
   };
 
+  const handleDeleteVehicle = async (vehicle) => {
+    if (
+      !confirm(
+        `Bạn có chắc chắn muốn xóa phương tiện biển số "${vehicle.bien_so}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await utilitiesService.deleteVehicle(vehicle.id);
+      alert("Xóa phương tiện thành công!");
+      await fetchVehicles();
+    } catch (error) {
+      console.error("Lỗi khi xóa phương tiện:", error);
+      alert(
+        error.response?.data?.detail ||
+          "Không thể xóa phương tiện. Vui lòng thử lại."
+      );
+    }
+  };
+
   // Filter logic
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((v) => {
@@ -397,7 +455,7 @@ export default function Vehicles() {
         <DataGrid
           rows={filteredVehicles}
           getRowId={(row) => row.id}
-          columns={columns}
+          columns={makeColumns(handleDeleteVehicle)}
           loading={loading}
           rowHeight={52}
           columnHeaderHeight={56}

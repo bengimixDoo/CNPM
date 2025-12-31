@@ -186,8 +186,25 @@ export default function Apartments() {
     setOpenDetail(false);
   };
 
-  const handleDeleteApartment = () => {
-    alert("Chức năng xóa căn hộ đang được phát triển");
+  const handleDeleteApartment = async () => {
+    if (!selected) return;
+
+    if (!confirm(`Bạn có chắc chắn muốn xóa căn hộ ${selected.id}?`)) {
+      return;
+    }
+
+    try {
+      await residentsService.deleteApartment(selected.id);
+      alert("Xóa căn hộ thành công!");
+      setOpenDetail(false);
+      fetchApartments(); // Reload list
+    } catch (error) {
+      console.error("Lỗi khi xóa căn hộ:", error);
+      alert(
+        error.response?.data?.detail ||
+          "Không thể xóa căn hộ. Có thể căn hộ đang có cư dân hoặc hóa đơn."
+      );
+    }
   };
 
   const handleEditApartment = () => {

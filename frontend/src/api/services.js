@@ -89,6 +89,12 @@ export const residentsService = {
     return response.data;
   },
 
+  // Xóa căn hộ
+  deleteApartment: async (id) => {
+    const response = await axiosInstance.delete(`/apartments/${id}/`);
+    return response.data;
+  },
+
   // Lấy danh sách cư dân
   getResidents: async (filters = {}) => {
     const response = await axiosInstance.get("/residents/", {
@@ -112,6 +118,12 @@ export const residentsService = {
   // Cập nhật cư dân
   updateResident: async (id, data) => {
     const response = await axiosInstance.patch(`/residents/${id}/`, data);
+    return response.data;
+  },
+
+  // Xóa cư dân
+  deleteResident: async (id) => {
+    const response = await axiosInstance.delete(`/residents/${id}/`);
     return response.data;
   },
 
@@ -178,6 +190,18 @@ export const financeService = {
       "/utility-readings/batch/",
       readings
     );
+    return response.data;
+  },
+
+  // Bulk create utility readings (alias for Excel upload)
+  bulkCreateUtilityReadings: async (readings) => {
+    const response = await axiosInstance.post("/utilities/", readings);
+    return response.data;
+  },
+
+  // Xóa chỉ số điện nước
+  deleteUtilityReading: async (id) => {
+    const response = await axiosInstance.delete(`/utilities/${id}/`);
     return response.data;
   },
 
@@ -321,4 +345,14 @@ export const dashboardService = {
     // return response.data;
     return [];
   },
+};
+
+// ==================== APARTMENTS SERVICES (Alias) ====================
+export const apartmentsService = {
+  getApartments: residentsService.getApartments,
+  getApartmentDetail: residentsService.getApartmentDetail,
+  getApartmentStats: residentsService.getApartmentStats,
+  getApartmentMembers: residentsService.getApartmentMembers,
+  getApartmentHistory: residentsService.getApartmentHistory,
+  createApartment: residentsService.createApartment,
 };

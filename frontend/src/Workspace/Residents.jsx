@@ -1,9 +1,10 @@
 import "../styles/AdminDashboard.css";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -31,7 +32,8 @@ const statusColors = {
 };
 
 const defaultPaginationModel = { page: 0, pageSize: 10 };
-const columns = [
+
+const makeColumns = (onDelete) => [
   {
     field: "id",
     headerName: "Mã cư dân",
@@ -96,6 +98,14 @@ const columns = [
     headerAlign: "center",
     align: "center",
     renderCell: (params) => {
+      const statusColors = {
+        "Đang cư trú": {
+          bg: "var(--color-green-100)",
+          text: "var(--color-green-800)",
+        },
+        "Đã chuyển đi": { bg: "#fee2e2", text: "#dc2626" },
+        "Tạm vắng": { bg: "#fef3c7", text: "#d97706" },
+      };
       const color = statusColors[params.value] || statusColors["Đang cư trú"];
       return (
         <span
@@ -112,6 +122,20 @@ const columns = [
         </span>
       );
     },
+  },
+  {
+    field: "actions",
+    headerName: "Hành động",
+    type: "actions",
+    width: 100,
+    getActions: (params) => [
+      <GridActionsCellItem
+        icon={<DeleteIcon />}
+        label="Xóa"
+        onClick={() => onDelete(params.row)}
+        showInMenu={false}
+      />,
+    ],
   },
 ];
 
@@ -288,6 +312,24 @@ export default function Residents() {
     }
   };
 
+  const handleDeleteResident = async (resident) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa cư dân "${resident.name}"?`)) {
+      return;
+    }
+
+    try {
+      await residentsService.deleteResident(resident.id);
+      alert("Xóa cư dân thành công!");
+      await fetchResidents();
+    } catch (error) {
+      console.error("Lỗi khi xóa cư dân:", error);
+      alert(
+        error.response?.data?.detail ||
+          "Không thể xóa cư dân. Vui lòng thử lại."
+      );
+    }
+  };
+
   const rows = useMemo(() => residents, [residents]);
 
   const handlePaginationChange = (newModel) => {
@@ -387,7 +429,7 @@ export default function Residents() {
         <DataGrid
           rows={rows}
           getRowId={(row) => row._rowId}
-          columns={columns}
+          columns={makeColumns(handleDeleteResident)}
           loading={loading}
           rowHeight={52}
           columnHeaderHeight={56}

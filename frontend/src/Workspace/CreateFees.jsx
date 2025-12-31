@@ -23,7 +23,7 @@ import Typography from "@mui/material/Typography";
 
 const defaultPaginationModel = { page: 0, pageSize: 5 };
 
-// Cột khớp API: ten_loai_phi, dong_gia_hien_tai, don_vi_tinh
+// Cột khớp API: ten_phi, don_gia, don_vi_tinh, loai_phi
 const makeColumns = (onEdit, onDelete) => [
   {
     field: "ma_phi",
@@ -64,7 +64,7 @@ const makeColumns = (onEdit, onDelete) => [
     field: "actions",
     headerName: "Hành động",
     type: "actions",
-    width: 120,
+    width: 200,
     headerAlign: "center",
     getActions: (params) => [
       <GridActionsCellItem
@@ -83,7 +83,7 @@ const makeColumns = (onEdit, onDelete) => [
   },
 ];
 
-const makeContributionColumns = () => [
+const makeContributionColumns = (onDelete) => [
   {
     field: "stt",
     headerName: "STT",
@@ -122,6 +122,21 @@ const makeContributionColumns = () => [
       return Number(value).toLocaleString("vi-VN") + " VND";
     },
   },
+  {
+    field: "actions",
+    headerName: "Hành động",
+    type: "actions",
+    width: 100,
+    headerAlign: "center",
+    getActions: (params) => [
+      <GridActionsCellItem
+        icon={<DeleteIcon />}
+        label="Xóa"
+        onClick={() => onDelete(params.row)}
+        showInMenu={false}
+      />,
+    ],
+  },
 ];
 
 export default function CreateFees() {
@@ -137,7 +152,7 @@ export default function CreateFees() {
       const mapped = data.map((f) => ({
         ...f,
         _rowId: f.ma_phi,
-        dong_gia_hien_tai: f.dong_gia_hien_tai,
+        don_gia: f.don_gia,
       }));
       setRows(mapped);
     } catch (error) {
@@ -172,17 +187,39 @@ export default function CreateFees() {
     }
   };
 
+  const handleDeleteContribution = async (contrib) => {
+    if (!confirm(`Xóa khoản đóng góp "${contrib.ten_dong_gop}"?`)) return;
+    try {
+      await financeService.deleteContribution(contrib.id);
+      alert("Xóa khoản đóng góp thành công!");
+      await fetchContributions();
+    } catch (error) {
+      console.error("Xóa khoản đóng góp thất bại:", error);
+      alert(error.response?.data?.detail || "Không thể xóa. Vui lòng thử lại.");
+    }
+  };
+
   useEffect(() => {
     fetchFees();
     fetchContributions();
   }, []);
+
   const [openCreate, setOpenCreate] = useState(false);
+  const [openCreateContrib, setOpenCreateContrib] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
-    ten_loai_phi: "",
-    dong_gia_hien_tai: "",
+    ten_phi: "",
+    don_gia: "",
     don_vi_tinh: "",
+    loai_phi: "",
   });
+  const [formContrib, setFormContrib] = useState({
+    ten_dot: "",
+    ngay_bat_dau: "",
+    ngay_ket_thuc: "",
+    so_tien_du_kien: "",
+  });
+  const [errorsContrib, setErrorsContrib] = useState({});
 
   const [paginationModel, setPaginationModel] = useState(
     defaultPaginationModel
@@ -299,16 +336,17 @@ export default function CreateFees() {
             (row) => {
               setEditing(row);
               setForm({
-                ten_loai_phi: row.ten_loai_phi,
-                dong_gia_hien_tai: formatFee(row.dong_gia_hien_tai) || 0,
+                ten_phi: row.ten_phi,
+                don_gia: formatFee(row.don_gia) || 0,
                 don_vi_tinh: row.don_vi_tinh,
+                loai_phi: row.loai_phi || "",
               });
               setOpenCreate(true);
             },
             async (row) => {
-              if (confirm(`Xóa loại phí "${row.ten_loai_phi}"?`)) {
+              if (confirm(`Xóa loại phí "${row.ten_phi}"?`)) {
                 try {
-                  await financeService.deleteFeeCategory(row.ma_loai_phi);
+                  await financeService.deleteFeeCategory(row.ma_phi);
                   await fetchFees();
                 } catch (e) {
                   console.error("Xóa loại phí thất bại:", e);
@@ -335,9 +373,26 @@ export default function CreateFees() {
       <Typography
         variant="h6"
         fontWeight={700}
-        sx={{ mb: 2, color: "var(--color-yellow-800)" }}
+        sx={{
+          mb: 2,
+          color: "var(--color-yellow-800)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
-        ĐÓNG GÓP
+        <span>ĐÓNG GÓP</span>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{
+            backgroundColor: "var(--blue)",
+            height: 36,
+          }}
+          onClick={() => setOpenCreateContrib(true)}
+        >
+          Thêm Khoản Đóng Góp
+        </Button>
       </Typography>
       <Paper
         sx={{
@@ -349,7 +404,7 @@ export default function CreateFees() {
       >
         <DataGrid
           rows={contributions}
-          columns={makeContributionColumns()}
+          columns={makeContributionColumns(handleDeleteContribution)}
           loading={loadingContrib}
           getRowId={(row) => row.id} // Đảm bảo lấy đúng ID
           pageSizeOptions={[5, 10, 100]} // Thêm 100 để fix lỗi MUI X nếu cần
@@ -377,9 +432,9 @@ export default function CreateFees() {
             label="Tên loại phí"
             placeholder="Ví dụ: Phí Quản lý, Tiền Nước"
             margin="normal"
-            value={form.ten_loai_phi}
+            value={form.ten_phi}
             onChange={(e) =>
-              setForm((f) => ({ ...f, ten_loai_phi: e.target.value }))
+              setForm((f) => ({ ...f, ten_phi: e.target.value }))
             }
           />
           <TextField
@@ -387,9 +442,9 @@ export default function CreateFees() {
             label="Đơn giá (VND)"
             placeholder="Nhập đơn giá"
             margin="normal"
-            value={form.dong_gia_hien_tai}
+            value={form.don_gia}
             onChange={(e) =>
-              setForm((f) => ({ ...f, dong_gia_hien_tai: e.target.value }))
+              setForm((f) => ({ ...f, don_gia: e.target.value }))
             }
             inputProps={{ inputMode: "decimal" }}
           />
@@ -411,6 +466,16 @@ export default function CreateFees() {
               <MenuItem value={"khác"}>khác</MenuItem>
             </Select>
           </FormControl>
+          <TextField
+            fullWidth
+            label="Loại phí (tùy chọn)"
+            placeholder="Ví dụ: Nước, Điện, Quản lý"
+            margin="normal"
+            value={form.loai_phi}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, loai_phi: e.target.value }))
+            }
+          />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
@@ -424,23 +489,20 @@ export default function CreateFees() {
           </Button>
           <Button
             onClick={async () => {
-              if (
-                !form.ten_loai_phi ||
-                !form.dong_gia_hien_tai ||
-                !form.don_vi_tinh
-              ) {
+              if (!form.ten_phi || !form.don_gia || !form.don_vi_tinh) {
                 alert("Vui lòng nhập đủ Tên loại phí, Đơn giá và Đơn vị tính.");
                 return;
               }
               const payload = {
-                ten_loai_phi: form.ten_loai_phi,
-                dong_gia_hien_tai: parseFloat(form.dong_gia_hien_tai) || 0,
+                ten_phi: form.ten_phi,
+                don_gia: parseFloat(form.don_gia) || 0,
                 don_vi_tinh: form.don_vi_tinh,
+                loai_phi: form.loai_phi,
               };
               try {
                 if (editing) {
                   await financeService.updateFeeCategory(
-                    editing.ma_loai_phi,
+                    editing.ma_phi,
                     payload
                   );
                 } else {
@@ -449,9 +511,10 @@ export default function CreateFees() {
                 setOpenCreate(false);
                 setEditing(null);
                 setForm({
-                  ten_loai_phi: "",
-                  dong_gia_hien_tai: "",
+                  ten_phi: "",
+                  don_gia: "",
                   don_vi_tinh: "",
+                  loai_phi: "",
                 });
                 await fetchFees();
               } catch (e) {
@@ -464,6 +527,166 @@ export default function CreateFees() {
             variant="contained"
           >
             {editing ? "Cập nhật" : "Lưu"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog Thêm Khoản Đóng Góp */}
+      <Dialog
+        open={openCreateContrib}
+        onClose={() => {
+          setOpenCreateContrib(false);
+          setFormContrib({
+            ten_dot: "",
+            ngay_bat_dau: "",
+            ngay_ket_thuc: "",
+            so_tien_du_kien: "",
+          });
+          setErrorsContrib({});
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Thêm Khoản Đóng Góp</DialogTitle>
+        <DialogContent>
+          <div style={{ marginTop: 8, color: "#6b7280", marginBottom: 12 }}>
+            Nhập thông tin khoản đóng góp mới.
+          </div>
+          <TextField
+            fullWidth
+            label="Tên khoản đóng góp"
+            placeholder="Ví dụ: Sửa chữa chung cư"
+            margin="normal"
+            value={formContrib.ten_dot}
+            onChange={(e) =>
+              setFormContrib((f) => ({ ...f, ten_dot: e.target.value }))
+            }
+            error={!!errorsContrib.ten_dot}
+            helperText={errorsContrib.ten_dot}
+          />
+          <TextField
+            fullWidth
+            label="Ngày bắt đầu"
+            type="date"
+            margin="normal"
+            value={formContrib.ngay_bat_dau}
+            onChange={(e) =>
+              setFormContrib((f) => ({ ...f, ngay_bat_dau: e.target.value }))
+            }
+            error={!!errorsContrib.ngay_bat_dau}
+            helperText={errorsContrib.ngay_bat_dau}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            fullWidth
+            label="Ngày kết thúc"
+            type="date"
+            margin="normal"
+            value={formContrib.ngay_ket_thuc}
+            onChange={(e) =>
+              setFormContrib((f) => ({ ...f, ngay_ket_thuc: e.target.value }))
+            }
+            error={!!errorsContrib.ngay_ket_thuc}
+            helperText={errorsContrib.ngay_ket_thuc}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            fullWidth
+            label="Số tiền dự kiến (VND)"
+            placeholder="Nhập số tiền"
+            margin="normal"
+            value={formContrib.so_tien_du_kien}
+            onChange={(e) =>
+              setFormContrib((f) => ({
+                ...f,
+                so_tien_du_kien: e.target.value,
+              }))
+            }
+            error={!!errorsContrib.so_tien_du_kien}
+            helperText={errorsContrib.so_tien_du_kien}
+            inputProps={{ inputMode: "decimal" }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => {
+              setOpenCreateContrib(false);
+              setFormContrib({
+                ten_dot: "",
+                ngay_bat_dau: "",
+                ngay_ket_thuc: "",
+                so_tien_du_kien: "",
+              });
+              setErrorsContrib({});
+            }}
+            variant="outlined"
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              const newErrors = {};
+
+              if (!formContrib.ten_dot || formContrib.ten_dot.trim() === "") {
+                newErrors.ten_dot = "Tên khoản đóng góp không được để trống";
+              }
+
+              if (!formContrib.ngay_bat_dau) {
+                newErrors.ngay_bat_dau = "Ngày bắt đầu không được để trống";
+              }
+
+              if (!formContrib.ngay_ket_thuc) {
+                newErrors.ngay_ket_thuc = "Ngày kết thúc không được để trống";
+              }
+
+              if (
+                formContrib.ngay_bat_dau &&
+                formContrib.ngay_ket_thuc &&
+                formContrib.ngay_bat_dau > formContrib.ngay_ket_thuc
+              ) {
+                newErrors.ngay_ket_thuc = "Ngày kết thúc phải sau ngày bắt đầu";
+              }
+
+              if (!formContrib.so_tien_du_kien) {
+                newErrors.so_tien_du_kien =
+                  "Số tiền dự kiến không được để trống";
+              } else if (isNaN(parseFloat(formContrib.so_tien_du_kien))) {
+                newErrors.so_tien_du_kien = "Số tiền phải là số";
+              }
+
+              if (Object.keys(newErrors).length > 0) {
+                setErrorsContrib(newErrors);
+                return;
+              }
+
+              try {
+                const payload = {
+                  ten_dot: formContrib.ten_dot,
+                  ngay_bat_dau: formContrib.ngay_bat_dau,
+                  ngay_ket_thuc: formContrib.ngay_ket_thuc,
+                  so_tien_du_kien: parseFloat(formContrib.so_tien_du_kien) || 0,
+                };
+                await financeService.createContribution(payload);
+                setOpenCreateContrib(false);
+                setFormContrib({
+                  ten_dot: "",
+                  ngay_bat_dau: "",
+                  ngay_ket_thuc: "",
+                  so_tien_du_kien: "",
+                });
+                setErrorsContrib({});
+                await fetchContributions();
+                alert("Thêm khoản đóng góp thành công!");
+              } catch (e) {
+                console.error("Lưu khoản đóng góp thất bại:", e);
+                alert(
+                  "Không thể lưu khoản đóng góp. Vui lòng thử lại hoặc kiểm tra quyền."
+                );
+              }
+            }}
+            variant="contained"
+          >
+            Lưu
           </Button>
         </DialogActions>
       </Dialog>
