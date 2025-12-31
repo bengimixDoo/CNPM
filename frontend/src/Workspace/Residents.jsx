@@ -8,6 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
+import FormHelperText from "@mui/material/FormHelperText";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import Dialog from "@mui/material/Dialog";
@@ -507,7 +508,7 @@ export default function Residents() {
             </Box>
 
             <Box sx={{ display: "flex", gap: 2 }}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={!!errors.can_ho_dang_o}>
                 <InputLabel>Căn hộ</InputLabel>
                 <Select
                   value={newResident.can_ho_dang_o}
@@ -518,19 +519,19 @@ export default function Residents() {
                       can_ho_dang_o: e.target.value,
                     })
                   }
-                  error={!!errors.can_ho_dang_o}
                 >
                   <MenuItem value="">Chọn căn hộ</MenuItem>
                   {apartments.map((apt) => (
                     <MenuItem key={apt.ma_can_ho} value={apt.ma_can_ho}>
-                      {apt.toa_nha}
-                      {apt.tang}
-                      {apt.phong.padStart(2, "0")}
+                      Căn hộ {apt.ma_can_ho}
                     </MenuItem>
                   ))}
                 </Select>
+                {errors.can_ho_dang_o && (
+                  <FormHelperText>{errors.can_ho_dang_o}</FormHelperText>
+                )}
               </FormControl>
-              />
+
               <FormControl fullWidth>
                 <InputLabel>Trạng thái cư trú</InputLabel>
                 <Select
