@@ -49,7 +49,7 @@ export default function ResidentHome() {
 
   // State chứa dữ liệu thật từ Server
   // Lấy thông tin cơ bản từ LocalStorage để hiển thị ngay lập tức
-  const [user, setUser] = useState(() => {
+  const [user] = useState(() => {
     return JSON.parse(localStorage.getItem("currentUser") || "{}");
   });
   const [residents, setResidents] = useState([]); // Danh sách thành viên

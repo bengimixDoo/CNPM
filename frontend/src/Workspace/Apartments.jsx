@@ -128,6 +128,17 @@ export default function Apartments() {
   const [selected, setSelected] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
+  // State cho dialog thêm căn hộ
+  const [openCreate, setOpenCreate] = useState(false);
+  const [newApartment, setNewApartment] = useState({
+    ma_can_ho: "",
+    toa_nha: "A",
+    tang: "",
+    phong: "",
+    dien_tich: "",
+    trang_thai: "E",
+  });
   const gridRef = useRef(null);
 
   // Tính toán dữ liệu hiển thị theo trang
@@ -162,7 +173,11 @@ export default function Apartments() {
     setSelected((prev) => ({
       ...prev,
       owner: ownerObj ? ownerObj.name : prev.owner || "Chưa có",
-      phone: ownerObj ? ownerObj.phone : prev.phone !== "N/A" ? prev.phone : "N/A",
+      phone: ownerObj
+        ? ownerObj.phone
+        : prev.phone !== "N/A"
+        ? prev.phone
+        : "N/A",
       // residents và residentsList đã có trong apt được set vào selected ở dòng đầu
     }));
   };
@@ -181,6 +196,37 @@ export default function Apartments() {
 
   const handleAddResident = () => {
     alert("Chức năng thêm nhân khẩu đang được phát triển");
+  };
+
+  const handleOpenCreate = () => {
+    setOpenCreate(true);
+  };
+
+  const handleCloseCreate = () => {
+    setOpenCreate(false);
+    setNewApartment({
+      ma_can_ho: "",
+      toa_nha: "A",
+      tang: "",
+      phong: "",
+      dien_tich: "",
+      trang_thai: "E",
+    });
+  };
+
+  const handleCreateApartment = async () => {
+    try {
+      await residentsService.createApartment(newApartment);
+      alert("Thêm căn hộ thành công!");
+      handleCloseCreate();
+      fetchApartments(); // Refresh list
+    } catch (error) {
+      console.error("Lỗi khi thêm căn hộ:", error);
+      alert(
+        "Lỗi khi thêm căn hộ: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
   };
 
   return (
@@ -266,6 +312,7 @@ export default function Apartments() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
+          onClick={handleOpenCreate}
           sx={{
             backgroundColor: "var(--blue)",
             height: 40,
@@ -617,7 +664,7 @@ export default function Apartments() {
                   </Box>
                   {selected.residentsList &&
                   selected.residentsList.length > 0 ? (
-                      selected.residentsList.map((resident, idx) => (
+                    selected.residentsList.map((resident, idx) => (
                       <Box
                         key={idx}
                         sx={{
@@ -746,6 +793,132 @@ export default function Apartments() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Dialog Thêm Căn hộ */}
+      <Dialog
+        open={openCreate}
+        onClose={handleCloseCreate}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{
+            backgroundColor: "var(--blue)",
+            color: "white",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <ApartmentIcon />
+            Thêm Căn hộ Mới
+          </Box>
+          <IconButton onClick={handleCloseCreate} sx={{ color: "white" }}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            label="Mã căn hộ"
+            placeholder="VD: CH101"
+            value={newApartment.ma_can_ho}
+            onChange={(e) =>
+              setNewApartment({ ...newApartment, ma_can_ho: e.target.value })
+            }
+            margin="normal"
+            required
+          />
+
+          <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Tòa nhà</InputLabel>
+              <Select
+                value={newApartment.toa_nha}
+                label="Tòa nhà"
+                onChange={(e) =>
+                  setNewApartment({ ...newApartment, toa_nha: e.target.value })
+                }
+              >
+                <MenuItem value="A">Tòa A</MenuItem>
+                <MenuItem value="B">Tòa B</MenuItem>
+                <MenuItem value="C">Tòa C</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Tầng"
+              type="number"
+              value={newApartment.tang}
+              onChange={(e) =>
+                setNewApartment({ ...newApartment, tang: e.target.value })
+              }
+              margin="normal"
+              required
+            />
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Số phòng"
+              value={newApartment.phong}
+              onChange={(e) =>
+                setNewApartment({ ...newApartment, phong: e.target.value })
+              }
+              margin="normal"
+              placeholder="VD: 101"
+            />
+
+            <TextField
+              fullWidth
+              label="Diện tích (m²)"
+              type="number"
+              value={newApartment.dien_tich}
+              onChange={(e) =>
+                setNewApartment({ ...newApartment, dien_tich: e.target.value })
+              }
+              margin="normal"
+              required
+            />
+          </Box>
+
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Trạng thái</InputLabel>
+            <Select
+              value={newApartment.trang_thai}
+              label="Trạng thái"
+              onChange={(e) =>
+                setNewApartment({ ...newApartment, trang_thai: e.target.value })
+              }
+            >
+              <MenuItem value="E">Trống</MenuItem>
+              <MenuItem value="S">Đã bán</MenuItem>
+              <MenuItem value="H">Đang thuê</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={handleCloseCreate} variant="outlined">
+            Hủy
+          </Button>
+          <Button
+            onClick={handleCreateApartment}
+            variant="contained"
+            disabled={
+              !newApartment.ma_can_ho ||
+              !newApartment.tang ||
+              !newApartment.dien_tich
+            }
+          >
+            Thêm Căn hộ
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

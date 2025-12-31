@@ -61,10 +61,10 @@ class Command(BaseCommand):
     def create_fees(self):
         self.stdout.write('Creating fees...')
         # Finance Fees (Used for Billing)
-        self.fee_dien = DanhMucPhi.objects.create(ten_loai_phi='Tiền Điện', dong_gia_hien_tai=3000, don_vi_tinh='kWh')
-        self.fee_nuoc = DanhMucPhi.objects.create(ten_loai_phi='Tiền Nước', dong_gia_hien_tai=6000, don_vi_tinh='m3')
-        self.fee_ql = DanhMucPhi.objects.create(ten_loai_phi='Phí Quản Lý', dong_gia_hien_tai=7000, don_vi_tinh='m2')
-        self.fee_xe = DanhMucPhi.objects.create(ten_loai_phi='Phí Gửi Xe', dong_gia_hien_tai=120000, don_vi_tinh='xe')
+        self.fee_dien = DanhMucPhi.objects.create(ten_phi='Tiền Điện', don_gia=3000, don_vi_tinh='kWh', loai_phi='DIEN')
+        self.fee_nuoc = DanhMucPhi.objects.create(ten_phi='Tiền Nước', don_gia=6000, don_vi_tinh='m3', loai_phi='NUOC')
+        self.fee_ql = DanhMucPhi.objects.create(ten_phi='Phí Quản Lý', don_gia=7000, don_vi_tinh='m2', loai_phi='QUAN_LY')
+        self.fee_xe = DanhMucPhi.objects.create(ten_phi='Phí Gửi Xe', don_gia=120000, don_vi_tinh='xe', loai_phi='DUNG_CU')
 
         # Services Menu (Display only)
         DichVu.objects.create(ten_dich_vu='Điện sinh hoạt', don_gia=3000, don_vi_tinh='kWh', loai_dich_vu='BIEN_DOI')
@@ -179,21 +179,21 @@ class Command(BaseCommand):
                 
                 # Dien
                 tieu_thu_dien = dien_moi - dien_cu
-                tien_dien = tieu_thu_dien * self.fee_dien.dong_gia_hien_tai
+                tien_dien = tieu_thu_dien * self.fee_dien.don_gia
                 total_amount += tien_dien
                 
                 # Nuoc
                 tieu_thu_nuoc = nuoc_moi - nuoc_cu
-                tien_nuoc = tieu_thu_nuoc * self.fee_nuoc.dong_gia_hien_tai
+                tien_nuoc = tieu_thu_nuoc * self.fee_nuoc.don_gia
                 total_amount += tien_nuoc
                 
                 # Quan Ly
-                tien_ql = apt.dien_tich * self.fee_ql.dong_gia_hien_tai
+                tien_ql = apt.dien_tich * self.fee_ql.don_gia
                 total_amount += tien_ql
                 
                 # Gui Xe
                 so_xe = PhuongTien.objects.filter(can_ho=apt).count()
-                tien_xe = so_xe * self.fee_xe.dong_gia_hien_tai
+                tien_xe = so_xe * self.fee_xe.don_gia
                 total_amount += tien_xe
                 
                 # Create Invoice
@@ -208,11 +208,11 @@ class Command(BaseCommand):
                 )
                 
                 # Details (Simplified)
-                ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_dien, ten_phi_snapshot='Tiền Điện', so_luong=tieu_thu_dien, dong_gia_snapshot=self.fee_dien.dong_gia_hien_tai, thanh_tien=tien_dien)
-                ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_nuoc, ten_phi_snapshot='Tiền Nước', so_luong=tieu_thu_nuoc, dong_gia_snapshot=self.fee_nuoc.dong_gia_hien_tai, thanh_tien=tien_nuoc)
-                ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_ql, ten_phi_snapshot='Phí Quản Lý', so_luong=int(apt.dien_tich), dong_gia_snapshot=self.fee_ql.dong_gia_hien_tai, thanh_tien=tien_ql)
+                ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_dien, ten_phi_snapshot='Tiền Điện', so_luong=tieu_thu_dien, dong_gia_snapshot=self.fee_dien.don_gia, thanh_tien=tien_dien)
+                ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_nuoc, ten_phi_snapshot='Tiền Nước', so_luong=tieu_thu_nuoc, dong_gia_snapshot=self.fee_nuoc.don_gia, thanh_tien=tien_nuoc)
+                ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_ql, ten_phi_snapshot='Phí Quản Lý', so_luong=int(apt.dien_tich), dong_gia_snapshot=self.fee_ql.don_gia, thanh_tien=tien_ql)
                 if so_xe > 0:
-                    ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_xe, ten_phi_snapshot='Phí Gửi Xe', so_luong=so_xe, dong_gia_snapshot=self.fee_xe.dong_gia_hien_tai, thanh_tien=tien_xe)
+                    ChiTietHoaDon.objects.create(hoa_don=invoice, loai_phi=self.fee_xe, ten_phi_snapshot='Phí Gửi Xe', so_luong=so_xe, dong_gia_snapshot=self.fee_xe.don_gia, thanh_tien=tien_xe)
 
     def create_services_data(self, residents):
         self.stdout.write('Creating news and tickets...')
