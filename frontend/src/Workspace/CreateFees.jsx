@@ -20,6 +20,10 @@ import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import formatFee from "../util/FormatFee";
 import Typography from "@mui/material/Typography";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import HandshakeIcon from "@mui/icons-material/Handshake";
 
 const defaultPaginationModel = { page: 0, pageSize: 5 };
 
@@ -144,6 +148,7 @@ export default function CreateFees() {
   const [contributions, setContributions] = useState([]); // State cho bảng Đóng góp
   const [loading, setLoading] = useState(false);
   const [loadingContrib, setLoadingContrib] = useState(false);
+  const [activeTab, setActiveTab] = useState(0); // 0 = Các khoản phí, 1 = Đóng góp
 
   const fetchFees = async () => {
     setLoading(true);
@@ -247,174 +252,188 @@ export default function CreateFees() {
   return (
     <>
       <div className="dashboard-grid">
+        {/* Tabs Navigation */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "16px",
             backgroundColor: "white",
-            borderRadius: "12px",
-            border: "1px solid #e0e0e0",
-            marginBottom: "16px",
-            marginTop: "20px",
+            borderRadius: "12px 12px 0 0",
+            borderBottom: "1px solid #e0e0e0",
+            width: "fit-content",
           }}
         >
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
-              sx={{ width: 400 }}
-            />
-
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Tòa nhà</InputLabel>
-              <Select label="Tòa nhà" defaultValue="all">
-                <MenuItem value="all">Tất cả</MenuItem>
-                <MenuItem value="A">Tòa A</MenuItem>
-                <MenuItem value="B">Tòa B</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Tầng</InputLabel>
-              <Select label="Tầng" defaultValue="all">
-                <MenuItem value="all">Tất cả</MenuItem>
-                {[...Array(30)].map((_, i) => (
-                  <MenuItem key={i} value={i + 1}>
-                    Tầng {i + 1}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<FilterListIcon />}
-              sx={{ width: 125, height: 40 }}
-            >
-              Trạng thái
-            </Button>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
+          <Tabs
+            value={activeTab}
+            onChange={(e, newValue) => setActiveTab(newValue)}
             sx={{
-              backgroundColor: "var(--blue)",
-              height: 40,
-              marginLeft: "10px",
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "15px",
+                minHeight: "56px",
+                minWidth: "auto",
+                paddingX: "24px",
+              },
             }}
-            onClick={() => setOpenCreate(true)}
           >
-            Thêm Loại Phí
-          </Button>
+            <Tab
+              icon={<ReceiptIcon />}
+              iconPosition="start"
+              label="Các khoản phí"
+            />
+            <Tab
+              icon={<HandshakeIcon />}
+              iconPosition="start"
+              label="Đóng góp"
+            />
+          </Tabs>
+          {activeTab === 0 && (
+            <>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "16px",
+                  backgroundColor: "white",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 26, alignItems: "center" }}>
+                  <TextField
+                    variant="outlined"
+                    size="small"
+                    placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
+                    sx={{ width: 700 }}
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    sx={{
+                      backgroundColor: "var(--blue)",
+                      height: 40,
+                      marginLeft: "10px",
+                      width: "200px",
+                    }}
+                    onClick={() => setOpenCreate(true)}
+                  >
+                    Thêm Loại Phí
+                  </Button>
+                </Box>
+              </Box>
+
+              <Paper
+                sx={{
+                  height: containerHeight,
+                  borderRadius: "12px",
+                  transition: "height 0.2s ease",
+                  overflow: "hidden",
+                }}
+              >
+                <DataGrid
+                  rows={gridRows}
+                  getRowId={(row) => row._rowId}
+                  columns={makeColumns(
+                    (row) => {
+                      setEditing(row);
+                      setForm({
+                        ten_phi: row.ten_phi,
+                        don_gia: formatFee(row.don_gia) || 0,
+                        don_vi_tinh: row.don_vi_tinh,
+                        loai_phi: row.loai_phi || "",
+                      });
+                      setOpenCreate(true);
+                    },
+                    async (row) => {
+                      if (confirm(`Xóa loại phí "${row.ten_phi}"?`)) {
+                        try {
+                          await financeService.deleteFeeCategory(row.ma_phi);
+                          await fetchFees();
+                        } catch (e) {
+                          console.error("Xóa loại phí thất bại:", e);
+                          alert(
+                            "Không thể xóa. Vui lòng thử lại hoặc kiểm tra quyền."
+                          );
+                        }
+                      }
+                    }
+                  )}
+                  loading={loading}
+                  rowHeight={52}
+                  columnHeaderHeight={56}
+                  pagination
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={handlePaginationChange}
+                  pageSizeOptions={[5, 10]}
+                  checkboxSelection
+                  sx={{
+                    borderRadius: "0 0 12px 12px",
+                    "& .MuiDataGrid-root": { height: "100%" },
+                  }}
+                />
+              </Paper>
+            </>
+          )}
+
+          {/* Tab 1: Đóng góp */}
+          {activeTab === 1 && (
+            <>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "16px",
+                  backgroundColor: "white",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 26, alignItems: "center" }}>
+                  <TextField
+                    variant="outlined"
+                    size="small"
+                    placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
+                    sx={{ width: 700 }}
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    sx={{
+                      backgroundColor: "var(--blue)",
+                      height: 40,
+                      marginLeft: "10px",
+                      width: "200px",
+                    }}
+                    onClick={() => setOpenCreate(true)}
+                  >
+                    Thêm Loại Phí
+                  </Button>
+                </Box>
+              </Box>
+
+              <Paper
+                sx={{
+                  height: containerHeight,
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                }}
+              >
+                <DataGrid
+                  rows={contributions}
+                  columns={makeContributionColumns(handleDeleteContribution)}
+                  loading={loadingContrib}
+                  getRowId={(row) => row.id} // Đảm bảo lấy đúng ID
+                  pageSizeOptions={[5, 10, 100]} // Thêm 100 để fix lỗi MUI X nếu cần
+                  pagination
+                  sx={{
+                    borderRadius: "12px",
+                    "& .MuiDataGrid-root": { height: "100%" },
+                  }}
+                />
+              </Paper>
+            </>
+          )}
         </Box>
       </div>
-
-      <Typography
-        variant="h6"
-        fontWeight={700}
-        sx={{ mt: 3, mb: 2, color: "var(--blue)" }}
-      >
-        CÁC KHOẢN PHÍ
-      </Typography>
-      <Paper
-        sx={{
-          height: containerHeight,
-          borderRadius: "12px",
-          transition: "height 0.2s ease",
-          overflow: "hidden",
-          mb: 4,
-        }}
-      >
-        <DataGrid
-          rows={gridRows}
-          getRowId={(row) => row._rowId}
-          columns={makeColumns(
-            (row) => {
-              setEditing(row);
-              setForm({
-                ten_phi: row.ten_phi,
-                don_gia: formatFee(row.don_gia) || 0,
-                don_vi_tinh: row.don_vi_tinh,
-                loai_phi: row.loai_phi || "",
-              });
-              setOpenCreate(true);
-            },
-            async (row) => {
-              if (confirm(`Xóa loại phí "${row.ten_phi}"?`)) {
-                try {
-                  await financeService.deleteFeeCategory(row.ma_phi);
-                  await fetchFees();
-                } catch (e) {
-                  console.error("Xóa loại phí thất bại:", e);
-                  alert("Không thể xóa. Vui lòng thử lại hoặc kiểm tra quyền.");
-                }
-              }
-            }
-          )}
-          loading={loading}
-          rowHeight={52}
-          columnHeaderHeight={56}
-          pagination
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationChange}
-          pageSizeOptions={[5, 10]}
-          checkboxSelection
-          sx={{
-            borderRadius: "12px",
-            "& .MuiDataGrid-root": { height: "100%" },
-          }}
-        />
-      </Paper>
-
-      <Typography
-        variant="h6"
-        fontWeight={700}
-        sx={{
-          mb: 2,
-          color: "var(--color-yellow-800)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <span>ĐÓNG GÓP</span>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{
-            backgroundColor: "var(--blue)",
-            height: 36,
-          }}
-          onClick={() => setOpenCreateContrib(true)}
-        >
-          Thêm Khoản Đóng Góp
-        </Button>
-      </Typography>
-      <Paper
-        sx={{
-          height: 400, // Chiều cao cố định hoặc tính toán tương tự
-          borderRadius: "12px",
-          overflow: "hidden",
-          mb: 4,
-        }}
-      >
-        <DataGrid
-          rows={contributions}
-          columns={makeContributionColumns(handleDeleteContribution)}
-          loading={loadingContrib}
-          getRowId={(row) => row.id} // Đảm bảo lấy đúng ID
-          pageSizeOptions={[5, 10, 100]} // Thêm 100 để fix lỗi MUI X nếu cần
-          pagination
-          sx={{
-            borderRadius: "12px",
-            "& .MuiDataGrid-root": { height: "100%" },
-          }}
-        />
-      </Paper>
 
       <Dialog
         open={openCreate}

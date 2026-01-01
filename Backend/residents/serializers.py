@@ -73,9 +73,14 @@ class CuDanSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # 1. Lấy thông tin căn hộ từ dữ liệu gửi lên (cho POST/PUT)
         # Hoặc từ instance hiện tại (cho PATCH nếu không gửi field này lên)
-        can_ho = data.get('can_ho_dang_o')
-        if not can_ho and self.instance:
+        # QUAN TRỌNG: Phải check key tồn tại, không phải check giá trị
+        # Vì None/null là giá trị hợp lệ khi OUT
+        if 'can_ho_dang_o' in data:
+            can_ho = data.get('can_ho_dang_o')
+        elif self.instance:
             can_ho = self.instance.can_ho_dang_o
+        else:
+            can_ho = None
         
         # Nếu lấy id
         ma_id = can_ho.pk if can_ho else None
@@ -122,6 +127,9 @@ class CuDanHistorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class BienDongDanCuSerializer(serializers.ModelSerializer):
+    cu_dan = CuDanSerializer(read_only=True)
+    can_ho = CanHoSerializer(read_only=True)
+    
     class Meta:
         model = BienDongDanCu
         fields = '__all__'

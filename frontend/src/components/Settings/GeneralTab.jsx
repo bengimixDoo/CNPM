@@ -281,8 +281,8 @@ export default function GeneralTab() {
                   value={loadingMe ? "" : me?.email || ""}
                   sx={inputStyle}
                   placeholder="Không có trong API"
-                  InputProps={{ readOnly: true }}
                   InputProps={{
+                    readOnly: true,
                     startAdornment: (
                       <InputAdornment position="start">
                         <MailIcon sx={{ color: "#94a3b8" }} />
