@@ -29,6 +29,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import GroupRemoveIcon from "@mui/icons-material/GroupRemove";
 import { useState, useMemo, useEffect } from "react";
 import { residentsService, apartmentsService } from "../api/services";
+import Typography from "@mui/material/Typography";
 
 const defaultPaginationModel = { page: 0, pageSize: 10 };
 
@@ -576,22 +577,41 @@ export default function Residents() {
         />
       </div>
 
-      <div className="dashboard-grid">
+      <div className="dashboard-grid" style={{ width: "700px" }}>
         <Box
           sx={{
-            backgroundColor: "white",
             borderRadius: "12px 12px 0 0",
-            borderBottom: "1px solid #e0e0e0",
           }}
         >
           <Tabs
             value={activeTab}
             onChange={(e, val) => setActiveTab(val)}
             sx={{
+              borderRadius: "12px 12px 0 0",
+              "& .MuiTabs-indicator": {
+                backgroundColor: "var(--blue)",
+                height: 3,
+                borderRadius: "12px 12px 0 0",
+              },
               "& .MuiTab-root": {
                 textTransform: "none",
-                fontWeight: 500,
+                fontWeight: 600,
                 minHeight: "56px",
+                width: "50%",
+                opacity: 0.3, // Mờ hẳn đi
+                backgroundColor: "transparent", // Không giữ nền
+                transition: "all 0.3s ease",
+                "&.Mui-selected": {
+                  opacity: 1,
+                  fontWeight: 700,
+                  color: "var(--blue)",
+                  borderRadius: "12px 12px 0 0",
+                  backgroundColor: "white", // Nền nhẹ cho tab đang chọn (tùy chọn)
+                },
+                "&:hover": {
+                  opacity: 0.7,
+                  backgroundColor: "rgba(255, 255, 255, 0.02)",
+                },
               },
             }}
           >
@@ -619,7 +639,7 @@ export default function Residents() {
               alignItems: "center",
               padding: "16px",
               backgroundColor: "white",
-              borderBottom: "1px solid #e0e0e0",
+              borderBottom: "none",
             }}
           >
             <Box sx={{ display: "flex", gap: 26, alignItems: "center" }}>
@@ -651,6 +671,7 @@ export default function Residents() {
               borderRadius: "0 0 12px 12px",
               transition: "height 0.2s ease",
               overflow: "hidden",
+              hover: "none",
             }}
           >
             <DataGrid
@@ -809,23 +830,65 @@ export default function Residents() {
         onClose={handleCloseCreate}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          },
+        }}
       >
         <DialogTitle
           sx={{
-            backgroundColor: "var(--blue)",
-            color: "white",
+            fontWeight: 700,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            borderBottom: "1px solid #f1f5f9",
+            padding: "10px",
+            background: "linear-gradient(to right, #bcd9f2ff, #f8fafc)",
+            position: "relative",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <PersonAddIcon />
-            Thêm Cư dân Mới
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: "12px",
+                backgroundColor: "var(--blue)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <PersonAddIcon sx={{ fontSize: 30 }} />
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+              >
+                Thêm Cư dân mới
+              </Typography>
+            </Box>
           </Box>
-          <IconButton onClick={handleCloseCreate} sx={{ color: "white" }}>
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton
+              onClick={handleCloseCreate}
+              sx={{
+                color: (theme) => theme.palette.grey[500],
+                "&:hover": {
+                  color: (theme) => theme.palette.grey[900],
+                  backgroundColor: "#f1f5f9",
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
 
         <DialogContent sx={{ mt: 2 }}>

@@ -812,117 +812,198 @@ export default function Apartments() {
         )}
       </Dialog>
 
-      {/* Dialog Thêm Căn hộ */}
+      {/* Dialog Thêm Căn hộ - UI Cải tiến */}
       <Dialog
         open={openCreate}
         onClose={handleCloseCreate}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          },
+        }}
       >
         <DialogTitle
           sx={{
-            backgroundColor: "var(--blue)",
-            color: "white",
+            fontWeight: 700,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            borderBottom: "1px solid #f1f5f9",
+            padding: "10px",
+            background: "linear-gradient(to right, #bcd9f2ff, #f8fafc)",
+            position: "relative",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ApartmentIcon />
-            Thêm Căn hộ Mới
-          </Box>
-          <IconButton onClick={handleCloseCreate} sx={{ color: "white" }}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-
-        <DialogContent sx={{ mt: 2 }}>
-          <TextField
-            fullWidth
-            label="Mã căn hộ"
-            placeholder="VD: CH101"
-            value={newApartment.ma_can_ho}
-            onChange={(e) =>
-              setNewApartment({ ...newApartment, ma_can_ho: e.target.value })
-            }
-            margin="normal"
-            required
-          />
-
-          <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Tòa nhà</InputLabel>
-              <Select
-                value={newApartment.toa_nha}
-                label="Tòa nhà"
-                onChange={(e) =>
-                  setNewApartment({ ...newApartment, toa_nha: e.target.value })
-                }
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: "12px",
+                backgroundColor: "var(--blue)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <ApartmentIcon sx={{ fontSize: 30 }} />
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
               >
-                <MenuItem value="A">Tòa A</MenuItem>
-                <MenuItem value="B">Tòa B</MenuItem>
-                <MenuItem value="C">Tòa C</MenuItem>
+                Thêm Căn hộ mới
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton
+              onClick={handleCloseDetail}
+              sx={{
+                color: (theme) => theme.palette.grey[500],
+                "&:hover": {
+                  color: (theme) => theme.palette.grey[900],
+                  backgroundColor: "#f1f5f9",
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, pt: "24px !important" }}>
+          <Box display="flex" flexDirection="column" gap={2.5}>
+            <Box>
+              <TextField
+                fullWidth
+                label="Mã căn hộ"
+                placeholder="VD: CH101"
+                value={newApartment.ma_can_ho}
+                onChange={(e) =>
+                  setNewApartment({
+                    ...newApartment,
+                    ma_can_ho: e.target.value,
+                  })
+                }
+                required
+                InputProps={{
+                  sx: { borderRadius: "10px" },
+                }}
+              />
+            </Box>
+
+            <Box display="flex" gap={2}>
+              <FormControl fullWidth>
+                <InputLabel>Tòa nhà</InputLabel>
+                <Select
+                  value={newApartment.toa_nha}
+                  label="Tòa nhà"
+                  onChange={(e) =>
+                    setNewApartment({
+                      ...newApartment,
+                      toa_nha: e.target.value,
+                    })
+                  }
+                  sx={{ borderRadius: "10px" }}
+                >
+                  <MenuItem value="A">Tòa A</MenuItem>
+                  <MenuItem value="B">Tòa B</MenuItem>
+                  <MenuItem value="C">Tòa C</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                fullWidth
+                label="Tầng"
+                type="number"
+                value={newApartment.tang}
+                onChange={(e) =>
+                  setNewApartment({ ...newApartment, tang: e.target.value })
+                }
+                required
+                InputProps={{
+                  sx: { borderRadius: "10px" },
+                }}
+              />
+            </Box>
+
+            <Box display="flex" gap={2}>
+              <TextField
+                fullWidth
+                label="Số phòng"
+                value={newApartment.phong}
+                onChange={(e) =>
+                  setNewApartment({ ...newApartment, phong: e.target.value })
+                }
+                placeholder="VD: 101"
+                InputProps={{
+                  sx: { borderRadius: "10px" },
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Diện tích"
+                type="number"
+                value={newApartment.dien_tich}
+                onChange={(e) =>
+                  setNewApartment({
+                    ...newApartment,
+                    dien_tich: e.target.value,
+                  })
+                }
+                required
+                InputProps={{
+                  endAdornment: (
+                    <Typography variant="caption" color="text.secondary">
+                      m²
+                    </Typography>
+                  ),
+                  sx: { borderRadius: "10px" },
+                }}
+              />
+            </Box>
+
+            <FormControl fullWidth>
+              <InputLabel>Trạng thái</InputLabel>
+              <Select
+                value={newApartment.trang_thai}
+                label="Trạng thái"
+                onChange={(e) =>
+                  setNewApartment({
+                    ...newApartment,
+                    trang_thai: e.target.value,
+                  })
+                }
+                sx={{ borderRadius: "10px" }}
+              >
+                <MenuItem value="E">Trống</MenuItem>
+                <MenuItem value="S">Đã bán</MenuItem>
+                <MenuItem value="H">Đang thuê</MenuItem>
               </Select>
             </FormControl>
-
-            <TextField
-              fullWidth
-              label="Tầng"
-              type="number"
-              value={newApartment.tang}
-              onChange={(e) =>
-                setNewApartment({ ...newApartment, tang: e.target.value })
-              }
-              margin="normal"
-              required
-            />
           </Box>
-
-          <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Số phòng"
-              value={newApartment.phong}
-              onChange={(e) =>
-                setNewApartment({ ...newApartment, phong: e.target.value })
-              }
-              margin="normal"
-              placeholder="VD: 101"
-            />
-
-            <TextField
-              fullWidth
-              label="Diện tích (m²)"
-              type="number"
-              value={newApartment.dien_tich}
-              onChange={(e) =>
-                setNewApartment({ ...newApartment, dien_tich: e.target.value })
-              }
-              margin="normal"
-              required
-            />
-          </Box>
-
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Trạng thái</InputLabel>
-            <Select
-              value={newApartment.trang_thai}
-              label="Trạng thái"
-              onChange={(e) =>
-                setNewApartment({ ...newApartment, trang_thai: e.target.value })
-              }
-            >
-              <MenuItem value="E">Trống</MenuItem>
-              <MenuItem value="S">Đã bán</MenuItem>
-              <MenuItem value="H">Đang thuê</MenuItem>
-            </Select>
-          </FormControl>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={handleCloseCreate} variant="outlined">
-            Hủy
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={handleCloseCreate}
+            variant="outlined"
+            sx={{
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+            }}
+          >
+            Hủy bỏ
           </Button>
           <Button
             onClick={handleCreateApartment}
@@ -932,6 +1013,15 @@ export default function Apartments() {
               !newApartment.tang ||
               !newApartment.dien_tich
             }
+            sx={{
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 600,
+              backgroundColor: "var(--blue)",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              px: 3,
+              "&:hover": { backgroundColor: "#1e40af" },
+            }}
           >
             Thêm Căn hộ
           </Button>

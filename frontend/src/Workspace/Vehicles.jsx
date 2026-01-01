@@ -5,6 +5,7 @@ import PedalBikeIcon from "@mui/icons-material/PedalBike";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -476,28 +477,70 @@ export default function Vehicles() {
         onClose={handleCloseCreate}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          },
+        }}
       >
         <DialogTitle
           sx={{
-            backgroundColor: "var(--blue)",
-            color: "white",
+            fontWeight: 700,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            borderBottom: "1px solid #f1f5f9",
+            padding: "10px",
+            background: "linear-gradient(to right, #bcd9f2ff, #f8fafc)",
+            position: "relative",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <DirectionsCarIcon />
-            Thêm Phương tiện Mới
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: "12px",
+                backgroundColor: "var(--blue)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <DirectionsCarIcon sx={{ fontSize: 30 }} />
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+              >
+                Thêm Phương tiện mới
+              </Typography>
+            </Box>
           </Box>
-          <IconButton onClick={handleCloseCreate} sx={{ color: "white" }}>
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton
+              onClick={handleCloseCreate}
+              sx={{
+                color: (theme) => theme.palette.grey[500],
+                "&:hover": {
+                  color: (theme) => theme.palette.grey[900],
+                  backgroundColor: "#f1f5f9",
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
 
         <DialogContent sx={{ mt: 2 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <FormControl fullWidth error={!!errors.can_ho_dang_o}>
+            <FormControl fullWidth error={!!errors.can_ho_dang_o} required>
               <InputLabel>Căn hộ</InputLabel>
               <Select
                 value={newVehicle.can_ho_dang_o}
@@ -521,21 +564,40 @@ export default function Vehicles() {
               )}
             </FormControl>
 
-            <FormControl fullWidth>
-              <InputLabel>Loại xe</InputLabel>
-              <Select
-                value={newVehicle.loai_xe}
-                label="Loại xe"
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, loai_xe: e.target.value })
-                }
-              >
-                <MenuItem value="C">Ô tô</MenuItem>
-                <MenuItem value="M">Xe máy</MenuItem>
-                <MenuItem value="B">Xe đạp</MenuItem>
-                <MenuItem value="O">Khác</MenuItem>
-              </Select>
-            </FormControl>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Loại xe</InputLabel>
+                <Select
+                  value={newVehicle.loai_xe}
+                  label="Loại xe"
+                  onChange={(e) =>
+                    setNewVehicle({ ...newVehicle, loai_xe: e.target.value })
+                  }
+                >
+                  <MenuItem value="C">Ô tô</MenuItem>
+                  <MenuItem value="M">Xe máy</MenuItem>
+                  <MenuItem value="B">Xe đạp</MenuItem>
+                  <MenuItem value="O">Khác</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Trạng thái</InputLabel>
+                <Select
+                  value={newVehicle.dang_hoat_dong}
+                  label="Trạng thái"
+                  onChange={(e) =>
+                    setNewVehicle({
+                      ...newVehicle,
+                      dang_hoat_dong: e.target.value,
+                    })
+                  }
+                >
+                  <MenuItem value={true}>Đang sử dụng</MenuItem>
+                  <MenuItem value={false}>Ngừng hoạt động</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
 
             {["C", "M"].includes(newVehicle.loai_xe) && (
               <TextField
@@ -563,23 +625,6 @@ export default function Vehicles() {
                 }
               />
             )}
-
-            <FormControl fullWidth>
-              <InputLabel>Trạng thái</InputLabel>
-              <Select
-                value={newVehicle.dang_hoat_dong}
-                label="Trạng thái"
-                onChange={(e) =>
-                  setNewVehicle({
-                    ...newVehicle,
-                    dang_hoat_dong: e.target.value,
-                  })
-                }
-              >
-                <MenuItem value={true}>Đang sử dụng</MenuItem>
-                <MenuItem value={false}>Ngừng hoạt động</MenuItem>
-              </Select>
-            </FormControl>
           </Box>
         </DialogContent>
 

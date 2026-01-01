@@ -24,6 +24,8 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import HandshakeIcon from "@mui/icons-material/Handshake";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 const defaultPaginationModel = { page: 0, pageSize: 5 };
 
@@ -440,63 +442,121 @@ export default function CreateFees() {
         onClose={() => setOpenCreate(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          },
+        }}
       >
-        <DialogTitle>{editing ? "Sửa loại phí" : "Thêm loại phí"}</DialogTitle>
-        <DialogContent>
-          <div style={{ marginTop: 8, color: "#6b7280", marginBottom: 12 }}>
-            Nhập thông tin loại phí để {editing ? "cập nhật" : "tạo mới"}.
-          </div>
-          <TextField
-            fullWidth
-            label="Tên loại phí"
-            placeholder="Ví dụ: Phí Quản lý, Tiền Nước"
-            margin="normal"
-            value={form.ten_phi}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, ten_phi: e.target.value }))
-            }
-          />
-          <TextField
-            fullWidth
-            label="Đơn giá (VND)"
-            placeholder="Nhập đơn giá"
-            margin="normal"
-            value={form.don_gia}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, don_gia: e.target.value }))
-            }
-            inputProps={{ inputMode: "decimal" }}
-          />
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="unit-label">Đơn vị tính</InputLabel>
-            <Select
-              labelId="unit-label"
-              value={form.don_vi_tinh}
-              label="Đơn vị tính"
-              onChange={(e) =>
-                setForm((f) => ({ ...f, don_vi_tinh: e.target.value }))
-              }
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid #f1f5f9",
+            padding: "10px",
+            background: "linear-gradient(to right, #bcd9f2ff, #f8fafc)",
+            position: "relative",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: "12px",
+                backgroundColor: "var(--blue)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
             >
-              <MenuItem value={"m2"}>m²</MenuItem>
-              <MenuItem value={"kWh"}>kWh</MenuItem>
-              <MenuItem value={"m3"}>m³</MenuItem>
-              <MenuItem value={"xe"}>xe</MenuItem>
-              <MenuItem value={"tháng"}>tháng</MenuItem>
-              <MenuItem value={"khác"}>khác</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            label="Loại phí (tùy chọn)"
-            placeholder="Ví dụ: Nước, Điện, Quản lý"
-            margin="normal"
-            value={form.loai_phi}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, loai_phi: e.target.value }))
-            }
-          />
+              <ReceiptIcon sx={{ fontSize: 30 }} />
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+              >
+                {editing ? "Sửa loại phí" : "Thêm loại phí"}
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton
+            onClick={() => setOpenCreate(false)}
+            sx={{
+              color: (theme) => theme.palette.grey[500],
+              "&:hover": {
+                color: (theme) => theme.palette.grey[900],
+                backgroundColor: "#f1f5f9",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box sx={{ color: "#6b7280", fontSize: "0.875rem" }}>
+              Nhập thông tin loại phí để {editing ? "cập nhật" : "tạo mới"}.
+            </Box>
+            <TextField
+              fullWidth
+              label="Tên loại phí"
+              placeholder="Ví dụ: Phí Quản lý, Tiền Nước"
+              value={form.ten_phi}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, ten_phi: e.target.value }))
+              }
+            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Đơn giá (VND)"
+                placeholder="Nhập đơn giá"
+                value={form.don_gia}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, don_gia: e.target.value }))
+                }
+                inputProps={{ inputMode: "decimal" }}
+              />
+              <FormControl fullWidth>
+                <InputLabel id="unit-label">Đơn vị tính</InputLabel>
+                <Select
+                  labelId="unit-label"
+                  value={form.don_vi_tinh}
+                  label="Đơn vị tính"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, don_vi_tinh: e.target.value }))
+                  }
+                >
+                  <MenuItem value={"m2"}>m²</MenuItem>
+                  <MenuItem value={"kWh"}>kWh</MenuItem>
+                  <MenuItem value={"m3"}>m³</MenuItem>
+                  <MenuItem value={"xe"}>xe</MenuItem>
+                  <MenuItem value={"tháng"}>tháng</MenuItem>
+                  <MenuItem value={"khác"}>khác</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <TextField
+              fullWidth
+              label="Loại phí (tùy chọn)"
+              placeholder="Ví dụ: Nước, Điện, Quản lý"
+              value={form.loai_phi}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, loai_phi: e.target.value }))
+              }
+            />
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button
             onClick={() => {
               setOpenCreate(false);
@@ -544,6 +604,7 @@ export default function CreateFees() {
               }
             }}
             variant="contained"
+            sx={{ backgroundColor: "var(--blue)" }}
           >
             {editing ? "Cập nhật" : "Lưu"}
           </Button>
@@ -565,68 +626,130 @@ export default function CreateFees() {
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            boxShadow:
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          },
+        }}
       >
-        <DialogTitle>Thêm Khoản Đóng Góp</DialogTitle>
-        <DialogContent>
-          <div style={{ marginTop: 8, color: "#6b7280", marginBottom: 12 }}>
-            Nhập thông tin khoản đóng góp mới.
-          </div>
-          <TextField
-            fullWidth
-            label="Tên khoản đóng góp"
-            placeholder="Ví dụ: Sửa chữa chung cư"
-            margin="normal"
-            value={formContrib.ten_dot}
-            onChange={(e) =>
-              setFormContrib((f) => ({ ...f, ten_dot: e.target.value }))
-            }
-            error={!!errorsContrib.ten_dot}
-            helperText={errorsContrib.ten_dot}
-          />
-          <TextField
-            fullWidth
-            label="Ngày bắt đầu"
-            type="date"
-            margin="normal"
-            value={formContrib.ngay_bat_dau}
-            onChange={(e) =>
-              setFormContrib((f) => ({ ...f, ngay_bat_dau: e.target.value }))
-            }
-            error={!!errorsContrib.ngay_bat_dau}
-            helperText={errorsContrib.ngay_bat_dau}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            fullWidth
-            label="Ngày kết thúc"
-            type="date"
-            margin="normal"
-            value={formContrib.ngay_ket_thuc}
-            onChange={(e) =>
-              setFormContrib((f) => ({ ...f, ngay_ket_thuc: e.target.value }))
-            }
-            error={!!errorsContrib.ngay_ket_thuc}
-            helperText={errorsContrib.ngay_ket_thuc}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            fullWidth
-            label="Số tiền dự kiến (VND)"
-            placeholder="Nhập số tiền"
-            margin="normal"
-            value={formContrib.so_tien_du_kien}
-            onChange={(e) =>
-              setFormContrib((f) => ({
-                ...f,
-                so_tien_du_kien: e.target.value,
-              }))
-            }
-            error={!!errorsContrib.so_tien_du_kien}
-            helperText={errorsContrib.so_tien_du_kien}
-            inputProps={{ inputMode: "decimal" }}
-          />
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid #f1f5f9",
+            padding: "10px",
+            background: "linear-gradient(to right, #bcd9f2ff, #f8fafc)",
+            position: "relative",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: "12px",
+                backgroundColor: "var(--blue)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <HandshakeIcon sx={{ fontSize: 30 }} />
+            </Box>
+            <Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+              >
+                Thêm Khoản Đóng Góp
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton
+            onClick={() => setOpenCreateContrib(false)}
+            sx={{
+              color: (theme) => theme.palette.grey[500],
+              "&:hover": {
+                color: (theme) => theme.palette.grey[900],
+                backgroundColor: "#f1f5f9",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box sx={{ color: "#6b7280", fontSize: "0.875rem" }}>
+              Nhập thông tin khoản đóng góp mới.
+            </Box>
+            <TextField
+              fullWidth
+              label="Tên khoản đóng góp"
+              placeholder="Ví dụ: Sửa chữa chung cư"
+              value={formContrib.ten_dot}
+              onChange={(e) =>
+                setFormContrib((f) => ({ ...f, ten_dot: e.target.value }))
+              }
+              error={!!errorsContrib.ten_dot}
+              helperText={errorsContrib.ten_dot}
+            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Ngày bắt đầu"
+                type="date"
+                value={formContrib.ngay_bat_dau}
+                onChange={(e) =>
+                  setFormContrib((f) => ({
+                    ...f,
+                    ngay_bat_dau: e.target.value,
+                  }))
+                }
+                error={!!errorsContrib.ngay_bat_dau}
+                helperText={errorsContrib.ngay_bat_dau}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                fullWidth
+                label="Ngày kết thúc"
+                type="date"
+                value={formContrib.ngay_ket_thuc}
+                onChange={(e) =>
+                  setFormContrib((f) => ({
+                    ...f,
+                    ngay_ket_thuc: e.target.value,
+                  }))
+                }
+                error={!!errorsContrib.ngay_ket_thuc}
+                helperText={errorsContrib.ngay_ket_thuc}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Box>
+            <TextField
+              fullWidth
+              label="Số tiền dự kiến (VND)"
+              placeholder="Nhập số tiền"
+              value={formContrib.so_tien_du_kien}
+              onChange={(e) =>
+                setFormContrib((f) => ({
+                  ...f,
+                  so_tien_du_kien: e.target.value,
+                }))
+              }
+              error={!!errorsContrib.so_tien_du_kien}
+              helperText={errorsContrib.so_tien_du_kien}
+              inputProps={{ inputMode: "decimal" }}
+            />
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
           <Button
             onClick={() => {
               setOpenCreateContrib(false);
@@ -683,7 +806,8 @@ export default function CreateFees() {
                   ten_dot: formContrib.ten_dot,
                   ngay_bat_dau: formContrib.ngay_bat_dau,
                   ngay_ket_thuc: formContrib.ngay_ket_thuc,
-                  so_tien_du_kien: parseFloat(formContrib.so_tien_du_kien) || 0,
+                  so_tien_du_kien:
+                    parseFloat(formContrib.so_tien_du_kien) || 0,
                 };
                 await financeService.createContribution(payload);
                 setOpenCreateContrib(false);
@@ -704,6 +828,7 @@ export default function CreateFees() {
               }
             }}
             variant="contained"
+            sx={{ backgroundColor: "var(--blue)" }}
           >
             Lưu
           </Button>
