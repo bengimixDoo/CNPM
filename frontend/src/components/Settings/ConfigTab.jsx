@@ -29,13 +29,14 @@ export default function ConfigTab() {
         borderTopLeftRadius: 0,
         zIndex: 5,
         position: "relative",
+        height: "500px",
       }}
     >
       <Box display="flex" alignItems="center" gap={1.5} mb={4}>
         <Box
           sx={{
             p: 1,
-            bgcolor: "#ffedd5",
+            bgcolor: "#ffffffff",
             borderRadius: "8px",
             color: "#ea580c",
             display: "flex",
@@ -49,16 +50,16 @@ export default function ConfigTab() {
       </Box>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6}>  
           <Box
             sx={{
-              bgcolor: "#f8fafc",
+              bgcolor: "#ffffffff",
               borderRadius: "12px",
-              border: `1px solid ${BORDER_COLOR}`,
+              border: `1px solid #ffffffff`,
               p: 4,
-              height: "100%",
+              height: "250px",
               transition: "all 0.2s",
-              "&:hover": { borderColor: "#cbd5e1" },
+              "&:hover": { borderColor: "#ffffffff" },
             }}
           >
             <Typography
@@ -74,7 +75,7 @@ export default function ConfigTab() {
                 letterSpacing: 1,
               }}
             >
-              <LanguageIcon sx={{ color: "#94a3b8", fontSize: 20 }} />
+              <LanguageIcon sx={{ color: "#ffffffff", fontSize: 20 }} />
               Ngôn ngữ & Khu vực
             </Typography>
 
@@ -119,13 +120,13 @@ export default function ConfigTab() {
         <Grid item xs={12} md={6}>
           <Box
             sx={{
-              bgcolor: "#f8fafc",
+              bgcolor: "#ffffffff",
               borderRadius: "12px",
               border: `1px solid ${BORDER_COLOR}`,
               p: 4,
               height: "100%",
               transition: "all 0.2s",
-              "&:hover": { borderColor: "#cbd5e1" },
+              "&:hover": { borderColor: "#ffffffff" },
             }}
           >
             <Typography
