@@ -46,6 +46,27 @@ export const authService = {
     });
     return response.data;
   },
+
+  // Quản lý người dùng (dành cho Admin/Manager)
+  getUsers: async () => {
+    const response = await axiosInstance.get("/users/");
+    return response.data;
+  },
+
+  createUser: async (data) => {
+    const response = await axiosInstance.post("/users/", data);
+    return response.data;
+  },
+
+  updateUser: async (id, data) => {
+    const response = await axiosInstance.patch(`/users/${id}/`, data);
+    return response.data;
+  },
+
+  deleteUser: async (id) => {
+    const response = await axiosInstance.delete(`/users/${id}/`);
+    return response.data;
+  },
 };
 
 // ==================== RESIDENTS SERVICES ====================
@@ -333,7 +354,7 @@ export const dashboardService = {
   },
 
   // Gửi thông báo
-  sendNotification: async (data) => {
+  sendNotification: async () => {
     // const response = await axiosInstance.post('/v1/notifications/send', data);
     // return response.data;
     return { message: "Module thông báo đang phát triển" };

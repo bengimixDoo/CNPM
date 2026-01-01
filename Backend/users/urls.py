@@ -5,10 +5,11 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView
 )
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from .views import UserViewSet, MyTokenObtainPairView
+from .views import UserViewSet, MyTokenObtainPairView, NotificationViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 
 urlpatterns = [
     # Auth API (Theo Image 2)

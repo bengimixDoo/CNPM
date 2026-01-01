@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Notification
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -51,3 +52,10 @@ class ChangePasswordSerializer(serializers.Serializer):
 class LinkResidentSerializer(serializers.Serializer):
     """Validate input mapping cư dân"""
     cu_dan_id = serializers.IntegerField(required=True)
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'title', 'message', 'target_type', 'target_id', 'is_read', 'created_at']
+        read_only_fields = ['id', 'created_at']

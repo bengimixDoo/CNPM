@@ -17,6 +17,7 @@ from .serializers import (
     MonthlyExpenseSerializer
 )
 from users.permissions import IsManager, IsAccountant, IsOwnerOrReadOnly
+from users.models import Notification
 
 @extend_schema(tags=['Finance - Fees'])
 class FeeCategoryViewSet(viewsets.ModelViewSet):
@@ -90,6 +91,29 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         
         actor = "Cư dân" if request.user.role == 'CU_DAN' else "Quản lý"
         return Response({"message": f"Xác nhận thanh toán thành công bởi {actor}."})
+
+    @action(detail=True, methods=['post'], url_path='send-to-resident')
+    def send_to_resident(self, request, pk=None):
+        """Tạo thông báo in-app cho cư dân để họ mở giao diện và thanh toán."""
+        if request.user.role not in ['QUAN_LY', 'KE_TOAN', 'ADMIN']:
+            return Response({"error": "Bạn không có quyền thực hiện thao tác này."}, status=status.HTTP_403_FORBIDDEN)
+
+        invoice = self.get_object()
+        owner = getattr(invoice.can_ho, 'chu_so_huu', None)
+        resident_user = getattr(owner, 'user_account', None) if owner else None
+
+        if not owner or not resident_user:
+            return Response({"error": "Căn hộ chưa gắn với tài khoản cư dân để gửi hóa đơn."}, status=status.HTTP_400_BAD_REQUEST)
+        payment_url = request.data.get('payment_url') or f"/invoices/{invoice.ma_hoa_don}"
+        Notification.objects.create(
+            user=resident_user,
+            title=f"Hóa đơn {invoice.thang}/{invoice.nam}",
+            message=f"Tổng tiền {invoice.tong_tien}. Bấm để xem chi tiết và thanh toán.",
+            target_type="INVOICE",
+            target_id=invoice.ma_hoa_don,
+        )
+
+        return Response({"message": "Đã tạo thông báo hóa đơn cho cư dân.", "payment_url": payment_url})
 
 @extend_schema(tags=['Finance - Analytics'])
 class RevenueStatsView(viewsets.ViewSet):

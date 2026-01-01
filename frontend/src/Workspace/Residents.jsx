@@ -22,15 +22,6 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { useState, useMemo, useEffect } from "react";
 import { residentsService, apartmentsService } from "../api/services";
 
-const statusColors = {
-  "Đang cư trú": {
-    bg: "var(--color-green-100)",
-    text: "var(--color-green-800)",
-  },
-  "Đã chuyển đi": { bg: "#fee2e2", text: "#dc2626" },
-  "Tạm vắng": { bg: "#fef3c7", text: "#d97706" },
-};
-
 const defaultPaginationModel = { page: 0, pageSize: 10 };
 
 const makeColumns = (onDelete) => [

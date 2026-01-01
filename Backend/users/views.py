@@ -9,8 +9,9 @@ from drf_spectacular.utils import extend_schema
 from .serializers import (
     UserSerializer, CreateUserSerializer,
     ChangePasswordSerializer, LinkResidentSerializer,
-    MyTokenObtainPairSerializer
+    MyTokenObtainPairSerializer, NotificationSerializer
 )
+from .models import Notification
 
 # [QUAN TRỌNG] Import đúng tên Permission mới
 # IsManager đã bao gồm quyền của Admin và Manager
@@ -59,9 +60,9 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action in ['retrieve', 'update', 'partial_update']:
             return [IsOwnerOrReadOnly()]
 
-        # 4. Xóa User (Destroy): Chỉ Admin tối cao mới được xóa
+        # 4. Xóa User (Destroy): Quản lý hoặc Admin (IsManager đã bao gồm Admin)
         if self.action == 'destroy':
-            return [IsAdmin()]
+            return [IsManager()]
 
         # 5. Link Cư dân: Chỉ Quản lý thực hiện
         if self.action == 'link_resident':
@@ -138,3 +139,19 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(tags=['Notifications'])
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='mark-read')
+    def mark_read(self, request, pk=None):
+        notification = self.get_object()
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+        return Response({"message": "Đã đánh dấu đã đọc"})

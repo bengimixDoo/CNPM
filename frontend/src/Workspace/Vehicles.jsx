@@ -22,32 +22,6 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import { useState, useMemo, useEffect } from "react";
 import { utilitiesService, apartmentsService } from "../api/services";
 
-// Define colors for vehicle types
-const vehicleTypeColors = {
-  "Ô tô": {
-    bg: "var(--color-blue-100)",
-    text: "var(--color-blue-800)",
-  },
-  "Xe máy": {
-    bg: "var(--color-green-100)",
-    text: "var(--color-green-800)",
-  },
-  "Xe đạp": {
-    bg: "var(--color-yellow-100)",
-    text: "var(--color-yellow-800)",
-  },
-  Khác: { bg: "#f3f4f6", text: "#374151" },
-};
-
-// Define colors for status
-const statusColors = {
-  "Đang sử dụng": {
-    bg: "var(--color-green-100)",
-    text: "var(--color-green-800)",
-  },
-  "Ngừng hoạt động": { bg: "#fee2e2", text: "#dc2626" },
-};
-
 const defaultPaginationModel = { page: 0, pageSize: 10 };
 
 const makeColumns = (onDelete) => [

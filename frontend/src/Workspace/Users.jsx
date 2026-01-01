@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from "react";
-import {
-  Paper,
-  Box,
-  TextField,
-  Button,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-} from "@mui/material";
+import "../styles/AdminDashboard.css";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
+import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { authService } from "../../api/services";
-
-import { cardStyle } from "./SettingsStyle";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import { useState, useEffect } from "react";
+import { authService } from "../api/services";
 
 const defaultPaginationModel = { page: 0, pageSize: 10 };
 
@@ -148,7 +145,7 @@ const makeColumns = (onEdit, onDelete) => [
   },
 ];
 
-export default function PermissionsTab() {
+export default function Users() {
   const [paginationModel, setPaginationModel] = useState(
     defaultPaginationModel
   );
@@ -296,15 +293,19 @@ export default function PermissionsTab() {
   });
 
   return (
-    <Paper
-      sx={{
-        ...cardStyle,
-        mt: "-1px",
-        borderTopLeftRadius: 0,
-        zIndex: 5,
-        position: "relative",
-      }}
-    >
+    <div className="admin-dashboard">
+      {/* Header */}
+      <div style={{ marginBottom: "24px" }}>
+        <h1
+          style={{ fontSize: "28px", fontWeight: "700", marginBottom: "8px" }}
+        >
+          Quản lý tài khoản
+        </h1>
+        <p style={{ color: "#6b7280" }}>
+          Quản lý tài khoản người dùng trong hệ thống
+        </p>
+      </div>
+
       {/* Filters and Add Button */}
       <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
         <TextField
@@ -341,7 +342,7 @@ export default function PermissionsTab() {
       </Box>
 
       {/* Data Table */}
-      <Box sx={{ height: 600, width: "100%" }}>
+      <Paper sx={{ height: 600, borderRadius: "12px", overflow: "hidden" }}>
         <DataGrid
           rows={filteredUsers}
           columns={makeColumns(handleEdit, handleDelete)}
@@ -358,7 +359,7 @@ export default function PermissionsTab() {
             "& .MuiDataGrid-root": { height: "100%" },
           }}
         />
-      </Box>
+      </Paper>
 
       {/* Create/Edit Dialog */}
       <Dialog
@@ -431,6 +432,6 @@ export default function PermissionsTab() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </div>
   );
 }

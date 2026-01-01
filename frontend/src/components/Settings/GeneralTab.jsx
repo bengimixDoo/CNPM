@@ -155,7 +155,9 @@ export default function GeneralTab() {
             </Box>
             <Box sx={{ zIndex: 10, mt: 2 }}>
               <Typography variant="h6" fontWeight={700} color={TEXT_PRIMARY}>
-                {loadingMe ? "Đang tải..." : me?.username || "Người dùng"}
+                {loadingMe
+                  ? "Đang tải..."
+                  : me?.first_name + " " + me?.last_name || "Người dùng"}
               </Typography>
               <Box
                 display="flex"
@@ -250,7 +252,9 @@ export default function GeneralTab() {
                 <Typography sx={labelStyle}>Họ và tên</Typography>
                 <TextField
                   fullWidth
-                  value={loadingMe ? "" : me?.first_name + " " + me?.last_name || ""}
+                  value={
+                    loadingMe ? "" : me?.first_name + " " + me?.last_name || ""
+                  }
                   sx={inputStyle}
                   InputProps={{ readOnly: true }}
                   helperText="Username (không chỉnh sửa tại đây)"
@@ -260,7 +264,11 @@ export default function GeneralTab() {
                 <Typography sx={labelStyle}>Số điện thoại</Typography>
                 <TextField
                   fullWidth
-                  value={loadingMe ? "" : (me?.role !== "CƯ DÂN" ? "0123456789" : "") || ""}
+                  value={
+                    loadingMe
+                      ? ""
+                      : (me?.role !== "CƯ DÂN" ? "0123456789" : "") || ""
+                  }
                   sx={inputStyle}
                   placeholder="Không có trong API"
                   InputProps={{ readOnly: true }}
@@ -278,7 +286,6 @@ export default function GeneralTab() {
                     startAdornment: (
                       <InputAdornment position="start">
                         <MailIcon sx={{ color: "#94a3b8" }} />
-                        
                       </InputAdornment>
                     ),
                   }}
