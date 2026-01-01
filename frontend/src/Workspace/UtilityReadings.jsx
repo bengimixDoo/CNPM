@@ -48,7 +48,7 @@ const makeColumns = (onDelete) => [
   {
     field: "ma_can_ho",
     headerName: "Căn hộ",
-    width: 150,
+    width: 140,
     headerAlign: "center",
     align: "center",
     renderCell: (params) => {
@@ -64,7 +64,7 @@ const makeColumns = (onDelete) => [
   {
     field: "loai_dich_vu",
     headerName: "Loại dịch vụ",
-    width: 150,
+    width: 120,
     headerAlign: "center",
     align: "center",
     renderCell: (params) => {
@@ -78,7 +78,6 @@ const makeColumns = (onDelete) => [
             padding: "4px 8px",
             borderRadius: "11px",
             fontWeight: "500",
-            fontSize: "12px",
           }}
         >
           {display}
@@ -100,7 +99,7 @@ const makeColumns = (onDelete) => [
   {
     field: "chi_so_cu",
     headerName: "Chỉ số cũ",
-    width: 120,
+    width: 100,
     headerAlign: "center",
     align: "center",
     type: "number",
@@ -108,7 +107,7 @@ const makeColumns = (onDelete) => [
   {
     field: "chi_so_moi",
     headerName: "Chỉ số mới",
-    width: 120,
+    width: 100,
     headerAlign: "center",
     align: "center",
     type: "number",
@@ -396,23 +395,31 @@ export default function UtilityReadings() {
             alignItems: "center",
             padding: "16px",
             backgroundColor: "white",
-            borderRadius: "12px",
+            borderRadius: "12px 12px 0 0",
             border: "1px solid #e0e0e0",
-            marginBottom: "16px",
+            height: "56px",
           }}
         >
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              width: "100%",
+              gap: 2,
+              alignItems: "center",
+              flexWrap: "nowrap",
+            }}
+          >
             <TextField
               variant="outlined"
               size="small"
               placeholder="Tìm theo căn hộ..."
-              sx={{ width: 300 }}
+              sx={{ flex: 1, minWidth: "250px" }}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
 
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Loại dịch vụ</InputLabel>
+            <FormControl size="small" sx={{ flexShrink: 0 }}>
+              <InputLabel sx={{ zIndex: 1 }}>Loại dịch vụ</InputLabel>
               <Select
                 label="Loại dịch vụ"
                 value={filterType}
@@ -423,32 +430,21 @@ export default function UtilityReadings() {
                 <MenuItem value="W">Nước</MenuItem>
               </Select>
             </FormControl>
-
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<FilterListIcon />}
-              sx={{ width: 125, height: 40 }}
-            >
-              Bộ lọc
-            </Button>
-          </Box>
-          <Box sx={{ display: "flex", gap: 1 }}>
             <Button
               variant="outlined"
               startIcon={<DownloadIcon />}
-              sx={{ height: 40 }}
+              sx={{ height: 40, whiteSpace: "nowrap", flexShrink: 0, width: "150px" }}
               onClick={handleDownloadTemplate}
             >
-              Tải mẫu Excel
+              Tải mẫu
             </Button>
             <Button
               variant="outlined"
               startIcon={<UploadFileIcon />}
-              sx={{ height: 40 }}
+              sx={{ height: 40, whiteSpace: "nowrap", flexShrink: 0, width: "150px" }}
               onClick={() => setOpenUpload(true)}
             >
-              Upload Excel
+              Upload
             </Button>
             <Button
               variant="contained"
@@ -456,6 +452,9 @@ export default function UtilityReadings() {
               sx={{
                 backgroundColor: "var(--blue)",
                 height: 40,
+                whiteSpace: "nowrap",
+                width: "140px",
+                flexShrink: 0,
               }}
               onClick={() => setOpenCreate(true)}
             >
@@ -468,10 +467,9 @@ export default function UtilityReadings() {
       <Paper
         sx={{
           height: containerHeight,
-          borderRadius: "12px",
+          borderRadius: "0 0 12px 12px",
           transition: "height 0.2s ease",
           overflow: "hidden",
-          marginTop: "16px",
         }}
       >
         <DataGrid
@@ -487,7 +485,7 @@ export default function UtilityReadings() {
           pageSizeOptions={[5, 10]}
           checkboxSelection
           sx={{
-            borderRadius: "12px",
+            borderRadius: "0 0 12px 12px",
             "& .MuiDataGrid-root": { height: "100%" },
           }}
         />

@@ -1,4 +1,5 @@
 import "../styles/AdminDashboard.css";
+import StatCard from "../components/StatCard";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
@@ -14,6 +15,7 @@ import FormHelperText from "@mui/material/FormHelperText";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import Dialog from "@mui/material/Dialog";
+import HomeIcon from '@mui/icons-material/Home';
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
@@ -24,6 +26,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import HistoryIcon from "@mui/icons-material/History";
 import PeopleIcon from "@mui/icons-material/People";
+import GroupRemoveIcon from "@mui/icons-material/GroupRemove";
 import { useState, useMemo, useEffect } from "react";
 import { residentsService, apartmentsService } from "../api/services";
 
@@ -90,7 +93,7 @@ const makeColumns = () => [
   {
     field: "status",
     headerName: "Trạng thái",
-    width: 140,
+    width: 100,
     headerAlign: "center",
     align: "center",
     renderCell: (params) => {
@@ -219,6 +222,7 @@ export default function Residents() {
     }
   };
 
+  // 3. Effects
   useEffect(() => {
     fetchResidents();
     fetchApartments();
@@ -230,6 +234,7 @@ export default function Residents() {
     }
   }, [activeTab]);
 
+  // 4. form Handlers
   const handleOpenCreate = () => {
     setOpenCreate(true);
     setErrors({});
@@ -363,7 +368,6 @@ export default function Residents() {
       "Tạm vắng": "TV",
       "Đã chuyển đi": "OUT",
     };
-
     setEditResident({
       ho_ten: resident.name,
       gioi_tinh: resident.sex === "Nam" ? "M" : "F",
@@ -504,6 +508,16 @@ export default function Residents() {
 
   const rows = useMemo(() => residents, [residents]);
 
+  const stats = useMemo(() => {
+    const total = residents.length;
+    const present = residents.filter(
+      (r) => r.status === "Đang cư trú" || r.status === "Tạm trú"
+    ).length;
+    const absent = residents.filter((r) => r.status === "Tạm vắng").length;
+    const apartments = new Set(residents.map((r) => r.id_apartment)).size;
+    return { total, present, absent, apartments };
+  }, [residents]);
+
   const handlePaginationChange = (newModel) => {
     setPaginationModel(newModel);
   };
@@ -521,8 +535,47 @@ export default function Residents() {
     );
   }, [paginationModel.pageSize]);
 
+  // 6. Return JSX
+
   return (
     <>
+      {/* Stat Cards */}
+      <div
+        className="stats-grid"
+        style={{
+          marginBottom: "20px",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "20px",
+        }}
+      >
+        <StatCard
+          title="Tổng Cư dân"
+          value={stats.total}
+          icon={<PeopleIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-blue)"
+          trend="+5% tháng này"
+        />
+        <StatCard
+          title="Đang ở"
+          value={stats.present}
+          icon={<PeopleIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-green)"
+        />
+        <StatCard
+          title="Tạm vắng"
+          value={stats.absent}
+          icon={<GroupRemoveIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-yellow)"
+        />
+        <StatCard
+          title="Số Hộ dân"
+          value={stats.apartments}
+          icon={<HomeIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-red)"
+        />
+      </div>
+
       <div className="dashboard-grid">
         <Box
           sx={{
@@ -533,12 +586,11 @@ export default function Residents() {
         >
           <Tabs
             value={activeTab}
-            onChange={(e, newValue) => setActiveTab(newValue)}
+            onChange={(e, val) => setActiveTab(val)}
             sx={{
               "& .MuiTab-root": {
                 textTransform: "none",
                 fontWeight: 500,
-                fontSize: "15px",
                 minHeight: "56px",
               },
             }}
@@ -555,195 +607,203 @@ export default function Residents() {
             />
           </Tabs>
           {/* Tab Content */}
-          {activeTab === 0 && (
-            <>
-              {/* Tab Quản lý Cư dân - Code hiện tại */}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "16px",
-                  backgroundColor: "white",
-                  border: "1px solid #e0e0e0",
-                }}
-              >
-                <Box sx={{ display: "flex", gap: 26, alignItems: "center" }}>
-                  <TextField
-                    variant="outlined"
-                    size="small"
-                    placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
-                    sx={{ width: 700 }}
-                  />
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{
-                      backgroundColor: "var(--blue)",
-                      height: 40,
-                      marginLeft: "10px",
-                      width: "160px",
-                    }}
-                    onClick={handleOpenCreate}
-                  >
-                    Thêm Cư dân
-                  </Button>
-                </Box>
-              </Box>
-
-              <Paper
-                sx={{
-                  height: containerHeight,
-                  borderRadius: "0 0 12px 12px",
-                  transition: "height 0.2s ease",
-                  overflow: "hidden",
-                }}
-              >
-                <DataGrid
-                  rows={rows}
-                  getRowId={(row) => row._rowId}
-                  columns={[
-                    ...makeColumns(),
-                    {
-                      field: "actions",
-                      headerName: "Hành động",
-                      type: "actions",
-                      width: 150,
-                      getActions: (params) => [
-                        <GridActionsCellItem
-                          icon={<EditIcon />}
-                          label="Sửa"
-                          onClick={() => handleEditResident(params.row)}
-                          showInMenu={false}
-                        />,
-                        <GridActionsCellItem
-                          icon={<DeleteIcon />}
-                          label="Xóa"
-                          onClick={() => handleDeleteResident(params.row)}
-                          showInMenu={false}
-                        />,
-                      ],
-                    },
-                  ]}
-                  loading={loading}
-                  rowHeight={52}
-                  columnHeaderHeight={56}
-                  pagination
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={handlePaginationChange}
-                  pageSizeOptions={[5, 10]}
-                  checkboxSelection
-                  sx={{
-                    borderRadius: "12px",
-                    "& .MuiDataGrid-root": { height: "100%" },
-                  }}
-                />
-              </Paper>
-            </>
-          )}
-
-          {/* Tab Lịch sử Biến động */}
-          {activeTab === 1 && (
-            <Box
-              sx={{
-                backgroundColor: "white",
-                borderRadius: "0 0 12px 12px",
-                padding: "16px",
-              }}
-            >
-              <DataGrid
-                rows={historyData}
-                getRowId={(row) => row.ma_bien_dong}
-                columns={[
-                  {
-                    field: "ma_bien_dong",
-                    headerName: "Mã biến động",
-                    width: 120,
-                    headerAlign: "center",
-                    align: "center",
-                  },
-                  {
-                    field: "ho_ten",
-                    headerName: "Họ và tên",
-                    width: 200,
-                    valueGetter: (value, row) => row.cu_dan?.ho_ten || "N/A",
-                  },
-                  {
-                    field: "so_cccd",
-                    headerName: "Số CCCD",
-                    width: 140,
-                    valueGetter: (value, row) => row.cu_dan?.so_cccd || "N/A",
-                  },
-                  {
-                    field: "can_ho",
-                    headerName: "Căn hộ",
-                    width: 100,
-                    valueGetter: (value, row) => row.can_ho?.ma_can_ho || "N/A",
-                  },
-                  {
-                    field: "loai_bien_dong",
-                    headerName: "Loại biến động",
-                    width: 150,
-                    renderCell: (params) => {
-                      const colors = {
-                        "Thường trú": { bg: "#e8f5e9", text: "#2e7d32" },
-                        "Tạm trú": { bg: "#e3f2fd", text: "#1976d2" },
-                        "Tạm Vắng": { bg: "#fff3e0", text: "#f57c00" },
-                        "Chuyển Đi": { bg: "#ffebee", text: "#c62828" },
-                      };
-                      const color = colors[params.value] || {
-                        bg: "#f5f5f5",
-                        text: "#616161",
-                      };
-                      return (
-                        <span
-                          style={{
-                            backgroundColor: color.bg,
-                            color: color.text,
-                            padding: "4px 12px",
-                            borderRadius: "12px",
-                            fontWeight: "500",
-                            fontSize: "13px",
-                          }}
-                        >
-                          {params.value}
-                        </span>
-                      );
-                    },
-                  },
-                  {
-                    field: "ngay_thuc_hien",
-                    headerName: "Ngày thực hiện",
-                    width: 150,
-                    type: "date",
-                    valueGetter: (value) => new Date(value),
-                    valueFormatter: (value) => {
-                      return new Date(value).toLocaleDateString("vi-VN");
-                    },
-                  },
-                ]}
-                loading={loadingHistory}
-                pageSizeOptions={[10, 20, 50]}
-                initialState={{
-                  pagination: { paginationModel: { pageSize: 10 } },
-                }}
-                autoHeight
-                disableRowSelectionOnClick
-                sx={{
-                  border: "none",
-                  "& .MuiDataGrid-cell": {
-                    borderBottom: "1px solid #f0f0f0",
-                  },
-                  "& .MuiDataGrid-columnHeaders": {
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #e0e0e0",
-                  },
-                }}
-              />
-            </Box>
-          )}
         </Box>
       </div>
+      {activeTab === 0 && (
+        <>
+          {/* Tab Quản lý Cư dân - Code hiện tại */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px",
+              backgroundColor: "white",
+              borderBottom: "1px solid #e0e0e0",
+            }}
+          >
+            <Box sx={{ display: "flex", gap: 26, alignItems: "center" }}>
+              <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Tìm theo mã căn hộ, tên chủ hộ..."
+                sx={{ width: 700 }}
+              />
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                sx={{
+                  backgroundColor: "var(--blue)",
+                  height: 40,
+                  marginLeft: "10px",
+                  width: "160px",
+                }}
+                onClick={handleOpenCreate}
+              >
+                Thêm Cư dân
+              </Button>
+            </Box>
+          </Box>
+
+          <Paper
+            sx={{
+              height: containerHeight,
+              borderRadius: "0 0 12px 12px",
+              transition: "height 0.2s ease",
+              overflow: "hidden",
+            }}
+          >
+            <DataGrid
+              rows={rows}
+              getRowId={(row) => row._rowId}
+              columns={[
+                ...makeColumns(),
+                {
+                  field: "actions",
+                  headerName: "Hành động",
+                  type: "actions",
+                  width: 150,
+                  getActions: (params) => [
+                    <GridActionsCellItem
+                      icon={<EditIcon />}
+                      label="Sửa"
+                      onClick={() => handleEditResident(params.row)}
+                      showInMenu={false}
+                      sx={{
+                        height: 40,
+                        width: "50px",
+                      }}
+                    />,
+                    <GridActionsCellItem
+                      icon={<DeleteIcon />}
+                      label="Xóa"
+                      onClick={() => handleDeleteResident(params.row)}
+                      showInMenu={false}
+                      sx={{
+                        height: 40,
+                        width: "50px",
+                        color: "red",
+                      }}
+                    />,
+                  ],
+                },
+              ]}
+              loading={loading}
+              rowHeight={52}
+              columnHeaderHeight={56}
+              pagination
+              paginationModel={paginationModel}
+              onPaginationModelChange={handlePaginationChange}
+              pageSizeOptions={[5, 10]}
+              checkboxSelection
+              sx={{
+                borderRadius: "0 0 12px 12px",
+                "& .MuiDataGrid-root": { height: "100%" },
+              }}
+            />
+          </Paper>
+        </>
+      )}
+
+      {activeTab === 1 && (
+        <Box
+          sx={{
+            backgroundColor: "white",
+            borderRadius: "0 0 12px 12px",
+          }}
+        >
+          <DataGrid
+            rows={historyData}
+            getRowId={(row) => row.ma_bien_dong}
+            columns={[
+              {
+                field: "ma_bien_dong",
+                headerName: "Mã biến động",
+                width: 120,
+                headerAlign: "center",
+                align: "center",
+              },
+              {
+                field: "ho_ten",
+                headerName: "Họ và tên",
+                width: 200,
+                valueGetter: (value, row) => row.cu_dan?.ho_ten || "N/A",
+              },
+              {
+                field: "so_cccd",
+                headerName: "Số CCCD",
+                width: 140,
+                valueGetter: (value, row) => row.cu_dan?.so_cccd || "N/A",
+              },
+              {
+                field: "can_ho",
+                headerName: "Căn hộ",
+                width: 100,
+                valueGetter: (value, row) => row.can_ho?.ma_can_ho || "N/A",
+              },
+              {
+                field: "loai_bien_dong",
+                headerName: "Loại biến động",
+                width: 150,
+                renderCell: (params) => {
+                  const colors = {
+                    "Thường trú": { bg: "#e8f5e9", text: "#2e7d32" },
+                    "Tạm trú": { bg: "#e3f2fd", text: "#1976d2" },
+                    "Tạm Vắng": { bg: "#fff3e0", text: "#f57c00" },
+                    "Chuyển Đi": { bg: "#ffebee", text: "#c62828" },
+                  };
+                  const color = colors[params.value] || {
+                    bg: "#f5f5f5",
+                    text: "#616161",
+                  };
+                  return (
+                    <span
+                      style={{
+                        backgroundColor: color.bg,
+                        color: color.text,
+                        padding: "4px 12px",
+                        borderRadius: "12px",
+                        fontWeight: "500",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {params.value}
+                    </span>
+                  );
+                },
+              },
+              {
+                field: "ngay_thuc_hien",
+                headerName: "Ngày thực hiện",
+                width: 150,
+                type: "date",
+                valueGetter: (value) => new Date(value),
+                valueFormatter: (value) => {
+                  return new Date(value).toLocaleDateString("vi-VN");
+                },
+              },
+            ]}
+            loading={loadingHistory}
+            pageSizeOptions={[10, 20, 50]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
+            autoHeight
+            disableRowSelectionOnClick
+            sx={{
+              border: "none",
+              "& .MuiDataGrid-cell": {
+                borderBottom: "1px solid #f0f0f0",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f8f9fa",
+                borderBottom: "2px solid #e0e0e0",
+              },
+            }}
+          />
+        </Box>
+      )}
+
       <Dialog
         open={openCreate}
         onClose={handleCloseCreate}

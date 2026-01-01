@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
+import StatCard from "../components/StatCard";
+import WarningIcon from "@mui/icons-material/Warning";
 import { financeService } from "../api/services";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import {
@@ -157,9 +159,9 @@ export default function Invoices() {
       width: 150,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (params) => {
-        if (params.value == null) return "";
-        return params.value.toLocaleString("vi-VN") + " VND";
+      valueFormatter: (value) => {
+        if (value == null) return "";
+        return Number(value).toLocaleString("vi-VN") + " VND";
       },
     },
     {
@@ -226,57 +228,115 @@ export default function Invoices() {
     );
   }, [paginationModel.pageSize]);
 
+  /* Statistics Logic */
+  const stats = useMemo(() => {
+    const totalRevenue = rows
+      .filter((r) => r.trang_thai === "Đã thanh toán")
+      .reduce((sum, r) => sum + r.tong_tien, 0);
+
+    const unpaidCount = rows.filter(
+      (r) => r.trang_thai === "Chưa thanh toán"
+    ).length;
+
+    const unpaidAmount = rows
+      .filter((r) => r.trang_thai === "Chưa thanh toán")
+      .reduce((sum, r) => sum + r.tong_tien, 0);
+
+    const totalExpected = totalRevenue + unpaidAmount;
+    const collectionRate =
+      totalExpected > 0 ? (totalRevenue / totalExpected) * 100 : 0;
+
+    return { totalRevenue, unpaidCount, unpaidAmount, collectionRate };
+  }, [rows]);
+
   return (
-    <div className="workspace-container">
-      {/* 1. Header & Filter */}
-      <Paper
-        sx={{
-          p: 2,
-          mb: 3,
-          borderRadius: 3,
-          display: "flex",
-          gap: 2,
-          alignItems: "center",
+    <>
+      {/* Stat Cards Row */}
+      <div
+        className="stats-grid"
+        style={{
+          marginBottom: "20px",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "20px",
         }}
       >
-        <TextField
-          size="small"
-          placeholder="Tìm mã hóa đơn, căn hộ..."
-          sx={{ width: 250 }}
+        <StatCard
+          title="Doanh thu thực tế"
+          value={stats.totalRevenue.toLocaleString("vi-VN") + " VND"}
+          icon={<AttachMoneyIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-blue)"
+          valueFontSize="20px"
         />
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Trạng thái</InputLabel>
-          <Select defaultValue="all" label="Trạng thái">
-            <MenuItem value="all">Tất cả</MenuItem>
-            <MenuItem value="paid">Đã thanh toán</MenuItem>
-            <MenuItem value="unpaid">Chưa thanh toán</MenuItem>
-          </Select>
-        </FormControl>
-        <TextField
-          type="date"
-          size="small"
-          label="Từ ngày"
-          InputLabelProps={{ shrink: true }}
+        <StatCard
+          title="Hóa đơn chưa thu"
+          value={stats.unpaidCount}
+          icon={<ReceiptLongIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-green)"
         />
-        <TextField
-          type="date"
-          size="small"
-          label="Đến ngày"
-          InputLabelProps={{ shrink: true }}
+        <StatCard
+          title="Tổng nợ"
+          value={stats.unpaidAmount.toLocaleString("vi-VN") + " VND"}
+          icon={<WarningIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-yellow)"
+          valueFontSize="20px"
         />
+        <StatCard
+          title="Tỷ lệ thu hồi"
+          value={stats.collectionRate.toFixed(1) + "%"}
+          icon={<AttachMoneyIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-red)"
+        />
+      </div>
 
-        <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
-          <Button variant="outlined" startIcon={<PrintIcon />}>
-            In Hóa đơn
-          </Button>
-        </Box>
-      </Paper>
+      <div className="dashboard-grid">
+        <Paper
+          sx={{
+            p: 2,
+            borderRadius: "12px 12px 0 0",
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+          }}
+        >
+          <TextField
+            size="small"
+            placeholder="Tìm mã hóa đơn, căn hộ..."
+            sx={{ width: 250 }}
+          />
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Trạng thái</InputLabel>
+            <Select defaultValue="all" label="Trạng thái">
+              <MenuItem value="all">Tất cả</MenuItem>
+              <MenuItem value="paid">Đã thanh toán</MenuItem>
+              <MenuItem value="unpaid">Chưa thanh toán</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            type="date"
+            size="small"
+            label="Từ ngày"
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            type="date"
+            size="small"
+            label="Đến ngày"
+            InputLabelProps={{ shrink: true }}
+          />
 
+          <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
+            <Button variant="outlined" startIcon={<PrintIcon />}>
+              In Hóa đơn
+            </Button>
+          </Box>
+        </Paper>
+      </div>
       {/* 2. DataGrid */}
       <Paper
         sx={{
           height: containerHeight,
-          borderRadius: 3,
+          borderRadius: "0 0 12px 12px",
           boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
         }}
       >
@@ -289,11 +349,9 @@ export default function Invoices() {
           onPaginationModelChange={setPaginationModel}
           checkboxSelection
           disableRowSelectionOnClick
-          sx={{ border: "none" }}
+          sx={{ borderRadius: "0 0 12px 12px" }}
         />
       </Paper>
-
-      {/* 3. Dialog Xem chi tiết hóa đơn - Đã trang trí lại */}
       <Dialog
         open={openDetail}
         onClose={() => setOpenDetail(false)}
@@ -765,6 +823,6 @@ export default function Invoices() {
           </>
         )}
       </Dialog>
-    </div>
+    </>
   );
 }

@@ -1,4 +1,7 @@
 import "../styles/AdminDashboard.css";
+import StatCard from "../components/StatCard";
+import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
+import PedalBikeIcon from "@mui/icons-material/PedalBike";
 import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
@@ -353,8 +356,53 @@ export default function Vehicles() {
     );
   }, [paginationModel.pageSize]);
 
+  // Statistics Logic
+  const stats = useMemo(() => {
+    const total = vehicles.length;
+    const cars = vehicles.filter((v) => v.loai_xe === "Ô tô").length;
+    const motorbikes = vehicles.filter((v) => v.loai_xe === "Xe máy").length;
+    const others = total - cars - motorbikes;
+    return { total, cars, motorbikes, others };
+  }, [vehicles]);
+
   return (
     <>
+      {/* Stat Cards Row */}
+      <div
+        className="stats-grid"
+        style={{
+          marginBottom: "20px",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "20px",
+        }}
+      >
+        <StatCard
+          title="Tổng Phương tiện"
+          value={stats.total}
+          icon={<DirectionsCarIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-blue)"
+        />
+        <StatCard
+          title="Ô tô"
+          value={stats.cars}
+          icon={<DirectionsCarIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-green)"
+        />
+        <StatCard
+          title="Xe máy"
+          value={stats.motorbikes}
+          icon={<TwoWheelerIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-yellow)"
+        />
+        <StatCard
+          title="Xe đạp/Khác"
+          value={stats.others}
+          icon={<PedalBikeIcon sx={{ fontSize: 50 }} />}
+          colorBackground="var(--background-red)"
+        />
+      </div>
+
       <div className="dashboard-grid">
         <Box
           sx={{
@@ -363,44 +411,21 @@ export default function Vehicles() {
             alignItems: "center",
             padding: "16px",
             backgroundColor: "white",
-            borderRadius: "12px",
+            borderRadius: "12px 12px 0 0",
             border: "1px solid #e0e0e0",
-            marginBottom: "16px",
           }}
         >
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            {" "}
+            {/* Adjusted gap */}
             <TextField
               variant="outlined"
               size="small"
               placeholder="Tìm theo biển số, căn hộ..."
-              sx={{ width: 300 }}
+              sx={{ width: 600 }}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
-
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Loại xe</InputLabel>
-              <Select
-                label="Loại xe"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                <MenuItem value="all">Tất cả</MenuItem>
-                <MenuItem value="Ô tô">Ô tô</MenuItem>
-                <MenuItem value="Xe máy">Xe máy</MenuItem>
-                <MenuItem value="Xe đạp">Xe đạp</MenuItem>
-                <MenuItem value="Khác">Khác</MenuItem>
-              </Select>
-            </FormControl>
-
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<FilterListIcon />}
-              sx={{ width: 125, height: 40 }}
-            >
-              Bộ lọc
-            </Button>
           </Box>
           <Button
             variant="contained"
@@ -409,6 +434,7 @@ export default function Vehicles() {
               backgroundColor: "var(--blue)",
               height: 40,
               marginLeft: "10px",
+              width: "150px",
             }}
             onClick={handleOpenCreate}
           >
@@ -420,10 +446,9 @@ export default function Vehicles() {
       <Paper
         sx={{
           height: containerHeight,
-          borderRadius: "12px",
+          borderRadius: "0 0 12px 12px",
           transition: "height 0.2s ease",
           overflow: "hidden",
-          marginTop: "16px",
         }}
       >
         <DataGrid
@@ -439,7 +464,7 @@ export default function Vehicles() {
           pageSizeOptions={[5, 10]}
           checkboxSelection
           sx={{
-            borderRadius: "12px",
+            borderRadius: "0 0 12px 12px",
             "& .MuiDataGrid-root": { height: "100%" },
           }}
         />
