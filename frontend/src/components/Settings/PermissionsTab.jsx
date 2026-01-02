@@ -334,7 +334,7 @@ export default function PermissionsTab() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenCreate}
-          sx={{ ml: "auto" }}
+          sx={{ ml: "auto" , width: '200px', height: '40px'}}
         >
           Thêm người dùng
         </Button>
