@@ -110,6 +110,12 @@ export const residentsService = {
     return response.data;
   },
 
+  // Cập nhật căn hộ
+  updateApartment: async (id, data) => {
+    const response = await axiosInstance.patch(`/apartments/${id}/`, data);
+    return response.data;
+  },
+
   // Xóa căn hộ
   deleteApartment: async (id) => {
     const response = await axiosInstance.delete(`/apartments/${id}/`);

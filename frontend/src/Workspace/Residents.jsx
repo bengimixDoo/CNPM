@@ -15,7 +15,7 @@ import FormHelperText from "@mui/material/FormHelperText";
 import Box from "@mui/material/Box";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import Dialog from "@mui/material/Dialog";
-import HomeIcon from '@mui/icons-material/Home';
+import HomeIcon from "@mui/icons-material/Home";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
@@ -204,14 +204,35 @@ export default function Residents() {
     }
   };
 
+  // Translation function for loai_bien_dong
+  const translateBienDong = (type) => {
+    const translations = {
+      MOVE_IN: "Chuyển đến",
+      MOVE_OUT: "Chuyển đi",
+      TEMP_STAY: "Tạm trú",
+      TEMP_LEAVE: "Tạm vắng",
+      PERMANENT: "Thường trú",
+      TT: "Tạm trú",
+      TV: "Tạm vắng",
+      TH: "Thường trú",
+      CD: "Chuyển đi",
+      CT: "Chuyển đến",
+    };
+    return translations[type] || type;
+  };
+
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
       console.log("Fetching history data...");
       const data = await residentsService.getHistory();
       console.log("History data received:", data);
-      // Sort by ngay_thuc_hien descending (mới nhất lên đầu)
-      const sorted = (data || []).sort(
+      // Translate loai_bien_dong to Vietnamese and sort by ngay_thuc_hien descending (mới nhất lên đầu)
+      const translated = (data || []).map((item) => ({
+        ...item,
+        loai_bien_dong: translateBienDong(item.loai_bien_dong),
+      }));
+      const sorted = translated.sort(
         (a, b) => new Date(b.ngay_thuc_hien) - new Date(a.ngay_thuc_hien)
       );
       console.log("Sorted history:", sorted.length, "records");
@@ -770,8 +791,9 @@ export default function Residents() {
                   const colors = {
                     "Thường trú": { bg: "#e8f5e9", text: "#2e7d32" },
                     "Tạm trú": { bg: "#e3f2fd", text: "#1976d2" },
-                    "Tạm Vắng": { bg: "#fff3e0", text: "#f57c00" },
-                    "Chuyển Đi": { bg: "#ffebee", text: "#c62828" },
+                    "Tạm vắng": { bg: "#fff3e0", text: "#f57c00" },
+                    "Chuyển đi": { bg: "#ffebee", text: "#c62828" },
+                    "Chuyển đến": { bg: "#e1f5fe", text: "#0277bd" },
                   };
                   const color = colors[params.value] || {
                     bg: "#f5f5f5",

@@ -70,6 +70,7 @@ export default function Apartments() {
           email: "N/A",
           note: "",
           residentsList: (apt.danh_sach_cu_dan || []).map((r) => ({
+            id: r.ma_cu_dan, // Add resident ID for deletion
             name: r.ho_ten,
             dob: r.ngay_sinh
               ? new Date(r.ngay_sinh).toLocaleDateString("vi-VN")
@@ -128,6 +129,8 @@ export default function Apartments() {
   const [selected, setSelected] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const [editMode, setEditMode] = useState(false);
+  const [editedData, setEditedData] = useState(null);
 
   // State cho dialog thêm căn hộ
   const [openCreate, setOpenCreate] = useState(false);
@@ -138,6 +141,13 @@ export default function Apartments() {
     phong: "",
     dien_tich: "",
     trang_thai: "E",
+    // Thông tin cư dân khi trạng thái là "Đang thuê"
+    ma_cu_dan: "",
+    ten_chu_ho: "",
+    ngay_sinh: "",
+    so_dien_thoai: "",
+    email: "",
+    cccd: "",
   });
   const gridRef = useRef(null);
 
@@ -184,6 +194,8 @@ export default function Apartments() {
 
   const handleCloseDetail = () => {
     setOpenDetail(false);
+    setEditMode(false);
+    setEditedData(null);
   };
 
   const handleDeleteApartment = async () => {
@@ -208,7 +220,81 @@ export default function Apartments() {
   };
 
   const handleEditApartment = () => {
-    alert("Chức năng chỉnh sửa thông tin đang được phát triển");
+    if (editMode) {
+      // Save changes
+      handleSaveEdit();
+    } else {
+      // Enter edit mode
+      setEditMode(true);
+      setEditedData({
+        ...selected,
+        residentsList: selected.residentsList
+          ? [...selected.residentsList]
+          : [],
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editedData) return;
+
+    try {
+      // Update apartment info if needed
+      // Note: You may need to implement updateApartment in residentsService
+      await residentsService.updateApartment(editedData.id, {
+        ma_can_ho: editedData.id,
+        toa_nha: editedData.building,
+        tang: editedData.floor,
+        dien_tich: parseFloat(editedData.area),
+        trang_thai:
+          editedData.status === "Trống"
+            ? "E"
+            : editedData.status === "Đã bán"
+            ? "S"
+            : "H",
+      });
+
+      alert("Cập nhật thông tin thành công!");
+      setEditMode(false);
+      setEditedData(null);
+      fetchApartments();
+    } catch (error) {
+      console.error("Lỗi khi cập nhật căn hộ:", error);
+      alert(
+        error.response?.data?.detail || "Không thể cập nhật thông tin căn hộ."
+      );
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    setEditedData(null);
+  };
+
+  const handleDeleteResident = async (resident) => {
+    if (resident.la_chu_ho) {
+      alert(
+        "Không thể xóa chủ hộ. Vui lòng chuyển quyền chủ hộ trước khi xóa."
+      );
+      return;
+    }
+
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${resident.name}?`)) {
+      return;
+    }
+
+    try {
+      // Use resident ID to delete
+      await residentsService.deleteResident(resident.id);
+      alert("Xóa cư dân thành công!");
+      fetchApartments();
+      // Also close edit mode and refresh
+      setEditMode(false);
+      setEditedData(null);
+    } catch (error) {
+      console.error("Lỗi khi xóa cư dân:", error);
+      alert(error.response?.data?.detail || "Không thể xóa cư dân.");
+    }
   };
 
   const handleAddResident = () => {
@@ -228,6 +314,12 @@ export default function Apartments() {
       phong: "",
       dien_tich: "",
       trang_thai: "E",
+      ma_cu_dan: "",
+      ten_chu_ho: "",
+      ngay_sinh: "",
+      so_dien_thoai: "",
+      email: "",
+      cccd: "",
     });
   };
 
@@ -526,89 +618,185 @@ export default function Apartments() {
                     gap: 2,
                   }}
                 >
-                  {[
-                    {
-                      label: "Chủ hộ",
-                      value: selected.owner,
-                      icon: <PersonIcon sx={{ fontSize: 20 }} />,
-                      color: "#3b82f6",
-                    },
-                    {
-                      label: "Số điện thoại",
-                      value: selected.phone,
-                      icon: <PhoneIcon sx={{ fontSize: 20 }} />,
-                      color: "#10b981",
-                    },
-                    {
-                      label: "Email",
-                      value: selected.email,
-                      icon: <EmailIcon sx={{ fontSize: 20 }} />,
-                      color: "#6366f1",
-                    },
-                    {
-                      label: "Diện tích",
-                      value: selected.area,
-                      icon: <SquareFootIcon sx={{ fontSize: 20 }} />,
-                      color: "#f59e0b",
-                    },
-                    {
-                      label: "Vị trí",
-                      value: `Tòa ${selected.building} - Tầng ${selected.floor}`,
-                      icon: <BusinessIcon sx={{ fontSize: 20 }} />,
-                      color: "#ec4899",
-                    },
-                    {
-                      label: "Ghi chú",
-                      value: selected.note,
-                      icon: <DescriptionIcon sx={{ fontSize: 20 }} />,
-                      color: "#64748b",
-                    },
-                  ].map((item, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        backgroundColor: "white",
-                        p: 2,
-                        borderRadius: "12px",
-                        border: "1px solid #f1f5f9",
-                        transition: "all 0.2s",
-                        "&:hover": {
-                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-                          transform: "translateY(-2px)",
-                        },
-                      }}
-                    >
+                  {editMode && editedData ? (
+                    // Edit mode - show form fields
+                    <>
                       <Box
                         sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mb: 0.5,
+                          backgroundColor: "white",
+                          p: 2,
+                          borderRadius: "12px",
+                          border: "1px solid #f1f5f9",
                         }}
                       >
-                        <Box sx={{ color: item.color, display: "flex" }}>
-                          {item.icon}
-                        </Box>
-                        <Typography
-                          variant="caption"
+                        <TextField
+                          fullWidth
+                          label="Tòa nhà"
+                          value={editedData.building}
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              building: e.target.value,
+                            })
+                          }
+                          size="small"
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          backgroundColor: "white",
+                          p: 2,
+                          borderRadius: "12px",
+                          border: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          label="Tầng"
+                          value={editedData.floor}
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              floor: e.target.value,
+                            })
+                          }
+                          size="small"
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          backgroundColor: "white",
+                          p: 2,
+                          borderRadius: "12px",
+                          border: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          label="Diện tích (m²)"
+                          value={editedData.area}
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              area: e.target.value,
+                            })
+                          }
+                          size="small"
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          backgroundColor: "white",
+                          p: 2,
+                          borderRadius: "12px",
+                          border: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Trạng thái</InputLabel>
+                          <Select
+                            value={editedData.status}
+                            onChange={(e) =>
+                              setEditedData({
+                                ...editedData,
+                                status: e.target.value,
+                              })
+                            }
+                            label="Trạng thái"
+                          >
+                            <MenuItem value="Trống">Trống</MenuItem>
+                            <MenuItem value="Đã bán">Đã bán</MenuItem>
+                            <MenuItem value="Đang thuê">Đang thuê</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </>
+                  ) : (
+                    // View mode - show static info
+                    [
+                      {
+                        label: "Chủ hộ",
+                        value: selected.owner,
+                        icon: <PersonIcon sx={{ fontSize: 20 }} />,
+                        color: "#3b82f6",
+                      },
+                      {
+                        label: "Số điện thoại",
+                        value: selected.phone,
+                        icon: <PhoneIcon sx={{ fontSize: 20 }} />,
+                        color: "#10b981",
+                      },
+                      {
+                        label: "Email",
+                        value: selected.email,
+                        icon: <EmailIcon sx={{ fontSize: 20 }} />,
+                        color: "#6366f1",
+                      },
+                      {
+                        label: "Diện tích",
+                        value: selected.area,
+                        icon: <SquareFootIcon sx={{ fontSize: 20 }} />,
+                        color: "#f59e0b",
+                      },
+                      {
+                        label: "Vị trí",
+                        value: `Tòa ${selected.building} - Tầng ${selected.floor}`,
+                        icon: <BusinessIcon sx={{ fontSize: 20 }} />,
+                        color: "#ec4899",
+                      },
+                      {
+                        label: "Ghi chú",
+                        value: selected.note,
+                        icon: <DescriptionIcon sx={{ fontSize: 20 }} />,
+                        color: "#64748b",
+                      },
+                    ].map((item, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          backgroundColor: "white",
+                          p: 2,
+                          borderRadius: "12px",
+                          border: "1px solid #f1f5f9",
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+                            transform: "translateY(-2px)",
+                          },
+                        }}
+                      >
+                        <Box
                           sx={{
-                            fontWeight: 600,
-                            color: "#64748b",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.025em",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 0.5,
                           }}
                         >
-                          {item.label}
+                          <Box sx={{ color: item.color, display: "flex" }}>
+                            {item.icon}
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 600,
+                              color: "#64748b",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.025em",
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, color: "#1e293b", pl: 3.5 }}
+                        >
+                          {item.value}
                         </Typography>
                       </Box>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: 600, color: "#1e293b", pl: 3.5 }}
-                      >
-                        {item.value}
-                      </Typography>
-                    </Box>
-                  ))}
+                    ))
+                  )}
                 </Box>
               </Box>
 
@@ -663,7 +851,9 @@ export default function Apartments() {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr",
+                      gridTemplateColumns: editMode
+                        ? "2fr 1.5fr 1.5fr 1.5fr 0.5fr"
+                        : "2fr 1.5fr 1.5fr 1.5fr",
                       backgroundColor: "#f8fafc",
                       borderBottom: "2px solid #f1f5f9",
                       p: 2,
@@ -678,6 +868,7 @@ export default function Apartments() {
                     <Box>Ngày sinh</Box>
                     <Box>Quan hệ</Box>
                     <Box>Số điện thoại</Box>
+                    {editMode && <Box>Thao tác</Box>}
                   </Box>
                   {selected.residentsList &&
                   selected.residentsList.length > 0 ? (
@@ -686,7 +877,9 @@ export default function Apartments() {
                         key={idx}
                         sx={{
                           display: "grid",
-                          gridTemplateColumns: "2fr 1.5fr 1.5fr 1.5fr",
+                          gridTemplateColumns: editMode
+                            ? "2fr 1.5fr 1.5fr 1.5fr 0.5fr"
+                            : "2fr 1.5fr 1.5fr 1.5fr",
                           p: 2,
                           borderBottom:
                             idx < selected.residentsList.length - 1
@@ -745,6 +938,24 @@ export default function Apartments() {
                           </Typography>
                         </Box>
                         <Box color="#64748b">{resident.phone}</Box>
+                        {editMode && (
+                          <Box
+                            sx={{ display: "flex", justifyContent: "center" }}
+                          >
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteResident(resident)}
+                              sx={{
+                                color: "#ef4444",
+                                "&:hover": {
+                                  backgroundColor: "#fef2f2",
+                                },
+                              }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Box>
+                        )}
                       </Box>
                     ))
                   ) : (
@@ -767,46 +978,88 @@ export default function Apartments() {
                 backgroundColor: "#ffffff",
               }}
             >
-              <Button
-                onClick={handleDeleteApartment}
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                sx={{
-                  borderRadius: "10px",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1,
-                  width: "150px",
-                  "&:hover": { backgroundColor: "#fef2f2" },
-                }}
-              >
-                Xóa căn hộ
-              </Button>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Button
-                  onClick={handleEditApartment}
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  sx={{
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    width: "150px",
-                    px: 3,
-                    py: 1,
-                    backgroundColor: "var(--blue)",
-                    boxShadow: "0 4px 14px rgba(0, 119, 255, 0.3)",
-                    "&:hover": {
-                      backgroundColor: "#0066dd",
-                      boxShadow: "0 6px 20px rgba(0, 119, 255, 0.4)",
-                    },
-                  }}
-                >
-                  Chỉnh sửa
-                </Button>
-              </Box>
+              {!editMode ? (
+                <>
+                  <Button
+                    onClick={handleDeleteApartment}
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    sx={{
+                      borderRadius: "10px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      width: "150px",
+                      "&:hover": { backgroundColor: "#fef2f2" },
+                    }}
+                  >
+                    Xóa căn hộ
+                  </Button>
+                  <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button
+                      onClick={handleEditApartment}
+                      variant="contained"
+                      startIcon={<EditIcon />}
+                      sx={{
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        width: "150px",
+                        px: 3,
+                        py: 1,
+                        backgroundColor: "var(--blue)",
+                        boxShadow: "0 4px 14px rgba(0, 119, 255, 0.3)",
+                        "&:hover": {
+                          backgroundColor: "#0066dd",
+                          boxShadow: "0 6px 20px rgba(0, 119, 255, 0.4)",
+                        },
+                      }}
+                    >
+                      Chỉnh sửa
+                    </Button>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleCancelEdit}
+                    variant="outlined"
+                    sx={{
+                      borderRadius: "10px",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      width: "150px",
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button
+                      onClick={handleSaveEdit}
+                      variant="contained"
+                      color="success"
+                      sx={{
+                        borderRadius: "10px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        width: "150px",
+                        px: 3,
+                        py: 1,
+                        boxShadow: "0 4px 14px rgba(34, 197, 94, 0.3)",
+                        "&:hover": {
+                          boxShadow: "0 6px 20px rgba(34, 197, 94, 0.4)",
+                        },
+                      }}
+                    >
+                      Lưu
+                    </Button>
+                  </Box>
+                </>
+              )}
             </DialogActions>
           </>
         )}
@@ -989,6 +1242,137 @@ export default function Apartments() {
                 <MenuItem value="H">Đang thuê</MenuItem>
               </Select>
             </FormControl>
+
+            {/* Hiển thị form thông tin cư dân khi trạng thái là "Đang thuê" */}
+            {newApartment.trang_thai === "H" && (
+              <Box
+                sx={{
+                  p: 2.5,
+                  backgroundColor: "#f8fafc",
+                  borderRadius: "12px",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    mb: 2,
+                    fontWeight: 600,
+                    color: "#334155",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <PersonIcon fontSize="small" />
+                  Thông tin cư dân (Chủ hộ)
+                </Typography>
+
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <TextField
+                    fullWidth
+                    label="Mã cư dân"
+                    placeholder="VD: CD001"
+                    value={newApartment.ma_cu_dan}
+                    onChange={(e) =>
+                      setNewApartment({
+                        ...newApartment,
+                        ma_cu_dan: e.target.value,
+                      })
+                    }
+                    InputProps={{
+                      sx: { borderRadius: "10px", backgroundColor: "white" },
+                    }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label="Tên chủ hộ"
+                    placeholder="VD: Nguyễn Văn A"
+                    value={newApartment.ten_chu_ho}
+                    onChange={(e) =>
+                      setNewApartment({
+                        ...newApartment,
+                        ten_chu_ho: e.target.value,
+                      })
+                    }
+                    InputProps={{
+                      sx: { borderRadius: "10px", backgroundColor: "white" },
+                    }}
+                  />
+
+                  <Box display="flex" gap={2}>
+                    <TextField
+                      fullWidth
+                      label="Ngày sinh"
+                      type="date"
+                      value={newApartment.ngay_sinh}
+                      onChange={(e) =>
+                        setNewApartment({
+                          ...newApartment,
+                          ngay_sinh: e.target.value,
+                        })
+                      }
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        sx: { borderRadius: "10px", backgroundColor: "white" },
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="CCCD"
+                      placeholder="VD: 001234567890"
+                      value={newApartment.cccd}
+                      onChange={(e) =>
+                        setNewApartment({
+                          ...newApartment,
+                          cccd: e.target.value,
+                        })
+                      }
+                      InputProps={{
+                        sx: { borderRadius: "10px", backgroundColor: "white" },
+                      }}
+                    />
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <TextField
+                      fullWidth
+                      label="Số điện thoại"
+                      placeholder="VD: 0912345678"
+                      value={newApartment.so_dien_thoai}
+                      onChange={(e) =>
+                        setNewApartment({
+                          ...newApartment,
+                          so_dien_thoai: e.target.value,
+                        })
+                      }
+                      InputProps={{
+                        sx: { borderRadius: "10px", backgroundColor: "white" },
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      placeholder="VD: example@email.com"
+                      value={newApartment.email}
+                      onChange={(e) =>
+                        setNewApartment({
+                          ...newApartment,
+                          email: e.target.value,
+                        })
+                      }
+                      InputProps={{
+                        sx: { borderRadius: "10px", backgroundColor: "white" },
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            )}
           </Box>
         </DialogContent>
 
