@@ -19,10 +19,6 @@ export default function LoginPage() {
     try {
       // 1. Dùng service cũ để gọi API (An toàn nhất)
       const res = await authService.login(username, password);
-      
-      // 2. LOGIC QUAN TRỌNG: Kiểm tra và Lưu Token đúng cách
-      // Backend Django thường trả về { access: "...", refresh: "..." }
-      // Hoặc đôi khi trả về { token: "..." }
       const accessToken = res.access || res.token || res.data?.access || res.data?.token;
 
       if (accessToken) {
