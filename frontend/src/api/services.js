@@ -247,6 +247,13 @@ export const financeService = {
     return response.data;
   },
 
+  // Tạo hóa đơn cho khoản thu với lựa chọn căn hộ
+  generateInvoicesForFee: async (data) => {
+    // data: { ma_phi, thang, nam, apartment_ids: [1,2,3] hoặc "all" }
+    const response = await axiosInstance.post("/invoices/generate/", data);
+    return response.data;
+  },
+
   // Xác nhận thanh toán
   confirmPayment: async (id) => {
     const response = await axiosInstance.post(

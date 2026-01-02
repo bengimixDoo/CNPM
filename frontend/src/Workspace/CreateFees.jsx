@@ -26,6 +26,12 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import HandshakeIcon from "@mui/icons-material/Handshake";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import RadioGroup from "@mui/material/RadioGroup";
+import Radio from "@mui/material/Radio";
+import Chip from "@mui/material/Chip";
+import { residentsService } from "../api/services";
 
 const defaultPaginationModel = { page: 0, pageSize: 5 };
 
@@ -169,6 +175,15 @@ export default function CreateFees() {
     }
   };
 
+  const fetchApartments = async () => {
+    try {
+      const data = await residentsService.getApartments();
+      setApartments(data.results || data || []);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách căn hộ:", error);
+    }
+  };
+
   const fetchContributions = async () => {
     setLoadingContrib(true);
     try {
@@ -209,6 +224,7 @@ export default function CreateFees() {
   useEffect(() => {
     fetchFees();
     fetchContributions();
+    fetchApartments();
   }, []);
 
   const [openCreate, setOpenCreate] = useState(false);
@@ -220,6 +236,12 @@ export default function CreateFees() {
     don_vi_tinh: "",
     loai_phi: "",
   });
+  const [apartments, setApartments] = useState([]);
+  const [sendInvoice, setSendInvoice] = useState(false);
+  const [invoiceMonth, setInvoiceMonth] = useState(new Date().getMonth() + 1);
+  const [invoiceYear, setInvoiceYear] = useState(new Date().getFullYear());
+  const [apartmentSelection, setApartmentSelection] = useState("all"); // "all" hoặc "selected"
+  const [selectedApartments, setSelectedApartments] = useState([]);
   const [formContrib, setFormContrib] = useState({
     ten_dot: "",
     ngay_bat_dau: "",
@@ -554,6 +576,128 @@ export default function CreateFees() {
                 setForm((f) => ({ ...f, loai_phi: e.target.value }))
               }
             />
+
+            {/* Checkbox gửi hóa đơn */}
+            {!editing && (
+              <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e5e7eb" }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={sendInvoice}
+                      onChange={(e) => setSendInvoice(e.target.checked)}
+                    />
+                  }
+                  label="Gửi hóa đơn ngay sau khi tạo khoản thu"
+                />
+
+                {sendInvoice && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      ml: 4,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                    }}
+                  >
+                    {/* Chọn tháng/năm */}
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      <TextField
+                        label="Tháng"
+                        type="number"
+                        inputProps={{ min: 1, max: 12 }}
+                        value={invoiceMonth}
+                        onChange={(e) =>
+                          setInvoiceMonth(parseInt(e.target.value))
+                        }
+                        sx={{ width: 100 }}
+                      />
+                      <TextField
+                        label="Năm"
+                        type="number"
+                        value={invoiceYear}
+                        onChange={(e) =>
+                          setInvoiceYear(parseInt(e.target.value))
+                        }
+                        sx={{ width: 120 }}
+                      />
+                    </Box>
+
+                    {/* Chọn căn hộ */}
+                    <FormControl component="fieldset">
+                      <RadioGroup
+                        value={apartmentSelection}
+                        onChange={(e) => {
+                          setApartmentSelection(e.target.value);
+                          if (e.target.value === "all") {
+                            setSelectedApartments([]);
+                          }
+                        }}
+                      >
+                        <FormControlLabel
+                          value="all"
+                          control={<Radio />}
+                          label="Gửi đến tất cả căn hộ"
+                        />
+                        <FormControlLabel
+                          value="selected"
+                          control={<Radio />}
+                          label="Chọn căn hộ cụ thể"
+                        />
+                      </RadioGroup>
+                    </FormControl>
+
+                    {/* Danh sách căn hộ khi chọn "selected" */}
+                    {apartmentSelection === "selected" && (
+                      <Box
+                        sx={{
+                          maxHeight: 200,
+                          overflowY: "auto",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: 1,
+                          p: 1,
+                        }}
+                      >
+                        {apartments.map((apt) => (
+                          <FormControlLabel
+                            key={apt.ma_can_ho}
+                            control={
+                              <Checkbox
+                                checked={selectedApartments.includes(
+                                  apt.ma_can_ho
+                                )}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedApartments([
+                                      ...selectedApartments,
+                                      apt.ma_can_ho,
+                                    ]);
+                                  } else {
+                                    setSelectedApartments(
+                                      selectedApartments.filter(
+                                        (id) => id !== apt.ma_can_ho
+                                      )
+                                    );
+                                  }
+                                }}
+                              />
+                            }
+                            label={`${apt.toa_nha}-${apt.tang}-${apt.so_phong} (${apt.trang_thai})`}
+                          />
+                        ))}
+                      </Box>
+                    )}
+
+                    {apartmentSelection === "selected" &&
+                      selectedApartments.length > 0 && (
+                        <Typography variant="caption" color="primary">
+                          Đã chọn {selectedApartments.length} căn hộ
+                        </Typography>
+                      )}
+                  </Box>
+                )}
+              </Box>
+            )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
@@ -561,6 +705,9 @@ export default function CreateFees() {
             onClick={() => {
               setOpenCreate(false);
               setEditing(null);
+              setSendInvoice(false);
+              setApartmentSelection("all");
+              setSelectedApartments([]);
             }}
             variant="outlined"
           >
@@ -572,21 +719,65 @@ export default function CreateFees() {
                 alert("Vui lòng nhập đủ Tên loại phí, Đơn giá và Đơn vị tính.");
                 return;
               }
+
+              // Validate nếu chọn gửi hóa đơn cho specific apartments
+              if (
+                sendInvoice &&
+                apartmentSelection === "selected" &&
+                selectedApartments.length === 0
+              ) {
+                alert("Vui lòng chọn ít nhất một căn hộ để gửi hóa đơn.");
+                return;
+              }
+
               const payload = {
                 ten_phi: form.ten_phi,
                 don_gia: parseFloat(form.don_gia) || 0,
                 don_vi_tinh: form.don_vi_tinh,
                 loai_phi: form.loai_phi,
               };
+
               try {
+                let createdFee;
                 if (editing) {
                   await financeService.updateFeeCategory(
                     editing.ma_phi,
                     payload
                   );
                 } else {
-                  await financeService.createFeeCategory(payload);
+                  createdFee = await financeService.createFeeCategory(payload);
+
+                  // Nếu chọn gửi hóa đơn, tạo hóa đơn hàng loạt
+                  if (sendInvoice && createdFee) {
+                    const invoicePayload = {
+                      ma_phi: createdFee.ma_phi,
+                      thang: invoiceMonth,
+                      nam: invoiceYear,
+                      apartment_ids:
+                        apartmentSelection === "all"
+                          ? "all"
+                          : selectedApartments,
+                    };
+
+                    try {
+                      const result =
+                        await financeService.generateInvoicesForFee(
+                          invoicePayload
+                        );
+                      alert(
+                        `Đã tạo khoản thu và ${result.created} hóa đơn cho ${result.total_apartments} căn hộ!`
+                      );
+                    } catch (invoiceError) {
+                      console.error("Lỗi khi tạo hóa đơn:", invoiceError);
+                      alert(
+                        "Đã tạo khoản thu nhưng gặp lỗi khi tạo hóa đơn. Vui lòng tạo hóa đơn thủ công."
+                      );
+                    }
+                  } else {
+                    alert("Tạo khoản thu thành công!");
+                  }
                 }
+
                 setOpenCreate(false);
                 setEditing(null);
                 setForm({
@@ -595,6 +786,9 @@ export default function CreateFees() {
                   don_vi_tinh: "",
                   loai_phi: "",
                 });
+                setSendInvoice(false);
+                setApartmentSelection("all");
+                setSelectedApartments([]);
                 await fetchFees();
               } catch (e) {
                 console.error("Lưu loại phí thất bại:", e);
@@ -806,8 +1000,7 @@ export default function CreateFees() {
                   ten_dot: formContrib.ten_dot,
                   ngay_bat_dau: formContrib.ngay_bat_dau,
                   ngay_ket_thuc: formContrib.ngay_ket_thuc,
-                  so_tien_du_kien:
-                    parseFloat(formContrib.so_tien_du_kien) || 0,
+                  so_tien_du_kien: parseFloat(formContrib.so_tien_du_kien) || 0,
                 };
                 await financeService.createContribution(payload);
                 setOpenCreateContrib(false);

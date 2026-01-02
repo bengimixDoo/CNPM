@@ -62,12 +62,95 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='generate')
     def generate_invoices(self, request):
-        # Chỉ Manager/Accountant được tạo hóa đơn
+        """
+        Tạo hóa đơn hàng loạt cho khoản thu.
+        Input: {
+            "ma_phi": 1,
+            "thang": 12,
+            "nam": 2025,
+            "apartment_ids": [1, 2, 3] hoặc "all"
+        }
+        """
         if request.user.role not in ['QUAN_LY', 'KE_TOAN', 'ADMIN']:
              return Response({"error": "Bạn không có quyền thực hiện thao tác này."}, status=status.HTTP_403_FORBIDDEN)
-             
-        # Logic tạo hóa đơn hàng loạt (Placeholder)
-        return Response({"message": "Invoices generated successfully"}, status=status.HTTP_201_CREATED)
+        
+        ma_phi = request.data.get('ma_phi')
+        thang = request.data.get('thang')
+        nam = request.data.get('nam')
+        apartment_selection = request.data.get('apartment_ids', 'all')
+        
+        if not ma_phi or not thang or not nam:
+            return Response({"error": "Thiếu thông tin ma_phi, thang, hoặc nam."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            fee = DanhMucPhi.objects.get(ma_phi=ma_phi)
+        except DanhMucPhi.DoesNotExist:
+            return Response({"error": "Khoản phí không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Lấy danh sách căn hộ
+        from residents.models import CanHo
+        if apartment_selection == 'all':
+            apartments = CanHo.objects.exclude(trang_thai='E')  # Tất cả trừ Empty
+        else:
+            apartments = CanHo.objects.filter(ma_can_ho__in=apartment_selection)
+        
+        created_count = 0
+        for apt in apartments:
+            # Kiểm tra xem đã có hóa đơn cho căn hộ này trong kỳ này chưa
+            existing = HoaDon.objects.filter(
+                can_ho=apt,
+                thang=thang,
+                nam=nam
+            ).first()
+            
+            if existing:
+                # Nếu đã có, thêm chi tiết vào hóa đơn hiện tại
+                chi_tiet, created = ChiTietHoaDon.objects.get_or_create(
+                    hoa_don=existing,
+                    loai_phi=fee,
+                    defaults={
+                        'ten_phi_snapshot': fee.ten_phi,
+                        'so_luong': 1,
+                        'dong_gia_snapshot': fee.don_gia,
+                        'thanh_tien': fee.don_gia
+                    }
+                )
+                if not created:
+                    # Nếu chi tiết đã tồn tại, cập nhật số lượng
+                    chi_tiet.so_luong += 1
+                    chi_tiet.thanh_tien = chi_tiet.so_luong * chi_tiet.dong_gia_snapshot
+                    chi_tiet.save()
+                
+                # Cập nhật tổng tiền hóa đơn
+                existing.tong_tien = sum(ct.thanh_tien for ct in existing.chi_tiet.all())
+                existing.save()
+            else:
+                # Tạo hóa đơn mới
+                invoice = HoaDon.objects.create(
+                    can_ho=apt,
+                    thang=thang,
+                    nam=nam,
+                    tong_tien=fee.don_gia,
+                    trang_thai=0  # Chưa thanh toán
+                )
+                
+                # Tạo chi tiết hóa đơn
+                ChiTietHoaDon.objects.create(
+                    hoa_don=invoice,
+                    loai_phi=fee,
+                    ten_phi_snapshot=fee.ten_phi,
+                    so_luong=1,
+                    dong_gia_snapshot=fee.don_gia,
+                    thanh_tien=fee.don_gia
+                )
+                
+                created_count += 1
+        
+        return Response({
+            "message": f"Đã tạo {created_count} hóa đơn mới cho {len(apartments)} căn hộ.",
+            "created": created_count,
+            "total_apartments": len(apartments)
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'], url_path='confirm-payment')
     def confirm_payment(self, request, pk=None):
