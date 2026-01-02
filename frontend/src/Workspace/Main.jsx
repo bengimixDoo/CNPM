@@ -8,6 +8,9 @@ import BuildIcon from "@mui/icons-material/Build";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useState, useEffect } from "react";
 import { residentsService, utilitiesService } from "../api/services";
+import { Select, MenuItem } from "@mui/material"; 
+import axios from "axios";
+const API_BASE = "http://localhost:8000/api";
 export default function Main() {
   const [stats, setStats] = useState({
     apartments: 0,
@@ -41,6 +44,23 @@ export default function Main() {
       console.error("Lỗi khi tải dữ liệu dashboard:", error);
     } finally {
       setLoading(false);
+    }
+  };
+  // --- THÊM HÀM NÀY ĐỂ XỬ LÝ ĐỔI TRẠNG THÁI ---
+  const handleUpdateStatus = async (ticketId, newStatus) => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      await axios.patch(
+        `${API_BASE}/v1/support-tickets/${ticketId}/`,
+        { trang_thai: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Load lại dữ liệu sau khi sửa xong
+      fetchDashboardData();
+      alert("Cập nhật trạng thái thành công!");
+    } catch (error) {
+      console.error("Lỗi cập nhật:", error);
+      alert("Không thể cập nhật trạng thái.");
     }
   };
 
@@ -205,11 +225,27 @@ export default function Main() {
                           <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.tieu_de}
                           </td>
+                          {/* --- TÌM CỘT TRẠNG THÁI CŨ VÀ THAY BẰNG ĐOẠN NÀY --- */}
                           <td>
-                            <span className={`status-badge ${status.class}`}>
-                              <span className={`dot ${status.dot}`}></span>
-                              {status.label}
-                            </span>
+                            <Select
+                              size="small"
+                              value={item.trang_thai}
+                              onChange={(e) => handleUpdateStatus(item.ma_yeu_cau, e.target.value)}
+                              sx={{
+                                height: 30,
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                borderRadius: "8px",
+                                bgcolor: item.trang_thai === 'A' ? '#ecfdf5' : item.trang_thai === 'W' ? '#fffbeb' : '#eff6ff',
+                                color: item.trang_thai === 'A' ? '#059669' : item.trang_thai === 'W' ? '#d97706' : '#1d4ed8',
+                                "& fieldset": { border: "none" }
+                              }}
+                            >
+                              <MenuItem value="W">Chờ xử lý</MenuItem>
+                              <MenuItem value="P">Đang xử lý</MenuItem>
+                              <MenuItem value="A">Đã xử lý</MenuItem>
+                              <MenuItem value="C">Đã hủy</MenuItem>
+                            </Select>
                           </td>
                           <td style={{ textAlign: "right" }}>
                             {new Date(item.ngay_gui).toLocaleDateString('vi-VN')}

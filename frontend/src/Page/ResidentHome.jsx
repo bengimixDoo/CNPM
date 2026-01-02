@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   authService,
   residentsService,
@@ -30,6 +31,7 @@ import {
   MenuItem,
   Stack,
   alpha,
+  LinearProgress,
 } from "@mui/material";
 import {
   Apartment,
@@ -61,7 +63,7 @@ import {
   LocationOn,
   Star,
 } from "@mui/icons-material";
-
+const API_BASE = "http://localhost:8000/api";
 export default function ResidentHome() {
   const navigate = useNavigate();
 
@@ -112,6 +114,17 @@ export default function ResidentHome() {
   const [openRequest, setOpenRequest] = useState(false);
   const [openAddPerson, setOpenAddPerson] = useState(false);
   const [openPayment, setOpenPayment] = useState(false);
+  const [requestForm, setRequestForm] = useState({
+    title: "",
+    type: "SC",
+    content: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [utilityReadings, setUtilityReadings] = useState({
+    electric: { usage: 0, old: 0, new: 0 },
+    water: { usage: 0, old: 0, new: 0 },
+  });
+
 
   // Data States
   const [user, setUser] = useState({});
@@ -129,38 +142,38 @@ export default function ResidentHome() {
   });
 
   // --- FETCH DATA EFFECT ---
+  // --- FETCH DATA EFFECT (ĐÃ SỬA) ---
   useEffect(() => {
     const fetchData = async () => {
+      // 1. KHAI BÁO BIẾN Ở ĐẦU ĐỂ DÙNG CHUNG
+      const token = localStorage.getItem("auth_token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      let apartmentId = null;
+
       try {
-        // Lấy thông tin cư dân đăng nhập
         const me = await authService.getMe();
         console.log("User info:", me);
         setUser(me);
 
-        let apartmentId = me.cu_dan?.can_ho_dang_o || me.ma_can_ho;
-
-        // Nếu chưa có apartmentId nhưng có cu_dan_id, fetch thông tin cư dân để lấy căn hộ
+        // Lấy ID căn hộ
+        apartmentId = me.cu_dan?.can_ho_dang_o || me.ma_can_ho;
         if (!apartmentId && me.cu_dan_id) {
           try {
-            const residentInfo = await residentsService.getResidentDetail(
-              me.cu_dan_id
-            );
-            console.log("Resident detail:", residentInfo);
+            const residentInfo = await residentsService.getResidentDetail(me.cu_dan_id);
             apartmentId = residentInfo.can_ho_dang_o || residentInfo.ma_can_ho;
-          } catch (e) {
-            console.error("Lỗi khi lấy thông tin cư dân:", e);
-          }
+          } catch (e) {}
         }
 
         if (!apartmentId) {
-          console.warn("Không tìm thấy ID căn hộ cho cư dân");
+          console.warn("Không tìm thấy ID căn hộ");
           return;
         }
 
-        // 1. Lấy thông tin căn hộ
+        // --- GỌI CÁC API KHÁC ---
+
+        // 1. Căn hộ
         try {
           const apt = await residentsService.getApartmentDetail(apartmentId);
-          console.log("Apartment info:", apt);
           setAptInfo((prev) => ({
             ...prev,
             building: apt.toa_nha || "A",
@@ -169,85 +182,137 @@ export default function ResidentHome() {
             area: apt.dien_tich || 0,
             bedrooms: apt.so_phong_ngu || 0,
           }));
-        } catch (e) {
-          console.error("Lỗi khi lấy thông tin căn hộ:", e);
-          setAptInfo((prev) => ({ ...prev, room: apartmentId }));
-        }
+        } catch (e) {}
 
-        // 2. Lấy danh sách cư dân ở căn hộ
+        // 2. Cư dân
         try {
           const resResponse = await residentsService.getResidents();
-          const allRes = Array.isArray(resResponse)
-            ? resResponse
-            : resResponse.results || [];
-          // Lọc cư dân theo căn hộ (backend đã tự động filter cho CU_DAN role)
-          const myRes = allRes.filter((r) => {
-            const rAptId = r.can_ho_dang_o || r.ma_can_ho || r.can_ho;
-            return rAptId === apartmentId || rAptId === me.ma_can_ho;
-          });
-          console.log("Residents in apartment:", myRes);
+          const allRes = Array.isArray(resResponse) ? resResponse : resResponse.results || [];
+          const myRes = allRes.filter((r) => r.can_ho_dang_o == apartmentId); // So sánh lỏng (==)
           setResidents(myRes);
-        } catch (e) {
-          console.error("Lỗi khi lấy danh sách cư dân:", e);
-        }
+        } catch (e) {}
 
-        // 3. Lấy danh sách phương tiện
+        // 3. Phương tiện
         try {
           const vehResponse = await utilitiesService.getVehicles();
-          const allVeh = Array.isArray(vehResponse)
-            ? vehResponse
-            : vehResponse.results || [];
-          const myVeh = allVeh.filter((v) => {
-            const vAptId = v.ma_can_ho || v.can_ho_dang_o || v.can_ho;
-            return vAptId === apartmentId || vAptId === me.ma_can_ho;
-          });
-          console.log("Vehicles in apartment:", myVeh);
+          const allVeh = Array.isArray(vehResponse) ? vehResponse : vehResponse.results || [];
+          const myVeh = allVeh.filter((v) => v.ma_can_ho == apartmentId);
           setVehicles(myVeh);
           setAptInfo((prev) => ({ ...prev, vehicles: myVeh.length }));
-        } catch (e) {
-          console.error("Lỗi khi lấy danh sách phương tiện:", e);
-        }
+        } catch (e) {}
 
-        // 4. Lấy hóa đơn chưa thanh toán
+        // 4. Hóa đơn
         try {
           const invResponse = await financeService.getInvoices();
-          const allInv = Array.isArray(invResponse)
-            ? invResponse
-            : invResponse.results || [];
+          const allInv = Array.isArray(invResponse) ? invResponse : invResponse.results || [];
           const myInvoices = allInv.filter((i) => {
-            // Lọc theo căn hộ (backend đã tự động filter cho CU_DAN role)
-            const belong =
-              i.can_ho === apartmentId ||
-              i.ma_can_ho === apartmentId ||
-              i.can_ho === me.ma_can_ho ||
-              i.ma_can_ho === me.ma_can_ho;
-            const unpaid =
-              i.trang_thai === 0 ||
-              i.trang_thai === "Chưa thanh toán" ||
-              i.trang_thai === false;
+            const belong = i.can_ho == apartmentId || i.ma_can_ho == apartmentId;
+            const unpaid = !i.trang_thai || i.trang_thai === 0 || i.trang_thai === "Chưa thanh toán";
             return belong && unpaid;
           });
-          console.log("Unpaid invoices:", myInvoices);
           if (myInvoices.length > 0) {
-            myInvoices.sort((a, b) => b.nam - a.nam || b.thang - a.thang);
+            myInvoices.sort((a, b) => b.id - a.id);
             setUnpaidInvoice(myInvoices[0]);
-          } else {
-            setUnpaidInvoice(null);
           }
-        } catch (e) {
-          console.error("Lỗi khi lấy hóa đơn:", e);
-        }
+        } catch (e) {}
+
+        // 5. CHỈ SỐ ĐIỆN NƯỚC (Đã có biến config và apartmentId)
+        try {
+          const utilsRes = await axios.get(`${API_BASE}/v1/readings/`, config);
+          const allReadings = Array.isArray(utilsRes.data) ? utilsRes.data : utilsRes.data.results || [];
+          
+          // Lọc theo căn hộ
+          const myReadings = allReadings.filter(r => r.can_ho == apartmentId || r.ma_can_ho == apartmentId);
+          
+          // Lấy điện mới nhất
+          const electric = myReadings
+            .filter(r => ['E', 'DIEN', 'ELECTRIC'].includes((r.loai_dich_vu + "").toUpperCase()))
+            .sort((a,b) => b.id - a.id)[0];
+
+          // Lấy nước mới nhất
+          const water = myReadings
+            .filter(r => ['W', 'NUOC', 'WATER'].includes((r.loai_dich_vu + "").toUpperCase()))
+            .sort((a,b) => b.id - a.id)[0];
+
+          setUtilityReadings({
+            electric: electric ? { 
+              usage: electric.chi_so_moi - electric.chi_so_cu, 
+              old: electric.chi_so_cu, 
+              new: electric.chi_so_moi 
+            } : { usage: 0, old: 0, new: 0 },
+            water: water ? { 
+              usage: water.chi_so_moi - water.chi_so_cu, 
+              old: water.chi_so_cu, 
+              new: water.chi_so_moi 
+            } : { usage: 0, old: 0, new: 0 },
+          });
+        } catch (e) { console.error("Lỗi điện nước:", e); }
+
       } catch (err) {
-        console.error("Lỗi khi lấy thông tin cư dân:", err);
+        console.error(err);
+        if (err.response?.status === 401) {
+            // Token hết hạn thì logout
+            localStorage.removeItem("auth_token");
+            navigate("/");
+        }
       }
     };
     fetchData();
   }, []);
 
   // --- HANDLERS ---
-  const handleSendRequest = () => {
-    alert("Yêu cầu đã gửi! (Giả lập)");
-    setOpenRequest(false);
+  // --- Thay thế hàm handleSendRequest cũ bằng hàm này ---
+  const handleSendRequest = async () => {
+    if (!requestForm.title || !requestForm.content) {
+      alert("Vui lòng nhập tiêu đề và nội dung!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      
+      const payload = {
+        tieu_de: requestForm.title,
+        noi_dung: requestForm.content,
+        loai_yeu_cau: requestForm.type,
+      };
+
+      // Gọi API
+      await axios.post(
+        "http://localhost:8000/api/v1/support-tickets/", 
+        payload, 
+        config
+      );
+      
+      alert("Gửi yêu cầu thành công!");
+      setOpenRequest(false);
+      setRequestForm({ title: "", type: "SC", content: "" }); 
+
+    } catch (error) {
+      console.error("Lỗi gửi yêu cầu:", error);
+
+      // --- ĐOẠN CODE FIX LỖI TOKEN ---
+      if (error.response && error.response.data && error.response.data.code === "token_not_valid") {
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
+        
+        // 1. Xóa token hỏng
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("user_info");
+
+        // 2. Chuyển hướng về trang Login
+        navigate("/login"); 
+        return; 
+      }
+      // -----------------------------
+
+      const serverMsg = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      alert(`Gửi thất bại! Lỗi: ${serverMsg}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   const handleAddResident = () => {
     alert("Đã gửi hồ sơ! (Giả lập)");
@@ -981,6 +1046,8 @@ export default function ResidentHome() {
                     )}`,
                   }}
                 >
+                  
+                  
                   <Box sx={{ position: "relative", zIndex: 1 }}>
                     <Box
                       sx={{
@@ -1088,8 +1155,38 @@ export default function ResidentHome() {
                     Bạn không có hóa đơn nào cần thanh toán.
                   </Typography>
                 </Card>
+                
               )}
-
+              {/*CARD ĐIỆN NƯỚC*/}
+              <Card sx={{ ...STYLES.card, p: 3 }}>
+                <Typography variant="subtitle2" fontWeight={700} textTransform="uppercase" mb={2} color={COLORS.textDark}>Tiêu thụ tháng này</Typography>
+                <Stack spacing={3}>
+                  <Box>
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Box display="flex" gap={1} alignItems="center"><Bolt sx={{ color: "#f59e0b" }} /><Typography fontWeight={600}>Điện</Typography></Box>
+                      <Typography fontWeight={700} sx={{ color: "#f59e0b" }}>{utilityReadings?.electric?.usage || 0} kWh</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={Math.min(utilityReadings?.electric?.usage || 0, 100)} sx={{ height: 8, borderRadius: 5, bgcolor: "#fff7ed", "& .MuiLinearProgress-bar": { bgcolor: "#f59e0b" } }} />
+                    <Box display="flex" justifyContent="space-between" mt={0.5}>
+                      <Typography variant="caption" color="textSecondary">Cũ: {utilityReadings?.electric?.old || 0}</Typography>
+                      <Typography variant="caption" color="textSecondary">Mới: {utilityReadings?.electric?.new || 0}</Typography>
+                    </Box>
+                  </Box>
+                  <Divider />
+                  <Box>
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Box display="flex" gap={1} alignItems="center"><WaterDrop sx={{ color: "#3b82f6" }} /><Typography fontWeight={600}>Nước</Typography></Box>
+                      <Typography fontWeight={700} sx={{ color: "#3b82f6" }}>{utilityReadings?.water?.usage || 0} m³</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={Math.min((utilityReadings?.water?.usage || 0) * 2, 100)} sx={{ height: 8, borderRadius: 5, bgcolor: "#eff6ff", "& .MuiLinearProgress-bar": { bgcolor: "#3b82f6" } }} />
+                    <Box display="flex" justifyContent="space-between" mt={0.5}>
+                      <Typography variant="caption" color="textSecondary">Cũ: {utilityReadings?.water?.old || 0}</Typography>
+                      <Typography variant="caption" color="textSecondary">Mới: {utilityReadings?.water?.new || 0}</Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+              </Card>
+              
               {/* History */}
               <Card sx={{ ...STYLES.card, overflow: "hidden" }}>
                 <Box
@@ -1356,13 +1453,16 @@ export default function ResidentHome() {
             label="Tiêu đề"
             margin="normal"
             placeholder="VD: Sửa bóng đèn hành lang"
+            value={requestForm.title}
+            onChange={(e) => setRequestForm({ ...requestForm, title: e.target.value })}
           />
           <TextField
             fullWidth
             select
             label="Loại yêu cầu"
             margin="normal"
-            defaultValue="SC"
+            value={requestForm.type}
+            onChange={(e) => setRequestForm({ ...requestForm, type: e.target.value })}
           >
             <MenuItem value="SC">Sửa chữa / Kỹ thuật</MenuItem>
             <MenuItem value="VS">Vệ sinh</MenuItem>
@@ -1374,12 +1474,15 @@ export default function ResidentHome() {
             rows={4}
             label="Nội dung chi tiết"
             margin="normal"
+            value={requestForm.content}
+            onChange={(e) => setRequestForm({ ...requestForm, content: e.target.value })}
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setOpenRequest(false)}>Hủy</Button>
-          <Button variant="contained" onClick={handleSendRequest}>
-            Gửi yêu cầu
+          {/* THÊM disabled={isSubmitting} ĐỂ CHẶN BẤM NHIỀU LẦN */}
+          <Button variant="contained" onClick={handleSendRequest} disabled={isSubmitting}>
+            {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
           </Button>
         </DialogActions>
       </Dialog>

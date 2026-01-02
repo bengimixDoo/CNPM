@@ -29,8 +29,26 @@ class FeeCategoryViewSet(viewsets.ModelViewSet):
 class UtilityReadingViewSet(viewsets.ModelViewSet):
     queryset = ChiSoDienNuoc.objects.all()
     serializer_class = FinanceChiSoDienNuocSerializer
-    permission_classes = [IsManager | IsAccountant]
+    # 1. Đổi quyền: Cho phép mọi user đã đăng nhập
+    permission_classes = [IsAuthenticated]
 
+    # 2. Thêm hàm lọc dữ liệu (Để Cư dân chỉ thấy nhà mình)
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        # Nếu là Cư dân -> Chỉ lấy chỉ số của căn hộ mình đang ở
+        if user.role == 'CU_DAN' and hasattr(user, 'cu_dan'):
+            can_ho = user.cu_dan.can_ho_dang_o
+            if can_ho:
+                return queryset.filter(can_ho=can_ho)
+            return queryset.none() # Không có căn hộ thì không thấy gì
+        
+        # Nếu là Quản lý/Kế toán/Admin -> Thấy hết
+        if user.role in ['QUAN_LY', 'KE_TOAN', 'ADMIN']:
+            return queryset
+            
+        return queryset.none()
 @extend_schema(tags=['Finance - Invoices'])
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = HoaDon.objects.all()
@@ -49,13 +67,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.none()
         elif user.role not in ['QUAN_LY', 'KE_TOAN', 'ADMIN']:
-             queryset = queryset.none()
+            queryset = queryset.none()
 
         # Filter params
         status_param = self.request.query_params.get('status')
         month = self.request.query_params.get('month')
         if status_param is not None:
-             queryset = queryset.filter(trang_thai=status_param)
+            queryset = queryset.filter(trang_thai=status_param)
         if month:
             queryset = queryset.filter(thang=month)
         return queryset
@@ -72,7 +90,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         }
         """
         if request.user.role not in ['QUAN_LY', 'KE_TOAN', 'ADMIN']:
-             return Response({"error": "Bạn không có quyền thực hiện thao tác này."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Bạn không có quyền thực hiện thao tác này."}, status=status.HTTP_403_FORBIDDEN)
         
         ma_phi = request.data.get('ma_phi')
         thang = request.data.get('thang')
@@ -161,12 +179,12 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         """
         invoice = self.get_object()
         if invoice.trang_thai == 1:
-             return Response({"message": "Hóa đơn này đã được thanh toán trước đó."}, status=status.HTTP_200_OK)
+            return Response({"message": "Hóa đơn này đã được thanh toán trước đó."}, status=status.HTTP_200_OK)
         
         # Nếu là cư dân, kiểm tra xem có phải hóa đơn của mình không (đã filter ở get_queryset nhưng check lại cho chắc)
         if request.user.role == 'CU_DAN':
-             if not hasattr(request.user, 'cu_dan') or invoice.can_ho != request.user.cu_dan.can_ho_dang_o:
-                 return Response({"error": "Bạn không có quyền xác nhận hóa đơn này."}, status=status.HTTP_403_FORBIDDEN)
+            if not hasattr(request.user, 'cu_dan') or invoice.can_ho != request.user.cu_dan.can_ho_dang_o:
+                return Response({"error": "Bạn không có quyền xác nhận hóa đơn này."}, status=status.HTTP_403_FORBIDDEN)
 
         invoice.trang_thai = 1 # Đã thanh toán
         invoice.ngay_thanh_toan = timezone.now()
