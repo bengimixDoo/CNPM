@@ -17,7 +17,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Thêm thông tin vào response body
         data['role'] = self.user.role
-        data['cu_dan_id'] = self.user.cu_dan.id if self.user.cu_dan else None
+        data['cu_dan_id'] = self.user.cu_dan.pk if self.user.cu_dan else None
         data['username'] = self.user.username
 
         return data
@@ -25,7 +25,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 # --- 2. User Serializers ---
 class UserSerializer(serializers.ModelSerializer):
     """Dùng cho GET /users/me/ và List Users"""
-    cu_dan_id = serializers.IntegerField(source='cu_dan.id', read_only=True)
+    cu_dan_id = serializers.IntegerField(source='cu_dan.pk', read_only=True)
 
     class Meta:
         model = User
