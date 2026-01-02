@@ -517,6 +517,7 @@ export default function CreateFees() {
                 color: (theme) => theme.palette.grey[900],
                 backgroundColor: "#f1f5f9",
               },
+              width: 40,
             }}
           >
             <CloseIcon />
@@ -845,7 +846,7 @@ export default function CreateFees() {
               sx={{
                 width: 44,
                 height: 44,
-                borderRadius: "12px",
+                borderRadius: "12px", 
                 backgroundColor: "var(--blue)",
                 display: "flex",
                 alignItems: "center",
