@@ -114,17 +114,25 @@ export default function ResidentHome() {
   const [openRequest, setOpenRequest] = useState(false);
   const [openAddPerson, setOpenAddPerson] = useState(false);
   const [openPayment, setOpenPayment] = useState(false);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [openProfileMenu, setOpenProfileMenu] = useState(false);
+  const [openSettings, setOpenSettings] = useState(false);
   const [requestForm, setRequestForm] = useState({
     title: "",
     type: "SC",
-    content: ""
+    content: "",
   });
+  const [passwords, setPasswords] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [utilityReadings, setUtilityReadings] = useState({
     electric: { usage: 0, old: 0, new: 0 },
     water: { usage: 0, old: 0, new: 0 },
   });
-
 
   // Data States
   const [user, setUser] = useState({});
@@ -159,7 +167,9 @@ export default function ResidentHome() {
         apartmentId = me.cu_dan?.can_ho_dang_o || me.ma_can_ho;
         if (!apartmentId && me.cu_dan_id) {
           try {
-            const residentInfo = await residentsService.getResidentDetail(me.cu_dan_id);
+            const residentInfo = await residentsService.getResidentDetail(
+              me.cu_dan_id
+            );
             apartmentId = residentInfo.can_ho_dang_o || residentInfo.ma_can_ho;
           } catch (e) {}
         }
@@ -187,7 +197,9 @@ export default function ResidentHome() {
         // 2. Cư dân
         try {
           const resResponse = await residentsService.getResidents();
-          const allRes = Array.isArray(resResponse) ? resResponse : resResponse.results || [];
+          const allRes = Array.isArray(resResponse)
+            ? resResponse
+            : resResponse.results || [];
           const myRes = allRes.filter((r) => r.can_ho_dang_o == apartmentId); // So sánh lỏng (==)
           setResidents(myRes);
         } catch (e) {}
@@ -195,7 +207,9 @@ export default function ResidentHome() {
         // 3. Phương tiện
         try {
           const vehResponse = await utilitiesService.getVehicles();
-          const allVeh = Array.isArray(vehResponse) ? vehResponse : vehResponse.results || [];
+          const allVeh = Array.isArray(vehResponse)
+            ? vehResponse
+            : vehResponse.results || [];
           const myVeh = allVeh.filter((v) => v.ma_can_ho == apartmentId);
           setVehicles(myVeh);
           setAptInfo((prev) => ({ ...prev, vehicles: myVeh.length }));
@@ -204,10 +218,16 @@ export default function ResidentHome() {
         // 4. Hóa đơn
         try {
           const invResponse = await financeService.getInvoices();
-          const allInv = Array.isArray(invResponse) ? invResponse : invResponse.results || [];
+          const allInv = Array.isArray(invResponse)
+            ? invResponse
+            : invResponse.results || [];
           const myInvoices = allInv.filter((i) => {
-            const belong = i.can_ho == apartmentId || i.ma_can_ho == apartmentId;
-            const unpaid = !i.trang_thai || i.trang_thai === 0 || i.trang_thai === "Chưa thanh toán";
+            const belong =
+              i.can_ho == apartmentId || i.ma_can_ho == apartmentId;
+            const unpaid =
+              !i.trang_thai ||
+              i.trang_thai === 0 ||
+              i.trang_thai === "Chưa thanh toán";
             return belong && unpaid;
           });
           if (myInvoices.length > 0) {
@@ -219,41 +239,58 @@ export default function ResidentHome() {
         // 5. CHỈ SỐ ĐIỆN NƯỚC (Đã có biến config và apartmentId)
         try {
           const utilsRes = await axios.get(`${API_BASE}/v1/readings/`, config);
-          const allReadings = Array.isArray(utilsRes.data) ? utilsRes.data : utilsRes.data.results || [];
-          
+          const allReadings = Array.isArray(utilsRes.data)
+            ? utilsRes.data
+            : utilsRes.data.results || [];
+
           // Lọc theo căn hộ
-          const myReadings = allReadings.filter(r => r.can_ho == apartmentId || r.ma_can_ho == apartmentId);
-          
+          const myReadings = allReadings.filter(
+            (r) => r.can_ho == apartmentId || r.ma_can_ho == apartmentId
+          );
+
           // Lấy điện mới nhất
           const electric = myReadings
-            .filter(r => ['E', 'DIEN', 'ELECTRIC'].includes((r.loai_dich_vu + "").toUpperCase()))
-            .sort((a,b) => b.id - a.id)[0];
+            .filter((r) =>
+              ["E", "DIEN", "ELECTRIC"].includes(
+                (r.loai_dich_vu + "").toUpperCase()
+              )
+            )
+            .sort((a, b) => b.id - a.id)[0];
 
           // Lấy nước mới nhất
           const water = myReadings
-            .filter(r => ['W', 'NUOC', 'WATER'].includes((r.loai_dich_vu + "").toUpperCase()))
-            .sort((a,b) => b.id - a.id)[0];
+            .filter((r) =>
+              ["W", "NUOC", "WATER"].includes(
+                (r.loai_dich_vu + "").toUpperCase()
+              )
+            )
+            .sort((a, b) => b.id - a.id)[0];
 
           setUtilityReadings({
-            electric: electric ? { 
-              usage: electric.chi_so_moi - electric.chi_so_cu, 
-              old: electric.chi_so_cu, 
-              new: electric.chi_so_moi 
-            } : { usage: 0, old: 0, new: 0 },
-            water: water ? { 
-              usage: water.chi_so_moi - water.chi_so_cu, 
-              old: water.chi_so_cu, 
-              new: water.chi_so_moi 
-            } : { usage: 0, old: 0, new: 0 },
+            electric: electric
+              ? {
+                  usage: electric.chi_so_moi - electric.chi_so_cu,
+                  old: electric.chi_so_cu,
+                  new: electric.chi_so_moi,
+                }
+              : { usage: 0, old: 0, new: 0 },
+            water: water
+              ? {
+                  usage: water.chi_so_moi - water.chi_so_cu,
+                  old: water.chi_so_cu,
+                  new: water.chi_so_moi,
+                }
+              : { usage: 0, old: 0, new: 0 },
           });
-        } catch (e) { console.error("Lỗi điện nước:", e); }
-
+        } catch (e) {
+          console.error("Lỗi điện nước:", e);
+        }
       } catch (err) {
         console.error(err);
         if (err.response?.status === 401) {
-            // Token hết hạn thì logout
-            localStorage.removeItem("auth_token");
-            navigate("/");
+          // Token hết hạn thì logout
+          localStorage.removeItem("auth_token");
+          navigate("/");
         }
       }
     };
@@ -272,7 +309,7 @@ export default function ResidentHome() {
     try {
       const token = localStorage.getItem("auth_token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      
+
       const payload = {
         tieu_de: requestForm.title,
         noi_dung: requestForm.content,
@@ -281,34 +318,39 @@ export default function ResidentHome() {
 
       // Gọi API
       await axios.post(
-        "http://localhost:8000/api/v1/support-tickets/", 
-        payload, 
+        "http://localhost:8000/api/v1/support-tickets/",
+        payload,
         config
       );
-      
+
       alert("Gửi yêu cầu thành công!");
       setOpenRequest(false);
-      setRequestForm({ title: "", type: "SC", content: "" }); 
-
+      setRequestForm({ title: "", type: "SC", content: "" });
     } catch (error) {
       console.error("Lỗi gửi yêu cầu:", error);
 
       // --- ĐOẠN CODE FIX LỖI TOKEN ---
-      if (error.response && error.response.data && error.response.data.code === "token_not_valid") {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.code === "token_not_valid"
+      ) {
         alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
-        
+
         // 1. Xóa token hỏng
         localStorage.removeItem("auth_token");
         localStorage.removeItem("currentUser");
         localStorage.removeItem("user_info");
 
         // 2. Chuyển hướng về trang Login
-        navigate("/login"); 
-        return; 
+        navigate("/login");
+        return;
       }
       // -----------------------------
 
-      const serverMsg = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      const serverMsg = error.response?.data
+        ? JSON.stringify(error.response.data)
+        : error.message;
       alert(`Gửi thất bại! Lỗi: ${serverMsg}`);
     } finally {
       setIsSubmitting(false);
@@ -334,6 +376,41 @@ export default function ResidentHome() {
       }
     } catch (e) {
       alert("Lỗi thanh toán: " + (e.response?.data?.detail || e.message));
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwords.current || !passwords.next || !passwords.confirm) {
+      alert("Vui lòng điền đầy đủ thông tin!");
+      return;
+    }
+    if (passwords.next !== passwords.confirm) {
+      alert("Mật khẩu mới không khớp!");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await authService.changePassword(passwords.current, passwords.next);
+      alert("Thay đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+      setOpenPasswordDialog(false);
+      setPasswords({ current: "", next: "", confirm: "" });
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("refresh_token");
+      navigate("/login");
+    } catch (error) {
+      alert("Lỗi: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Bạn chắc chắn muốn đăng xuất?")) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("user_info");
+      navigate("/login");
     }
   };
 
@@ -423,6 +500,7 @@ export default function ResidentHome() {
                 cursor: "pointer",
                 "&:hover": { bgcolor: alpha("#fff", 0.8) },
               }}
+              onClick={() => setOpenProfileMenu(!openProfileMenu)}
             >
               <Avatar
                 sx={{ width: 36, height: 36 }}
@@ -453,6 +531,62 @@ export default function ResidentHome() {
                 }}
               />
             </Box>
+
+            {/* Profile Dropdown Menu */}
+            {openProfileMenu && (
+              <Paper
+                sx={{
+                  position: "absolute",
+                  top: 70,
+                  right: 20,
+                  zIndex: 1000,
+                  minWidth: 200,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+                }}
+              >
+                <Box sx={{ p: 0 }}>
+                  <Button
+                    fullWidth
+                    sx={{
+                      justifyContent: "flex-start",
+                      px: 2,
+                      py: 1.2,
+                      color: COLORS.textDark,
+                      textTransform: "none",
+                      fontSize: 14,
+                      fontWeight: 500,
+                      "&:hover": { bgcolor: COLORS.bgLight },
+                    }}
+                    onClick={() => {
+                      setOpenPasswordDialog(true);
+                      setOpenProfileMenu(false);
+                    }}
+                  >
+                    🔐 Thay đổi mật khẩu
+                  </Button>
+                  <Divider />
+                  <Button
+                    fullWidth
+                    sx={{
+                      justifyContent: "flex-start",
+                      px: 2,
+                      py: 1.2,
+                      color: COLORS.error,
+                      textTransform: "none",
+                      fontSize: 14,
+                      fontWeight: 500,
+                      "&:hover": { bgcolor: alpha(COLORS.error, 0.1) },
+                    }}
+                    onClick={() => {
+                      setOpenProfileMenu(false);
+                      handleLogout();
+                    }}
+                  >
+                    🚪 Đăng xuất
+                  </Button>
+                </Box>
+              </Paper>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
@@ -532,7 +666,7 @@ export default function ResidentHome() {
             <Button
               variant="outlined"
               startIcon={<Settings />}
-              onClick={() => navigate("/resident/settings")}
+              onClick={() => setOpenSettings(true)}
               sx={{
                 fontWeight: 700,
                 textTransform: "none",
@@ -1046,8 +1180,6 @@ export default function ResidentHome() {
                     )}`,
                   }}
                 >
-                  
-                  
                   <Box sx={{ position: "relative", zIndex: 1 }}>
                     <Box
                       sx={{
@@ -1155,38 +1287,87 @@ export default function ResidentHome() {
                     Bạn không có hóa đơn nào cần thanh toán.
                   </Typography>
                 </Card>
-                
               )}
               {/*CARD ĐIỆN NƯỚC*/}
               <Card sx={{ ...STYLES.card, p: 3 }}>
-                <Typography variant="subtitle2" fontWeight={700} textTransform="uppercase" mb={2} color={COLORS.textDark}>Tiêu thụ tháng này</Typography>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={700}
+                  textTransform="uppercase"
+                  mb={2}
+                  color={COLORS.textDark}
+                >
+                  Tiêu thụ tháng này
+                </Typography>
                 <Stack spacing={3}>
                   <Box>
                     <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Box display="flex" gap={1} alignItems="center"><Bolt sx={{ color: "#f59e0b" }} /><Typography fontWeight={600}>Điện</Typography></Box>
-                      <Typography fontWeight={700} sx={{ color: "#f59e0b" }}>{utilityReadings?.electric?.usage || 0} kWh</Typography>
+                      <Box display="flex" gap={1} alignItems="center">
+                        <Bolt sx={{ color: "#f59e0b" }} />
+                        <Typography fontWeight={600}>Điện</Typography>
+                      </Box>
+                      <Typography fontWeight={700} sx={{ color: "#f59e0b" }}>
+                        {utilityReadings?.electric?.usage || 0} kWh
+                      </Typography>
                     </Box>
-                    <LinearProgress variant="determinate" value={Math.min(utilityReadings?.electric?.usage || 0, 100)} sx={{ height: 8, borderRadius: 5, bgcolor: "#fff7ed", "& .MuiLinearProgress-bar": { bgcolor: "#f59e0b" } }} />
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(
+                        utilityReadings?.electric?.usage || 0,
+                        100
+                      )}
+                      sx={{
+                        height: 8,
+                        borderRadius: 5,
+                        bgcolor: "#fff7ed",
+                        "& .MuiLinearProgress-bar": { bgcolor: "#f59e0b" },
+                      }}
+                    />
                     <Box display="flex" justifyContent="space-between" mt={0.5}>
-                      <Typography variant="caption" color="textSecondary">Cũ: {utilityReadings?.electric?.old || 0}</Typography>
-                      <Typography variant="caption" color="textSecondary">Mới: {utilityReadings?.electric?.new || 0}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Cũ: {utilityReadings?.electric?.old || 0}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Mới: {utilityReadings?.electric?.new || 0}
+                      </Typography>
                     </Box>
                   </Box>
                   <Divider />
                   <Box>
                     <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Box display="flex" gap={1} alignItems="center"><WaterDrop sx={{ color: "#3b82f6" }} /><Typography fontWeight={600}>Nước</Typography></Box>
-                      <Typography fontWeight={700} sx={{ color: "#3b82f6" }}>{utilityReadings?.water?.usage || 0} m³</Typography>
+                      <Box display="flex" gap={1} alignItems="center">
+                        <WaterDrop sx={{ color: "#3b82f6" }} />
+                        <Typography fontWeight={600}>Nước</Typography>
+                      </Box>
+                      <Typography fontWeight={700} sx={{ color: "#3b82f6" }}>
+                        {utilityReadings?.water?.usage || 0} m³
+                      </Typography>
                     </Box>
-                    <LinearProgress variant="determinate" value={Math.min((utilityReadings?.water?.usage || 0) * 2, 100)} sx={{ height: 8, borderRadius: 5, bgcolor: "#eff6ff", "& .MuiLinearProgress-bar": { bgcolor: "#3b82f6" } }} />
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(
+                        (utilityReadings?.water?.usage || 0) * 2,
+                        100
+                      )}
+                      sx={{
+                        height: 8,
+                        borderRadius: 5,
+                        bgcolor: "#eff6ff",
+                        "& .MuiLinearProgress-bar": { bgcolor: "#3b82f6" },
+                      }}
+                    />
                     <Box display="flex" justifyContent="space-between" mt={0.5}>
-                      <Typography variant="caption" color="textSecondary">Cũ: {utilityReadings?.water?.old || 0}</Typography>
-                      <Typography variant="caption" color="textSecondary">Mới: {utilityReadings?.water?.new || 0}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Cũ: {utilityReadings?.water?.old || 0}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Mới: {utilityReadings?.water?.new || 0}
+                      </Typography>
                     </Box>
                   </Box>
                 </Stack>
               </Card>
-              
+
               {/* History */}
               <Card sx={{ ...STYLES.card, overflow: "hidden" }}>
                 <Box
@@ -1454,7 +1635,9 @@ export default function ResidentHome() {
             margin="normal"
             placeholder="VD: Sửa bóng đèn hành lang"
             value={requestForm.title}
-            onChange={(e) => setRequestForm({ ...requestForm, title: e.target.value })}
+            onChange={(e) =>
+              setRequestForm({ ...requestForm, title: e.target.value })
+            }
           />
           <TextField
             fullWidth
@@ -1462,7 +1645,9 @@ export default function ResidentHome() {
             label="Loại yêu cầu"
             margin="normal"
             value={requestForm.type}
-            onChange={(e) => setRequestForm({ ...requestForm, type: e.target.value })}
+            onChange={(e) =>
+              setRequestForm({ ...requestForm, type: e.target.value })
+            }
           >
             <MenuItem value="SC">Sửa chữa / Kỹ thuật</MenuItem>
             <MenuItem value="VS">Vệ sinh</MenuItem>
@@ -1475,13 +1660,19 @@ export default function ResidentHome() {
             label="Nội dung chi tiết"
             margin="normal"
             value={requestForm.content}
-            onChange={(e) => setRequestForm({ ...requestForm, content: e.target.value })}
+            onChange={(e) =>
+              setRequestForm({ ...requestForm, content: e.target.value })
+            }
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setOpenRequest(false)}>Hủy</Button>
           {/* THÊM disabled={isSubmitting} ĐỂ CHẶN BẤM NHIỀU LẦN */}
-          <Button variant="contained" onClick={handleSendRequest} disabled={isSubmitting}>
+          <Button
+            variant="contained"
+            onClick={handleSendRequest}
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
           </Button>
         </DialogActions>
@@ -1502,6 +1693,126 @@ export default function ResidentHome() {
           <Button onClick={() => setOpenAddPerson(false)}>Hủy</Button>
           <Button variant="contained" onClick={handleAddResident}>
             Đăng ký
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog
+        open={openSettings}
+        onClose={() => setOpenSettings(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ textAlign: "center", fontWeight: 700 }}>
+          ⚙️ Cài Đặt
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 3 }}>
+          <Stack spacing={2}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                border: `1px solid ${alpha(COLORS.primary, 0.2)}`,
+                bgcolor: alpha(COLORS.primary, 0.05),
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  bgcolor: alpha(COLORS.primary, 0.1),
+                  borderColor: COLORS.primary,
+                },
+              }}
+              onClick={() => {
+                setOpenSettings(false);
+                setOpenPasswordDialog(true);
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 1.5,
+                    bgcolor: alpha(COLORS.primary, 0.15),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: COLORS.primary,
+                  }}
+                >
+                  🔐
+                </Box>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: COLORS.textDark }}
+                  >
+                    Thay Đổi Mật Khẩu
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: COLORS.textSecondary }}
+                  >
+                    Cập nhật mật khẩu tài khoản của bạn
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                border: `1px solid ${alpha(COLORS.error, 0.2)}`,
+                bgcolor: alpha(COLORS.error, 0.05),
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  bgcolor: alpha(COLORS.error, 0.1),
+                  borderColor: COLORS.error,
+                },
+              }}
+              onClick={() => {
+                setOpenSettings(false);
+                handleLogout();
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 1.5,
+                    bgcolor: alpha(COLORS.error, 0.15),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: COLORS.error,
+                  }}
+                >
+                  🚪
+                </Box>
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 700, color: COLORS.textDark }}
+                  >
+                    Đăng Xuất
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: COLORS.textSecondary }}
+                  >
+                    Thoát khỏi tài khoản hiện tại
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button variant="outlined" onClick={() => setOpenSettings(false)}>
+            Đóng
           </Button>
         </DialogActions>
       </Dialog>
@@ -1573,6 +1884,119 @@ export default function ResidentHome() {
           </Button>
           <Button variant="contained" color="success" onClick={handlePay}>
             Xác nhận đã thanh toán
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Password Change Dialog */}
+      <Dialog
+        open={openPasswordDialog}
+        onClose={() => setOpenPasswordDialog(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ textAlign: "center", fontWeight: 700 }}>
+          🔐 Thay Đổi Mật Khẩu
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 3 }}>
+          <Stack spacing={2.5}>
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  mb: 0.8,
+                  color: COLORS.textDark,
+                }}
+              >
+                Mật khẩu hiện tại
+              </Typography>
+              <TextField
+                fullWidth
+                type="password"
+                placeholder="Nhập mật khẩu hiện tại"
+                value={passwords.current}
+                onChange={(e) =>
+                  setPasswords({ ...passwords, current: e.target.value })
+                }
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  mb: 0.8,
+                  color: COLORS.textDark,
+                }}
+              >
+                Mật khẩu mới
+              </Typography>
+              <TextField
+                fullWidth
+                type="password"
+                placeholder="Nhập mật khẩu mới"
+                value={passwords.next}
+                onChange={(e) =>
+                  setPasswords({ ...passwords, next: e.target.value })
+                }
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  mb: 0.8,
+                  color: COLORS.textDark,
+                }}
+              >
+                Xác nhận mật khẩu
+              </Typography>
+              <TextField
+                fullWidth
+                type="password"
+                placeholder="Xác nhận mật khẩu mới"
+                value={passwords.confirm}
+                onChange={(e) =>
+                  setPasswords({ ...passwords, confirm: e.target.value })
+                }
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                color: COLORS.textSecondary,
+                fontStyle: "italic",
+              }}
+            >
+              ⚠️ Nên sử dụng mật khẩu mạnh để bảo vệ tài khoản
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setOpenPasswordDialog(false);
+              setPasswords({ current: "", next: "", confirm: "" });
+            }}
+          >
+            Hủy bỏ
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleChangePassword}
+            disabled={passwordLoading}
+          >
+            {passwordLoading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
           </Button>
         </DialogActions>
       </Dialog>

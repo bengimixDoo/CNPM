@@ -163,9 +163,13 @@ export const residentsService = {
     return response.data;
   },
 
-  // Move-out (chuyển đi)
-  moveOut: async (id) => {
-    const response = await axiosInstance.post(`/residents/${id}/move-out/`);
+  // Move-out (chuyển đi) - Tạo biến động "Chuyển đi"
+  createMoveOut: async (residentId, apartmentId) => {
+    const response = await axiosInstance.post("/history/", {
+      cu_dan: residentId,
+      can_ho: apartmentId,
+      loai_bien_dong: "OUT",
+    });
     return response.data;
   },
 
